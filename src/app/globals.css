@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-green: #009b4d;
+  --color-brand-green-dark: #007a3d;
+  --color-brand-green-light: #e3f5ea;
+  --color-brand-yellow: #ffcc00;
+  --color-brand-yellow-dark: #e0b400;
+  --color-brand-yellow-light: #fff6d6;
+  --color-brand-ivory: #faf5e9;
+}
+
+@layer base {
+  :root {
+    --background: 250 245 233;
+    --foreground: 38 40 34;
+    --card: 255 255 255;
+    --card-border: 30 30 20 / 0.08;
+    --primary: 0 155 77;
+    --primary-light: 0 179 89;
+    --accent: 255 204 0;
+    --muted: 110 112 98;
+    --success: 0 155 77;
+    --warning: 217 150 0;
+    --danger: 225 29 72;
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgb(240 235 222);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(210 202 180);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(185 175 148);
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 254, 250, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(30, 30, 20, 0.07);
+    box-shadow: 0 1px 3px rgba(30, 30, 20, 0.04), 0 8px 24px -8px rgba(30, 30, 20, 0.07);
+  }
+
+  .glass-hover {
+    transition: all 0.3s ease;
+  }
+
+  .glass-hover:hover {
+    background: rgba(255, 254, 250, 0.95);
+    border-color: rgba(30, 30, 20, 0.12);
+  }
+
+  .gradient-text {
+    background: linear-gradient(120deg, #009b4d, #4caf3d, #ffcc00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 155, 77, 0.4), rgba(255, 204, 0, 0.4));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px rgba(0, 155, 77, 0.1);
+    }
+    to {
+      box-shadow: 0 0 32px rgba(0, 155, 77, 0.22), 0 0 64px rgba(255, 204, 0, 0.1);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-hover {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+  }
+
+  .score-ring {
+    transition: stroke-dashoffset 1s ease-in-out;
+  }
+
+  /* Gradient backgrounds */
+  .bg-radial-purple {
+    background: radial-gradient(ellipse at 50% 0%, rgba(0, 155, 77, 0.1) 0%, transparent 70%);
+  }
+
+  .bg-hero-gradient {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0, 155, 77, 0.07) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(255, 204, 0, 0.09) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(0, 155, 77, 0.05) 0%, transparent 50%),
+      rgb(250, 245, 233);
+  }
+}
