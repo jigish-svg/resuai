@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
+import CookieConsentBanner from '@/components/layout/CookieConsentBanner';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -10,12 +11,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'ResumeAI — Evidence-Based Resume Tailoring',
+  title: 'GetJobFit.ai — Evidence-Based Resume Tailoring',
   description:
     'Match your resume to any job description with AI-powered evidence matching, Truth Guard verification, and ATS optimization. Never fabricate — only your real achievements, perfectly presented.',
   keywords: 'resume builder, AI resume, job matching, ATS optimization, resume tailoring',
   openGraph: {
-    title: 'ResumeAI — Evidence-Based Resume Tailoring',
+    title: 'GetJobFit.ai — Evidence-Based Resume Tailoring',
     description: 'Match your resume to any job with real evidence, not fabrication.',
     type: 'website',
   },
@@ -63,6 +64,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <CookieConsentBanner />
       </body>
     </html>
   );

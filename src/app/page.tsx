@@ -99,7 +99,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight">ResumeAI</span>
+            <span className="font-bold text-lg tracking-tight">GetJobFit.ai</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
@@ -389,9 +389,13 @@ export default function LandingPage() {
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
             </div>
-            <span>ResumeAI</span>
+            <span>GetJobFit.ai</span>
           </div>
-          <p>© 2026 ResumeAI. Built with evidence, not hallucination.</p>
+          <div className="flex items-center gap-6">
+            <p>© 2026 GetJobFit.ai. Built with evidence, not hallucination.</p>
+            <Link href="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-gray-900 transition-colors">Terms of Service</Link>
+          </div>
         </div>
       </footer>
     </div>

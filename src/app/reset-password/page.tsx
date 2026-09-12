@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-gray-900">ResumeAI</span>
+            <span className="font-bold text-xl text-gray-900">GetJobFit.ai</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2 text-gray-900">Set a new password</h1>
         </div>

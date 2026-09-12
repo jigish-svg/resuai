@@ -12,26 +12,35 @@ const WEIGHTS = {
   ats: 0.05,
 };
 
-// Status scores
+// Status scores. "no_evidence" stays at 0 — we never invent credit for
+// something a candidate genuinely doesn't have. "partial" (real, adjacent,
+// or transferable evidence) is worth meaningfully more than half credit,
+// since it reflects genuine relevant experience, not a coin flip.
 const STATUS_SCORES = {
   matched: 1.0,
-  partial: 0.5,
+  partial: 0.65,
   no_evidence: 0.0,
 };
 
-// Confidence multipliers
+// Confidence multipliers. Even "low confidence" evidence is still real
+// evidence the AI found a genuine connection for — it shouldn't be
+// punished as harshly as a flat 30% cut.
 const CONFIDENCE_MULTIPLIERS = {
   high: 1.0,
-  medium: 0.85,
-  low: 0.7,
+  medium: 0.9,
+  low: 0.8,
 };
 
-// Importance weights for averaging within category
+// Importance weights for averaging within category. A job description is a
+// wish list, not a pass/fail checklist — real hiring decisions hinge on
+// critical/high requirements far more than "nice to have" low-importance
+// ones, so gaps in low-importance items shouldn't drag the score down
+// nearly as much as gaps in what the role actually depends on.
 const IMPORTANCE_WEIGHTS = {
-  critical: 2.0,
+  critical: 2.2,
   high: 1.5,
-  medium: 1.0,
-  low: 0.5,
+  medium: 0.85,
+  low: 0.3,
 };
 
 interface ScoredItem {
@@ -129,10 +138,14 @@ export function calculateMatchScore(scoredItems: ScoredItem[], atsScore?: number
   };
 }
 
+// Calibrated against realistic hiring outcomes, not a literal "% of listed
+// requirements met" — almost no real applicant satisfies every line of a
+// job posting, and treating the posting as a strict checklist produces
+// scores that don't reflect who actually gets interviews.
 export function getMatchLabel(score: number): { label: string; color: string } {
-  if (score >= 85) return { label: 'Excellent Match', color: 'emerald' };
-  if (score >= 70) return { label: 'Strong Match', color: 'green' };
-  if (score >= 55) return { label: 'Good Match', color: 'yellow' };
-  if (score >= 40) return { label: 'Partial Match', color: 'orange' };
+  if (score >= 75) return { label: 'Excellent Match', color: 'emerald' };
+  if (score >= 60) return { label: 'Strong Match', color: 'green' };
+  if (score >= 45) return { label: 'Good Match', color: 'yellow' };
+  if (score >= 30) return { label: 'Partial Match', color: 'orange' };
   return { label: 'Weak Match', color: 'red' };
 }

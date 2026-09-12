@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import { LogOut, ChevronDown } from 'lucide-react';
+import { LogOut, ChevronDown, Settings } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 
@@ -53,6 +54,14 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
             <div className="px-4 py-3 border-b border-black/[0.06]">
               <p className="text-xs text-gray-500 truncate">{user.email}</p>
             </div>
+            <Link
+              href="/account/settings"
+              onClick={() => setMenuOpen(false)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-black/[0.03] transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Settings
+            </Link>
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-rose-600 hover:bg-rose-50 transition-colors"

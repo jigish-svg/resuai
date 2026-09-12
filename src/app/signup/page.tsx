@@ -44,7 +44,7 @@ export default function SignupPage() {
       if (data.user && !data.session) {
         toast.success('Check your email to confirm your account!', { duration: 6000 });
       } else {
-        toast.success('Account created! Welcome to ResumeAI!');
+        toast.success('Account created! Welcome to GetJobFit.ai!');
         router.push('/dashboard');
         router.refresh();
       }
@@ -71,7 +71,7 @@ export default function SignupPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-xl text-gray-900">ResumeAI</span>
+            <span className="font-bold text-xl text-gray-900">GetJobFit.ai</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2 text-gray-900">Create your account</h1>
           <p className="text-gray-600">Start matching your resume to jobs for free</p>
@@ -172,6 +172,18 @@ export default function SignupPage() {
             </button>
           </form>
         </div>
+
+        <p className="text-center mt-4 text-xs text-gray-500">
+          By creating an account, you agree to our{' '}
+          <Link href="/terms" className="text-brand-green hover:text-brand-green-dark underline">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="text-brand-green hover:text-brand-green-dark underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
 
         <p className="text-center mt-6 text-gray-600 text-sm">
           Already have an account?{' '}

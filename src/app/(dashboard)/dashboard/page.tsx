@@ -200,7 +200,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     {matchScore !== null && (
-                      <div className={`text-sm font-bold ${matchScore >= 75 ? 'text-brand-green' : matchScore >= 55 ? 'text-amber-600' : 'text-orange-600'}`}>
+                      <div className={`text-sm font-bold ${matchScore >= 60 ? 'text-brand-green' : matchScore >= 45 ? 'text-amber-600' : 'text-orange-600'}`}>
                         {matchScore}%
                       </div>
                     )}
