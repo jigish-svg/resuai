@@ -13,7 +13,6 @@ import {
   Zap,
   CheckCircle2,
   ArrowRight,
-  Star,
   TrendingUp,
   BookOpen,
   MessageCircleQuestion,
@@ -167,99 +166,99 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-40 pb-24 px-6 relative">
+      <section className="pt-40 pb-16 px-6 relative">
         {/* Background orbs */}
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-brand-green/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-40 right-1/4 w-80 h-80 bg-brand-yellow/15 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto text-center relative">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={0}
-            variants={fadeUp}
-            className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-brand-green mb-8 border border-brand-green/20"
-          >
-            <Star className="w-3.5 h-3.5 fill-brand-green text-brand-green" />
-            Evidence-based resume matching — not AI hallucination
-          </motion.div>
-
-          <motion.h1
-            initial="hidden"
-            animate="visible"
-            custom={0.1}
-            variants={fadeUp}
-            className="text-6xl md:text-7xl font-bold leading-[1.05] tracking-tight mb-6 text-gray-900"
-          >
-            Your best resume{' '}
-            <span className="gradient-text">for every job.</span>
-            <br />
-            Built on real evidence.
-          </motion.h1>
-
-          <motion.p
-            initial="hidden"
-            animate="visible"
-            custom={0.2}
-            variants={fadeUp}
-            className="text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed"
-          >
-            We don&apos;t invent a better candidate. We find and present the strongest evidence of
-            the candidate you actually are — matched precisely to what every employer needs.
-          </motion.p>
-
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={0.3}
-            variants={fadeUp}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link
-              href="/signup"
-              className="group flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40"
+        <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-14 items-center">
+          <div>
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              custom={0}
+              variants={fadeUp}
+              className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-brand-green mb-8 border border-brand-green/20"
             >
-              Start for free
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/login"
-              className="flex items-center gap-2 glass glass-hover px-8 py-4 rounded-xl font-medium text-gray-700"
+              <Shield className="w-3.5 h-3.5" />
+              Evidence-based resume matching — not AI hallucination
+            </motion.div>
+
+            <motion.h1
+              initial="hidden"
+              animate="visible"
+              custom={0.1}
+              variants={fadeUp}
+              className="text-5xl md:text-6xl font-bold leading-[1.08] tracking-tight mb-6 text-gray-900"
             >
-              Sign in
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
+              The biggest reason you&apos;re not getting interviews isn&apos;t missing skills.
+              <br />
+              <span className="gradient-text">It&apos;s how they&apos;re presented.</span>
+            </motion.h1>
 
-          {/* Hero stats */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            custom={0.4}
-            variants={fadeUp}
-            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6"
-          >
-            {stats.map((stat) => (
-              <div key={stat.label} className="glass rounded-2xl p-6 text-center">
-                <div className="text-3xl font-bold gradient-text mb-1">{stat.value}</div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+            <motion.p
+              initial="hidden"
+              animate="visible"
+              custom={0.2}
+              variants={fadeUp}
+              className="text-xl text-gray-600 max-w-xl mb-8 leading-relaxed"
+            >
+              We don&apos;t invent a better candidate. We find and present the strongest evidence of
+              the candidate you actually are — matched precisely to what every employer needs.
+            </motion.p>
 
-      {/* Match UI Preview */}
-      <section className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
+            <motion.ul
+              initial="hidden"
+              animate="visible"
+              custom={0.28}
+              variants={fadeUp}
+              className="space-y-2.5 mb-10"
+            >
+              {[
+                'Every requirement matched to real evidence from your career',
+                'Truth Guard™ fact-checks every AI suggestion before it reaches your resume',
+                'Real ATS scoring — not a vague pass/fail',
+                'A live, real-time voice mock interview with instant feedback',
+                'Free to start — no credit card required',
+              ].map((point) => (
+                <li key={point} className="flex items-start gap-2.5 text-gray-700">
+                  <CheckCircle2 className="w-5 h-5 text-brand-green shrink-0 mt-0.5" />
+                  {point}
+                </li>
+              ))}
+            </motion.ul>
+
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              custom={0.36}
+              variants={fadeUp}
+              className="flex flex-col sm:flex-row items-center sm:items-start gap-4"
+            >
+              <Link
+                href="/signup"
+                className="group flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40"
+              >
+                Start matching — it&apos;s free
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/login"
+                className="flex items-center gap-2 glass glass-hover px-8 py-4 rounded-xl font-medium text-gray-700"
+              >
+                Sign in
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Mock match dashboard */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
             className="glass rounded-3xl p-8 border border-black/[0.06] animate-glow"
           >
-            {/* Mock match dashboard */}
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Senior Data Analyst · Acme Corp</p>
@@ -321,6 +320,41 @@ export default function LandingPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* Hero stats */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          custom={0.44}
+          variants={fadeUp}
+          className="max-w-7xl mx-auto mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 relative"
+        >
+          {stats.map((stat) => (
+            <div key={stat.label} className="glass rounded-2xl p-6 text-center">
+              <div className="text-3xl font-bold gradient-text mb-1">{stat.value}</div>
+              <div className="text-sm text-gray-500">{stat.label}</div>
+            </div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Repeated CTA banner */}
+      <section className="py-4 px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto text-center"
+        >
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/25"
+          >
+            See your real match score
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          <p className="text-sm text-gray-500 mt-3">Free to start — upgrade only when you need more.</p>
+        </motion.div>
       </section>
 
       {/* Features */}
