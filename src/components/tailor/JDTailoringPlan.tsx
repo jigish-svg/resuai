@@ -192,7 +192,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                   type="checkbox"
                   checked={acceptSummary}
                   onChange={(e) => setAcceptSummary(e.target.checked)}
-                  className="mt-1 accent-[#af2b47]"
+                  className="mt-1 accent-[#006d39]"
                 />
                 <div className="flex-1">
                   <p className="font-semibold text-sm text-gray-800 mb-2">Tailored Summary</p>
@@ -224,7 +224,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                         type="checkbox"
                         checked={acceptedBullets.has(key)}
                         onChange={() => toggleBullet(key)}
-                        className="mt-1 accent-[#af2b47]"
+                        className="mt-1 accent-[#006d39]"
                       />
                       <div className="flex-1">
                         {exp && <p className="text-xs text-gray-400 mb-2">{exp.job_title} at {exp.company}</p>}
@@ -260,7 +260,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                       type="checkbox"
                       checked={acceptedSkills.has(i)}
                       onChange={() => toggleSkill(i)}
-                      className="mt-1 accent-[#af2b47]"
+                      className="mt-1 accent-[#006d39]"
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{s.skill}</p>
@@ -287,7 +287,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                       type="checkbox"
                       checked={acceptedRemovals.has(i)}
                       onChange={() => toggleRemoval(i)}
-                      className="mt-1 accent-[#af2b47]"
+                      className="mt-1 accent-[#006d39]"
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-800 line-through decoration-gray-400">{s.skill}</p>

@@ -229,7 +229,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
                       name={`q-${qi}`}
                       checked={answers[qi] === oi}
                       onChange={() => setAnswer(qi, oi)}
-                      className="accent-[#af2b47]"
+                      className="accent-[#006d39]"
                     />
                     {opt}
                   </label>

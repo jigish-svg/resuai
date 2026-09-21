@@ -1,45 +1,46 @@
 @import "tailwindcss";
 
 /*
-  "Editorial Rigor" design system (from Stitch). Warm cream canvas, white
-  raised cards, crimson primary, gold secondary, hairline borders and soft
-  shadows. No blur, glows or gradients.
+  "Editorial Rigor" design system (from Stitch, v5). Mint canvas, white raised
+  cards, emerald primary, amber accent, hairline borders and soft shadows.
+  No blur, glows or gradients.
 
-  - green is reserved for "success" (matched / passed / verified / added).
-    Don't use brand-primary for those, or a good result will read as an error.
-  - danger is a true red (red-*), never the brand crimson.
+  - brand-primary (#006d39) is the accessible action green (white text 6.5:1);
+    brand-primary-bright (#03da79) is the exact seed, for decoration only.
+  - brand-secondary is the amber accent (partial / locked / paid states).
+  - green is also the "success" colour; danger is a true red (red-*).
 */
 @theme {
   --font-sans: var(--font-hanken), 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
 
-  --color-brand-primary: #af2b47;
-  --color-brand-primary-dark: #8e0d31;
-  --color-brand-primary-light: #ffd8da;
-  --color-brand-primary-bright: #e3526b;
-  --color-brand-secondary: #f7e292;
-  --color-brand-secondary-dark: #6c5e1c;
-  --color-brand-secondary-light: #fbf5d6;
-  --color-brand-ivory: #fef9f1;
-  --color-canvas-band: #f8f3ec;
-  --color-canvas-chip: #ece7e0;
-  --color-success: #00864c;
-  --color-success-dark: #006a3b;
-  --color-ink: #1d1b17;
-  --color-ink-soft: #4a473b;
-  --color-ink-muted: #7a7565;
+  --color-brand-primary: #006d39;
+  --color-brand-primary-dark: #00522a;
+  --color-brand-primary-light: #a8f0ba;
+  --color-brand-primary-bright: #03da79;
+  --color-brand-secondary: #ffb570;
+  --color-brand-secondary-dark: #895114;
+  --color-brand-secondary-light: #ffdcc0;
+  --color-brand-ivory: #f6faf7;
+  --color-canvas-band: #eef4f0;
+  --color-canvas-chip: #e2ebe5;
+  --color-success: #006d39;
+  --color-success-dark: #00522a;
+  --color-ink: #161c18;
+  --color-ink-soft: #414944;
+  --color-ink-muted: #6b7b6d;
 }
 
 @layer base {
   :root {
-    --background: 254 249 241;
-    --foreground: 29 27 23;
+    --background: 246 250 247;
+    --foreground: 22 28 24;
     --card: 255 255 255;
-    --card-border: 29 27 23 / 0.07;
-    --primary: 175 43 71;
-    --primary-light: 227 82 107;
-    --accent: 247 226 146;
-    --muted: 122 117 101;
-    --success: 0 134 76;
+    --card-border: 22 28 24 / 0.07;
+    --primary: 0 109 57;
+    --primary-light: 3 218 121;
+    --accent: 255 181 112;
+    --muted: 107 123 109;
+    --success: 0 109 57;
     --warning: 217 150 0;
     --danger: 186 26 26;
   }
@@ -72,16 +73,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgb(248 243 236);
+    background: rgb(238 244 240);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgb(224 216 204);
+    background: rgb(184 197 190);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgb(201 191 174);
+    background: rgb(107 123 109);
   }
 }
 
@@ -89,8 +90,8 @@
   /* Raised white card: hairline border + soft shadow, no blur. */
   .glass {
     background: #ffffff;
-    border: 1px solid rgba(29, 27, 23, 0.07);
-    box-shadow: 0 1px 2px rgba(29, 27, 23, 0.04), 0 8px 24px -12px rgba(29, 27, 23, 0.1);
+    border: 1px solid rgba(22,28,24, 0.07);
+    box-shadow: 0 1px 2px rgba(22,28,24, 0.04), 0 8px 24px -12px rgba(22,28,24, 0.1);
   }
 
   .glass-hover {
@@ -99,17 +100,17 @@
 
   .glass-hover:hover {
     background: #ffffff;
-    border-color: rgba(29, 27, 23, 0.16);
-    box-shadow: 0 1px 2px rgba(29, 27, 23, 0.05), 0 12px 28px -12px rgba(29, 27, 23, 0.14);
+    border-color: rgba(22,28,24, 0.16);
+    box-shadow: 0 1px 2px rgba(22,28,24, 0.05), 0 12px 28px -12px rgba(22,28,24, 0.14);
   }
 
   /* Emphasis colour for headline accents (solid crimson, no gradient). */
   .gradient-text {
-    color: #af2b47;
+    color: #006d39;
   }
 
   .gradient-border {
-    border: 1px solid rgba(175, 43, 71, 0.25);
+    border: 1px solid rgba(0,109,57, 0.25);
   }
 
   .animate-float {
@@ -144,7 +145,7 @@
 
   /* Solid warm canvas (kept as a class so existing pages pick it up). */
   .bg-hero-gradient {
-    background: rgb(254, 249, 241);
+    background: rgb(246, 250, 247);
   }
 
   /* Small uppercase label style used for section eyebrows and tags. */
@@ -154,6 +155,6 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #7a7565;
+    color: #6b7b6d;
   }
 }

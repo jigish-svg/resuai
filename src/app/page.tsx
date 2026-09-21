@@ -126,7 +126,7 @@ const chipTone = {
   neutral: 'bg-canvas-chip text-ink-soft',
 } as const;
 
-const cardShadow = 'shadow-[0_1px_2px_rgba(29,27,23,0.05),0_8px_24px_-12px_rgba(29,27,23,0.1)]';
+const cardShadow = 'shadow-[0_1px_2px_rgba(22,28,24,0.05),0_8px_24px_-12px_rgba(22,28,24,0.1)]';
 
 function ScoreRing({ score }: { score: number }) {
   const r = 42;
@@ -134,13 +134,13 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative w-24 h-24 shrink-0">
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#ece7e0" strokeWidth="9" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke="#e2ebe5" strokeWidth="9" />
         <circle
           cx="50"
           cy="50"
           r={r}
           fill="none"
-          stroke="#af2b47"
+          stroke="#006d39"
           strokeWidth="9"
           strokeLinecap="round"
           strokeDasharray={c}
@@ -231,7 +231,7 @@ export default function LandingPage() {
           </div>
 
           {/* Live audit canvas (sample data) */}
-          <div className="bg-white rounded-3xl shadow-[0_1px_2px_rgba(29,27,23,0.05),0_20px_40px_-20px_rgba(29,27,23,0.18)] overflow-hidden animate-fade-up">
+          <div className="bg-white rounded-3xl shadow-[0_1px_2px_rgba(22,28,24,0.05),0_20px_40px_-20px_rgba(22,28,24,0.18)] overflow-hidden animate-fade-up">
             <div className="flex items-center justify-between px-6 py-3.5 bg-canvas-chip">
               <span className="flex items-center gap-2 eyebrow !text-ink">
                 <span className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
@@ -268,7 +268,7 @@ export default function LandingPage() {
                       <span className="text-ink-soft">{b.label}</span>
                       <span className="font-semibold tabular-nums">{b.score}%</span>
                     </div>
-                    <div className="h-2 bg-[#f2ede6] rounded-full overflow-hidden">
+                    <div className="h-2 bg-[#e6eee9] rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${b.strong ? 'bg-brand-primary' : 'bg-brand-primary-light'}`}
                         style={{ width: `${b.score}%` }}
@@ -409,7 +409,7 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          <div className="bg-[#2f2b27] text-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_40px_-20px_rgba(29,27,23,0.4)]">
+          <div className="bg-[#29332b] text-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_40px_-20px_rgba(22,28,24,0.4)]">
             <div className="flex items-center justify-between mb-8">
               <span className="flex items-center gap-2 text-xs font-semibold tracking-wider text-white/60">
                 <span className="w-2 h-2 rounded-full bg-brand-primary-bright" /> VOICE SESSION
@@ -519,7 +519,7 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="py-16 sm:py-24 px-5 sm:px-8">
-        <div className="max-w-4xl mx-auto bg-brand-primary rounded-3xl px-6 py-14 sm:px-14 sm:py-16 text-center text-white shadow-[0_20px_40px_-20px_rgba(175,43,71,0.5)]">
+        <div className="max-w-4xl mx-auto bg-brand-primary rounded-3xl px-6 py-14 sm:px-14 sm:py-16 text-center text-white shadow-[0_20px_40px_-20px_rgba(0,109,57,0.5)]">
           <span className="inline-block eyebrow !text-white bg-white/15 px-4 py-1.5 rounded-full mb-6">Evidence over illusion</span>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">Stop guessing why applications get ignored.</h2>
           <p className="text-white/85 text-lg max-w-xl mx-auto mb-9 leading-relaxed">
