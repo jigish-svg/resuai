@@ -50,6 +50,7 @@ export const RATE_LIMITS = {
   interviewChat: { bucket: 'interview_chat', maxRequests: 30, windowSeconds: HOUR },
   mockInterviewStart: { bucket: 'mock_interview_start', maxRequests: 15, windowSeconds: HOUR },
   mockInterviewFinalize: { bucket: 'mock_interview_finalize', maxRequests: 15, windowSeconds: HOUR },
+  evidenceUpload: { bucket: 'evidence_upload', maxRequests: 20, windowSeconds: HOUR },
 } as const satisfies Record<string, RateLimitConfig>;
 
 export const RATE_LIMIT_MESSAGE = "You've hit the hourly limit for this feature. Please wait a bit and try again.";

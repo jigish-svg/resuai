@@ -29,10 +29,18 @@ export interface AchievementToSearch {
   metrics: string[];
 }
 
+export interface CertificationToSearch {
+  name: string;
+  issuer?: string;
+  date?: string;
+}
+
 export async function matchRequirementsToAchievements(
   requirements: RequirementToMatch[],
   achievements: AchievementToSearch[],
-  candidateName: string
+  candidateName: string,
+  skills: string[] = [],
+  certifications: CertificationToSearch[] = []
 ): Promise<z.infer<typeof BatchMatchSchema>> {
   const requirementsList = requirements.map((r) =>
     `ID: ${r.id} | [${r.importance.toUpperCase()}] ${r.requirement_text}`
@@ -41,6 +49,12 @@ export async function matchRequirementsToAchievements(
   const achievementsList = achievements.map((a) =>
     `ID: ${a.id} | ${a.company} - ${a.job_title}: "${a.achievement_text}" (Skills: ${a.skills.join(', ')}; Metrics: ${a.metrics.join(', ')})`
   ).join('\n');
+
+  const skillsList = skills.length > 0 ? skills.join(', ') : 'None listed';
+
+  const certificationsList = certifications.length > 0
+    ? certifications.map((c) => `${c.name}${c.issuer ? ` (issued by ${c.issuer})` : ''}${c.date ? `, ${c.date}` : ''}`).join('\n')
+    : 'None listed';
 
   const response = await openai.beta.chat.completions.parse({
     model: MODEL,
@@ -60,9 +74,10 @@ CRITICAL RULES:
 1. Never infer skills that are not explicitly stated
 2. Never assume experience that is not documented
 3. Be honest about missing evidence - this protects the candidate
-4. Only use evidence from the provided achievements list
-5. If a skill appears in the skills section but not in achievements, treat as PARTIAL at most
-6. When status is MATCHED or PARTIAL, set achievement_id to the exact ID (shown before the "|") of the single best supporting achievement. Never invent an ID that isn't listed. Leave achievement_id unset for NO_EVIDENCE.
+4. Only use evidence from the provided achievements list, skills list, and certifications list below
+5. SKILLS LIST: if a requirement is satisfied by a skill in the candidate's skills list but no achievement bullet demonstrates it being used, mark it PARTIAL (not NO_EVIDENCE) — being listed as a skill is real but weaker evidence than a demonstrated achievement. Only upgrade to MATCHED when an achievement also shows that skill in use.
+6. CERTIFICATIONS LIST: for a requirement with category "certification", check the candidate's certifications list — mark MATCHED if a listed certification clearly satisfies it (by name or a close, well-known synonym/equivalent), PARTIAL if a related-but-not-exact certification exists (e.g. an adjacent vendor cert), and NO_EVIDENCE only if nothing relevant is listed there or in achievements.
+7. When status is MATCHED or PARTIAL and an achievement supports it, set achievement_id to the exact ID (shown before the "|") of the single best supporting achievement. Never invent an ID that isn't listed. Leave achievement_id unset when the evidence comes only from the skills or certifications list, or for NO_EVIDENCE.
 
 Be strict. The candidate's reputation depends on accurate matching.`,
       },
@@ -76,7 +91,13 @@ ${requirementsList}
 CANDIDATE ACHIEVEMENTS:
 ${achievementsList}
 
-Match each requirement to the best available evidence from the achievements. Be strict and honest.`,
+CANDIDATE SKILLS LIST:
+${skillsList}
+
+CANDIDATE CERTIFICATIONS:
+${certificationsList}
+
+Match each requirement to the best available evidence from the achievements, skills list, and certifications. Be strict and honest.`,
       },
     ],
     response_format: zodResponseFormat(BatchMatchSchema, 'batch_match'),

@@ -49,7 +49,7 @@ export async function generateInterviewPrep(
   candidateName: string
 ): Promise<z.infer<typeof InterviewPrepSchema>> {
   const requirementsList = requirements
-    .map((r) => `[${r.importance.toUpperCase()}] ${r.requirement_text}`)
+    .map((r) => `[${r.importance.toUpperCase()}] (category: ${r.category}) ${r.requirement_text}`)
     .join('\n');
 
   const matchSummary = matchItems
@@ -83,7 +83,7 @@ SKILL GAP ACTION PLAN: For each CRITICAL or HIGH importance requirement where th
 - what_it_involves: a plain-language explanation of what this skill/requirement actually means in practice, so the candidate understands what they're walking into.
 - how_to_prepare: 2-4 concrete, specific, doable-before-an-interview actions — e.g. a specific free course/doc/tutorial to complete, core concepts to read up on and be able to explain, a small practice exercise, or a way to practice articulating adjacent experience. Be specific (name real, well-known resources like official docs, freeCodeCamp, official framework tutorials) rather than vague advice like "learn more about X."
 - honest_talking_point: how to answer honestly if asked directly — acknowledging the gap, showing the genuine understanding gained from the prep above, connecting to real transferable experience if any exists, and expressing genuine interest in growing into it. This must never claim hands-on experience the candidate doesn't have.
-Skip requirements that are already MATCHED — only include genuine gaps here.`,
+Skip requirements that are already MATCHED — only include genuine gaps here. Only produce a skill_gaps entry for requirements in the "hard_skill", "technology", or "certification" categories — never for "education", "experience", "responsibility", or "soft_skill" categories, even when their evidence is PARTIAL or NO_EVIDENCE. Those aren't gaps a certification or short prep can close (an in-progress degree, for instance, should never be presented as something wrong with the candidate).`,
       },
       {
         role: 'user',

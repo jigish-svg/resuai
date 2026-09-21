@@ -65,11 +65,19 @@ export async function POST(request: NextRequest) {
       .select('section_type, content')
       .eq('resume_id', resume.id);
 
+    const skillsSection = resumeSections?.find((s) => s.section_type === 'skills');
+    const skills = (skillsSection?.content as { skills?: string[] } | undefined)?.skills ?? [];
+
+    const certificationsSection = resumeSections?.find((s) => s.section_type === 'certifications');
+    const certifications = (certificationsSection?.content as { items?: { name: string; issuer?: string; date?: string }[] } | undefined)?.items ?? [];
+
     // Evidence matching (AI)
     const { matches: aiMatches } = await matchRequirementsToAchievements(
       requirements.map((r) => ({ id: r.id, requirement_text: r.requirement_text, category: r.category, importance: r.importance })),
       achievements,
-      resume.candidate_name || 'Candidate'
+      resume.candidate_name || 'Candidate',
+      skills,
+      certifications
     );
 
     const achievementById = new Map(achievements.map((a) => [a.id, a]));
