@@ -22,6 +22,11 @@ import {
   Wand2,
 } from 'lucide-react';
 
+// Cleaner two-tone green gradient for the landing page only — the shared
+// .gradient-text utility (green→yellow) is used across the whole app, so it's
+// left alone rather than changed globally.
+const gradientText = 'bg-gradient-to-r from-brand-green via-emerald-500 to-teal-500 bg-clip-text text-transparent';
+
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (delay = 0) => ({
@@ -166,10 +171,20 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-40 pb-16 px-6 relative">
-        {/* Background orbs */}
-        <div className="absolute top-20 left-1/4 w-96 h-96 bg-brand-green/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-40 right-1/4 w-80 h-80 bg-brand-yellow/15 rounded-full blur-3xl pointer-events-none" />
+      <section className="pt-40 pb-20 px-6 relative overflow-hidden">
+        {/* Fading dot-grid texture */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(0,80,40,0.16) 1px, transparent 1px)',
+            backgroundSize: '26px 26px',
+            maskImage: 'radial-gradient(ellipse 70% 70% at 50% 25%, black 30%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 50% 25%, black 30%, transparent 100%)',
+          }}
+        />
+        {/* Soft spotlight glow behind the headline */}
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[46rem] h-[30rem] bg-brand-green/[0.13] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-72 -right-24 w-80 h-80 bg-brand-yellow/[0.16] rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-14 items-center">
           <div>
@@ -193,7 +208,7 @@ export default function LandingPage() {
             >
               The biggest reason you&apos;re not getting interviews isn&apos;t missing skills.
               <br />
-              <span className="gradient-text">It&apos;s how they&apos;re presented.</span>
+              <span className={gradientText}>It&apos;s how they&apos;re presented.</span>
             </motion.h1>
 
             <motion.p
@@ -237,7 +252,7 @@ export default function LandingPage() {
             >
               <Link
                 href="/signup"
-                className="group flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40"
+                className="group flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/30 hover:scale-[1.02] active:scale-[0.98] hover:shadow-brand-green/40"
               >
                 Start matching — it&apos;s free
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -252,20 +267,29 @@ export default function LandingPage() {
             </motion.div>
           </div>
 
-          {/* Mock match dashboard */}
+          {/* Mock match dashboard, framed like a browser window */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="glass rounded-3xl p-8 border border-black/[0.06] animate-glow"
+            className="rounded-3xl bg-white border border-black/[0.08] shadow-2xl shadow-brand-green/10 overflow-hidden"
           >
+            <div className="flex items-center gap-2 px-5 py-3 bg-black/[0.03] border-b border-black/[0.06]">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+              <span className="ml-3 flex-1 max-w-xs text-[11px] text-gray-400 bg-white border border-black/[0.06] rounded-md px-3 py-1 truncate">
+                getjobfit.ai/match/senior-data-analyst
+              </span>
+            </div>
+            <div className="p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Senior Data Analyst · Acme Corp</p>
                 <h3 className="text-xl font-semibold text-gray-900">Your Match Analysis</h3>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold gradient-text">82%</div>
+                <div className={`text-4xl font-bold ${gradientText}`}>82%</div>
                 <div className="text-sm text-emerald-600 font-medium">Excellent Match</div>
               </div>
             </div>
@@ -318,6 +342,7 @@ export default function LandingPage() {
                 ))}
               </div>
             </div>
+            </div>
           </motion.div>
         </div>
 
@@ -330,8 +355,8 @@ export default function LandingPage() {
           className="max-w-7xl mx-auto mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 relative"
         >
           {stats.map((stat) => (
-            <div key={stat.label} className="glass rounded-2xl p-6 text-center">
-              <div className="text-3xl font-bold gradient-text mb-1">{stat.value}</div>
+            <div key={stat.label} className="bg-white border border-black/[0.08] rounded-2xl p-6 text-center shadow-sm hover:shadow-lg hover:shadow-brand-green/10 transition-shadow">
+              <div className={`text-3xl font-bold ${gradientText} mb-1`}>{stat.value}</div>
               <div className="text-sm text-gray-500">{stat.label}</div>
             </div>
           ))}
@@ -348,7 +373,7 @@ export default function LandingPage() {
         >
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/25"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/30 hover:scale-[1.02] active:scale-[0.98]"
           >
             See your real match score
             <ArrowRight className="w-5 h-5" />
@@ -358,7 +383,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-24 px-6">
+      <section id="features" className="py-24 px-6 bg-white border-y border-black/[0.06]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -367,7 +392,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Built different, <span className="gradient-text">by design</span>
+              Built different, <span className={gradientText}>by design</span>
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
               Every feature is designed around one principle: present your real achievements in their strongest possible light.
@@ -382,8 +407,9 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="glass glass-hover rounded-2xl p-8 group"
+                className="relative overflow-hidden bg-white border border-black/[0.08] hover:border-brand-green/30 hover:shadow-xl hover:shadow-brand-green/10 transition-all rounded-2xl p-8 group"
               >
+                <span className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green to-emerald-400 opacity-70" />
                 <div
                   className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-md`}
                 >
@@ -407,7 +433,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              From resume to tailored in <span className="gradient-text">minutes</span>
+              From resume to tailored in <span className={gradientText}>minutes</span>
             </h2>
           </motion.div>
 
@@ -419,9 +445,9 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="flex gap-6 items-start glass rounded-2xl p-8"
+                className="flex gap-6 items-start bg-white border border-black/[0.08] rounded-2xl p-8 shadow-sm hover:shadow-lg hover:shadow-brand-green/10 transition-shadow"
               >
-                <div className="text-4xl font-black gradient-text opacity-60 shrink-0 w-12">{step.num}</div>
+                <div className={`text-4xl font-black ${gradientText} opacity-60 shrink-0 w-12`}>{step.num}</div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">{step.title}</h3>
                   <p className="text-gray-600 leading-relaxed">{step.desc}</p>
@@ -434,7 +460,7 @@ export default function LandingPage() {
       </section>
 
       {/* Resources */}
-      <section id="resources" className="py-24 px-6">
+      <section id="resources" className="py-24 px-6 bg-white border-y border-black/[0.06]">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -443,7 +469,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Everything you need, <span className="gradient-text">in one place</span>
+              Everything you need, <span className={gradientText}>in one place</span>
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto flex items-center justify-center gap-2">
               <BookOpen className="w-5 h-5 text-brand-green" />
@@ -459,8 +485,9 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className="glass glass-hover rounded-2xl p-6"
+                className="relative overflow-hidden bg-white border border-black/[0.08] hover:border-brand-green/30 hover:shadow-xl hover:shadow-brand-green/10 transition-all rounded-2xl p-6"
               >
+                <span className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green to-emerald-400 opacity-70" />
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mb-4 shadow-md">
                   <r.icon className="w-5 h-5 text-white" />
                 </div>
@@ -482,7 +509,7 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Frequently asked <span className="gradient-text">questions</span>
+              Frequently asked <span className={gradientText}>questions</span>
             </h2>
           </motion.div>
 
@@ -496,7 +523,7 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
-                  className="glass rounded-2xl overflow-hidden"
+                  className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden shadow-sm"
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : i)}
@@ -516,24 +543,33 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-br from-brand-green-dark via-brand-green to-emerald-600">
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.22) 1px, transparent 1px)',
+            backgroundSize: '26px 26px',
+            maskImage: 'radial-gradient(ellipse 60% 80% at 50% 50%, black 20%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 60% 80% at 50% 50%, black 20%, transparent 100%)',
+          }}
+        />
+        <div className="absolute -bottom-24 right-10 w-80 h-80 bg-brand-yellow/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-3xl mx-auto text-center relative">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="glass rounded-3xl p-12 gradient-border"
           >
-            <TrendingUp className="w-12 h-12 text-brand-green mx-auto mb-6" />
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">
+            <TrendingUp className="w-12 h-12 text-brand-yellow mx-auto mb-6" />
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
               Ready to match with confidence?
             </h2>
-            <p className="text-gray-600 mb-8 text-lg">
+            <p className="text-white/80 mb-10 text-lg max-w-xl mx-auto">
               Upload your resume, paste a job description, and see exactly where you stand — and how to improve it — in under 5 minutes.
             </p>
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-10 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/25"
+              className="inline-flex items-center gap-2 bg-white text-brand-green-dark hover:bg-brand-yellow hover:text-gray-900 transition-all px-10 py-4 rounded-xl font-semibold text-lg shadow-xl shadow-black/20 hover:scale-[1.03] active:scale-[0.98]"
             >
               Get started — it&apos;s free
               <ArrowRight className="w-5 h-5" />
@@ -543,18 +579,18 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-black/[0.06] py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <footer className="bg-gray-950 py-10 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
             </div>
-            <span>GetJobFit.ai</span>
+            <span className="text-white font-medium">GetJobFit.ai</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
             <p>© 2026 GetJobFit.ai. Built with evidence, not hallucination.</p>
-            <Link href="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-gray-900 transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </footer>
