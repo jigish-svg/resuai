@@ -23,13 +23,13 @@ export default function TemplateGallery({ selected, onSelect }: TemplateGalleryP
           onClick={() => onSelect(t.id)}
           className={`group text-left rounded-2xl border p-4 transition-all card-hover ${
             selected === t.id
-              ? 'border-brand-green/50 bg-brand-green/5 shadow-lg shadow-brand-green/10'
+              ? 'border-brand-primary/50 bg-brand-primary/5 shadow-lg'
               : 'glass border-black/[0.06] hover:border-black/[0.14]'
           }`}
         >
           <div className="relative rounded-xl bg-white border border-black/[0.08] p-3 mb-3 aspect-[3/4] overflow-hidden">
             {selected === t.id && (
-              <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-brand-green flex items-center justify-center">
+              <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-brand-primary flex items-center justify-center">
                 <Check className="w-3 h-3 text-white" />
               </span>
             )}

@@ -15,7 +15,7 @@ export default async function AccountSettingsPage() {
 
       <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.06s' }}>
         <h2 className="flex items-center gap-2 font-semibold text-gray-800 mb-4">
-          <span className="w-7 h-7 rounded-md bg-brand-green/10 text-brand-green flex items-center justify-center">
+          <span className="w-7 h-7 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center">
             <User className="w-4 h-4" />
           </span>
           Account
@@ -26,7 +26,7 @@ export default async function AccountSettingsPage() {
 
       <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.12s' }}>
         <h2 className="flex items-center gap-2 font-semibold text-gray-800 mb-2">
-          <span className="w-7 h-7 rounded-md bg-rose-100 text-rose-600 flex items-center justify-center">
+          <span className="w-7 h-7 rounded-md bg-red-100 text-red-600 flex items-center justify-center">
             <ShieldAlert className="w-4 h-4" />
           </span>
           Danger Zone

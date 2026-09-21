@@ -145,13 +145,13 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 1: no plan started yet
   if (!plan) {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-yellow/40">
+      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
         <button
           onClick={handleStart}
           disabled={starting}
-          className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20"
+          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
         >
           {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
           {starting ? 'Building your plan…' : 'Build my learning plan for this skill'}
@@ -163,7 +163,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 2: studying — show materials
   if (plan.status === 'studying') {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-yellow/40">
+      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
 
@@ -179,7 +179,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
                 rel="noopener noreferrer"
                 className="flex items-start gap-3 bg-black/[0.02] hover:bg-black/[0.04] border border-black/[0.04] rounded-lg p-3 transition-colors group"
               >
-                <span className="w-8 h-8 rounded-md bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0">
+                <span className="w-8 h-8 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
                   <Icon className="w-4 h-4" />
                 </span>
                 <div className="flex-1 min-w-0">
@@ -197,7 +197,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         <button
           onClick={handleGenerateQuiz}
           disabled={generatingQuiz}
-          className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20"
+          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
         >
           {generatingQuiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           {generatingQuiz ? 'Preparing quiz…' : "I've completed this — test my knowledge"}
@@ -210,7 +210,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   if (plan.status === 'quiz') {
     const allAnswered = answers.length > 0 && answers.every((a) => a !== -1);
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-yellow/40">
+      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill} — Knowledge Check</p>
         <p className="text-sm text-gray-600 mb-4">
           Answer all {plan.quiz_questions.length} questions honestly — this is to confirm you&apos;ve actually learned it, not to trick you.
@@ -229,7 +229,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
                       name={`q-${qi}`}
                       checked={answers[qi] === oi}
                       onChange={() => setAnswer(qi, oi)}
-                      className="accent-[#009b4d]"
+                      className="accent-[#af2b47]"
                     />
                     {opt}
                   </label>
@@ -241,7 +241,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         <button
           onClick={handleSubmitQuiz}
           disabled={submitting || !allAnswered}
-          className="mt-4 flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20"
+          className="mt-4 flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Submit Quiz
@@ -253,7 +253,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 4a: failed
   if (plan.status === 'failed') {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-yellow/40">
+      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">
           Scored {plan.quiz_score}% — not quite there yet. Review what you missed, study a bit more, then try again.
@@ -263,9 +263,9 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
             {quizResult.results
               .filter((r) => r.selected_index !== r.correct_index)
               .map((r, i) => (
-                <div key={i} className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-sm">
+                <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
                   <p className="font-medium text-gray-800 mb-1 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-rose-500 shrink-0" /> {r.question}
+                    <XCircle className="w-4 h-4 text-red-500 shrink-0" /> {r.question}
                   </p>
                   <p className="text-gray-600">
                     Correct answer: <span className="font-medium">{r.options[r.correct_index]}</span>
@@ -285,7 +285,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
           <button
             onClick={handleGenerateQuiz}
             disabled={generatingQuiz}
-            className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20"
+            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
           >
             {generatingQuiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
             Retry Quiz
@@ -298,9 +298,8 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 4b: passed
   if (plan.status === 'passed') {
     return (
-      <div className="glass rounded-2xl p-6 border border-brand-green/30 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-56 bg-brand-green/[0.08] rounded-full blur-3xl pointer-events-none" />
-        <PartyPopper className="w-9 h-9 text-brand-green mx-auto mb-3 relative" />
+      <div className="glass rounded-2xl p-6 border border-success/30 text-center relative overflow-hidden">
+        <PartyPopper className="w-9 h-9 text-success mx-auto mb-3 relative" />
         <p className="font-bold text-lg text-gray-900 relative">Congratulations!</p>
         <p className="text-sm text-gray-600 mb-4 relative">
           You scored {plan.quiz_score}% on {skill} — you&apos;re ready to talk about this in the interview.
@@ -308,7 +307,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         <button
           onClick={handleAddToResume}
           disabled={addingToResume}
-          className="relative flex items-center gap-2 mx-auto bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-brand-green/25"
+          className="relative flex items-center gap-2 mx-auto bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-5 py-2.5 rounded-full font-semibold text-sm shadow-lg"
         >
           {addingToResume ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           Add these skills to my resume
@@ -320,7 +319,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 5: already added
   return (
     <div className="glass rounded-2xl p-5 border border-black/[0.06] flex items-center gap-3">
-      <CheckCircle2 className="w-6 h-6 text-brand-green shrink-0" />
+      <CheckCircle2 className="w-6 h-6 text-success shrink-0" />
       <div>
         <p className="font-medium text-gray-900">{skill}</p>
         <p className="text-sm text-gray-500">Learned, verified, and added to your resume.</p>

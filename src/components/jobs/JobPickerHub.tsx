@@ -22,7 +22,7 @@ export default function JobPickerHub({ title, description, icon, jobs, hrefPrefi
     <div className="max-w-3xl mx-auto space-y-8">
       <div className="animate-fade-up">
         <h1 className="text-3xl font-bold mb-1 flex items-center gap-3">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center text-white shadow-lg shadow-brand-green/25">
+          <span className="w-9 h-9 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-lg">
             {icon}
           </span>
           {title}
@@ -32,7 +32,6 @@ export default function JobPickerHub({ title, description, icon, jobs, hrefPrefi
 
       {jobs.length === 0 ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-green/[0.06] rounded-full blur-3xl pointer-events-none" />
           <div className="w-14 h-14 rounded-2xl bg-black/[0.04] flex items-center justify-center mx-auto mb-5 relative">
             <Briefcase className="w-6 h-6 text-gray-400" />
           </div>
@@ -40,7 +39,7 @@ export default function JobPickerHub({ title, description, icon, jobs, hrefPrefi
           <div className="relative flex justify-center">
             <Link
               href="/jobs/new"
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/20"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               Add a job
             </Link>
@@ -55,8 +54,8 @@ export default function JobPickerHub({ title, description, icon, jobs, hrefPrefi
               className="group flex items-center justify-between glass glass-hover rounded-2xl p-4 border border-black/[0.06]"
             >
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-black/[0.03] flex items-center justify-center shrink-0 group-hover:bg-brand-green/10 transition-colors">
-                  <Briefcase className="w-5 h-5 text-brand-green" />
+                <div className="w-10 h-10 rounded-xl bg-black/[0.03] flex items-center justify-center shrink-0 group-hover:bg-brand-primary/10 transition-colors">
+                  <Briefcase className="w-5 h-5 text-brand-primary" />
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium text-sm truncate">{job.title}</p>

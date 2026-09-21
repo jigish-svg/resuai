@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
+import { ArrowLeft } from 'lucide-react';
 
 export const metadata = {
   title: 'Terms of Service — GetJobFit.ai',
@@ -11,10 +12,7 @@ export default function TermsOfServicePage() {
       <nav className="border-b border-black/[0.06] glass">
         <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">GetJobFit.ai</span>
+            <BrandLogo markClassName="w-8 h-8" textClassName="text-lg" />
           </Link>
           <Link href="/" className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 transition-colors">
             <ArrowLeft className="w-3.5 h-3.5" /> Back home
@@ -31,7 +29,7 @@ export default function TermsOfServicePage() {
             <p>
               These terms govern your use of GetJobFit.ai (&quot;the app,&quot; &quot;we,&quot; &quot;us&quot;). By creating an account or using
               the app, you agree to them. See our{' '}
-              <Link href="/privacy" className="text-brand-green hover:text-brand-green-dark underline">
+              <Link href="/privacy" className="text-brand-primary hover:text-brand-primary-dark underline">
                 Privacy Policy
               </Link>{' '}
               for how we handle your data.
@@ -147,7 +145,7 @@ export default function TermsOfServicePage() {
           <Section title="12. Contact">
             <p>
               Questions about these terms? Email{' '}
-              <a href="mailto:jigish2050@gmail.com" className="text-brand-green hover:text-brand-green-dark underline">
+              <a href="mailto:jigish2050@gmail.com" className="text-brand-primary hover:text-brand-primary-dark underline">
                 jigish2050@gmail.com
               </a>
               .

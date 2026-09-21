@@ -49,7 +49,7 @@ export default function DashboardHeader({ user, onToggleSidebar }: DashboardHead
           onClick={() => setMenuOpen(!menuOpen)}
           className="flex items-center gap-3 glass px-3 py-1.5 rounded-xl hover:bg-black/[0.04] transition-colors"
         >
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center text-xs font-bold">
+          <div className="w-7 h-7 rounded-lg bg-brand-primary flex items-center justify-center text-xs font-bold">
             {initials}
           </div>
           <span className="text-sm text-gray-700 max-w-32 truncate">{displayName}</span>
@@ -71,7 +71,7 @@ export default function DashboardHeader({ user, onToggleSidebar }: DashboardHead
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Sign out

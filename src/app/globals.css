@@ -1,28 +1,47 @@
 @import "tailwindcss";
 
+/*
+  "Editorial Rigor" design system (from Stitch). Warm cream canvas, white
+  raised cards, crimson primary, gold secondary, hairline borders and soft
+  shadows. No blur, glows or gradients.
+
+  - green is reserved for "success" (matched / passed / verified / added).
+    Don't use brand-primary for those, or a good result will read as an error.
+  - danger is a true red (red-*), never the brand crimson.
+*/
 @theme {
-  --color-brand-green: #009b4d;
-  --color-brand-green-dark: #007a3d;
-  --color-brand-green-light: #e3f5ea;
-  --color-brand-yellow: #ffcc00;
-  --color-brand-yellow-dark: #e0b400;
-  --color-brand-yellow-light: #fff6d6;
-  --color-brand-ivory: #faf5e9;
+  --font-sans: var(--font-hanken), 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+
+  --color-brand-primary: #af2b47;
+  --color-brand-primary-dark: #8e0d31;
+  --color-brand-primary-light: #ffd8da;
+  --color-brand-primary-bright: #e3526b;
+  --color-brand-secondary: #f7e292;
+  --color-brand-secondary-dark: #6c5e1c;
+  --color-brand-secondary-light: #fbf5d6;
+  --color-brand-ivory: #fef9f1;
+  --color-canvas-band: #f8f3ec;
+  --color-canvas-chip: #ece7e0;
+  --color-success: #00864c;
+  --color-success-dark: #006a3b;
+  --color-ink: #1d1b17;
+  --color-ink-soft: #4a473b;
+  --color-ink-muted: #7a7565;
 }
 
 @layer base {
   :root {
-    --background: 250 245 233;
-    --foreground: 38 40 34;
+    --background: 254 249 241;
+    --foreground: 29 27 23;
     --card: 255 255 255;
-    --card-border: 30 30 20 / 0.08;
-    --primary: 0 155 77;
-    --primary-light: 0 179 89;
-    --accent: 255 204 0;
-    --muted: 110 112 98;
-    --success: 0 155 77;
+    --card-border: 29 27 23 / 0.07;
+    --primary: 175 43 71;
+    --primary-light: 227 82 107;
+    --accent: 247 226 146;
+    --muted: 122 117 101;
+    --success: 0 134 76;
     --warning: 217 150 0;
-    --danger: 225 29 72;
+    --danger: 186 26 26;
   }
 }
 
@@ -40,7 +59,7 @@
   body {
     background-color: rgb(var(--background));
     color: rgb(var(--foreground));
-    font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-hanken), 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
@@ -53,72 +72,44 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgb(240 235 222);
+    background: rgb(248 243 236);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgb(210 202 180);
+    background: rgb(224 216 204);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgb(185 175 148);
+    background: rgb(201 191 174);
   }
 }
 
 @layer utilities {
+  /* Raised white card: hairline border + soft shadow, no blur. */
   .glass {
-    background: rgba(255, 254, 250, 0.72);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(30, 30, 20, 0.07);
-    box-shadow: 0 1px 3px rgba(30, 30, 20, 0.04), 0 8px 24px -8px rgba(30, 30, 20, 0.07);
+    background: #ffffff;
+    border: 1px solid rgba(29, 27, 23, 0.07);
+    box-shadow: 0 1px 2px rgba(29, 27, 23, 0.04), 0 8px 24px -12px rgba(29, 27, 23, 0.1);
   }
 
   .glass-hover {
-    transition: all 0.3s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .glass-hover:hover {
-    background: rgba(255, 254, 250, 0.95);
-    border-color: rgba(30, 30, 20, 0.12);
+    background: #ffffff;
+    border-color: rgba(29, 27, 23, 0.16);
+    box-shadow: 0 1px 2px rgba(29, 27, 23, 0.05), 0 12px 28px -12px rgba(29, 27, 23, 0.14);
   }
 
+  /* Emphasis colour for headline accents (solid crimson, no gradient). */
   .gradient-text {
-    background: linear-gradient(120deg, #009b4d, #4caf3d, #ffcc00);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #af2b47;
   }
 
   .gradient-border {
-    position: relative;
-  }
-
-  .gradient-border::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(0, 155, 77, 0.4), rgba(255, 204, 0, 0.4));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-
-  .animate-glow {
-    animation: glow 3s ease-in-out infinite alternate;
-  }
-
-  @keyframes glow {
-    from {
-      box-shadow: 0 0 20px rgba(0, 155, 77, 0.1);
-    }
-    to {
-      box-shadow: 0 0 32px rgba(0, 155, 77, 0.22), 0 0 64px rgba(255, 204, 0, 0.1);
-    }
+    border: 1px solid rgba(175, 43, 71, 0.25);
   }
 
   .animate-float {
@@ -151,16 +142,18 @@
     transition: stroke-dashoffset 1s ease-in-out;
   }
 
-  /* Gradient backgrounds */
-  .bg-radial-purple {
-    background: radial-gradient(ellipse at 50% 0%, rgba(0, 155, 77, 0.1) 0%, transparent 70%);
+  /* Solid warm canvas (kept as a class so existing pages pick it up). */
+  .bg-hero-gradient {
+    background: rgb(254, 249, 241);
   }
 
-  .bg-hero-gradient {
-    background:
-      radial-gradient(ellipse at 20% 50%, rgba(0, 155, 77, 0.07) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(255, 204, 0, 0.09) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 100%, rgba(0, 155, 77, 0.05) 0%, transparent 50%),
-      rgb(250, 245, 233);
+  /* Small uppercase label style used for section eyebrows and tags. */
+  .eyebrow {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #7a7565;
   }
 }

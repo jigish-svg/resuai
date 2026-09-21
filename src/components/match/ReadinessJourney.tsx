@@ -57,12 +57,12 @@ export default function ReadinessJourney({ preliminaryScore, matchScore, finalSc
                 Stage {i + 1} · {stage.label}
               </p>
               {stage.reached ? (
-                <CheckCircle2 className="w-4 h-4 text-brand-green" />
+                <CheckCircle2 className="w-4 h-4 text-success" />
               ) : (
                 <Lock className="w-3.5 h-3.5 text-gray-400" />
               )}
             </div>
-            <p className={`text-2xl font-bold mb-1 ${stage.reached && stage.score !== null ? getScoreColor(stage.score) : 'text-gray-300'}`}>
+            <p className={`text-2xl font-bold tabular-nums mb-1 ${stage.reached && stage.score !== null ? getScoreColor(stage.score) : 'text-gray-300'}`}>
               {stage.reached && stage.score !== null ? `${stage.score}%` : '—'}
             </p>
             <p className="text-xs text-gray-500 leading-relaxed">{stage.description}</p>

@@ -33,19 +33,19 @@ export default function CookieConsentBanner() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 sm:p-6">
       <div className="max-w-3xl mx-auto glass rounded-2xl border border-black/[0.08] shadow-2xl shadow-black/20 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-brand-green/10 text-brand-green flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
           <Cookie className="w-5 h-5" />
         </div>
         <p className="text-sm text-gray-600 leading-relaxed flex-1">
           We only use one essential cookie to keep you signed in — no ads, no tracking, no analytics cookies. See our{' '}
-          <Link href="/privacy" className="text-brand-green hover:text-brand-green-dark underline">
+          <Link href="/privacy" className="text-brand-primary hover:text-brand-primary-dark underline">
             Privacy Policy
           </Link>{' '}
           for details.
         </p>
         <button
           onClick={dismiss}
-          className="shrink-0 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-5 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20"
+          className="shrink-0 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
         >
           Got it
         </button>

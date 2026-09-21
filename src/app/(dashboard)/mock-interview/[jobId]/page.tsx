@@ -21,9 +21,8 @@ export default async function MockInterviewJobPage({ params }: { params: Promise
   if (!paid) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-yellow/40 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-yellow/[0.1] rounded-full blur-3xl pointer-events-none" />
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-yellow to-amber-500 flex items-center justify-center mx-auto mb-5 shadow-lg relative">
+        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-secondary/40 text-center relative overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-brand-secondary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
             <Lock className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2 relative">Mock Interview Practice is a paid feature</h2>
@@ -33,7 +32,7 @@ export default async function MockInterviewJobPage({ params }: { params: Promise
           <div className="relative flex justify-center">
             <Link
               href="/account/upgrade"
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/20"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               <Sparkles className="w-4 h-4" />
               Upgrade to Paid
@@ -56,9 +55,8 @@ export default async function MockInterviewJobPage({ params }: { params: Promise
   if (matchScore < MOCK_INTERVIEW_UNLOCK_SCORE) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-yellow/40 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-yellow/[0.1] rounded-full blur-3xl pointer-events-none" />
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-yellow to-amber-500 flex items-center justify-center mx-auto mb-5 shadow-lg relative">
+        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-secondary/40 text-center relative overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-brand-secondary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
             <Lock className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2 relative">Mock Interview unlocks at {MOCK_INTERVIEW_UNLOCK_SCORE}% match score</h2>
@@ -69,7 +67,7 @@ export default async function MockInterviewJobPage({ params }: { params: Promise
           <div className="relative flex justify-center">
             <Link
               href={`/match/${jobId}`}
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/20"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               <Target className="w-4 h-4" />
               Go to Match
@@ -113,7 +111,7 @@ export default async function MockInterviewJobPage({ params }: { params: Promise
             {pastSessions.map((s) => (
               <div key={s.id} className="flex items-center justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-brand-green" />
+                  <CheckCircle2 className="w-4 h-4 text-success" />
                   <div>
                     <p className="text-sm font-medium">{s.questions.length}-question live interview</p>
                     <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">

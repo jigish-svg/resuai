@@ -42,7 +42,7 @@ export default function UpgradePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-10">
       <div className="animate-fade-up text-center">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-green/25">
+        <div className="w-14 h-14 rounded-2xl bg-brand-primary flex items-center justify-center mx-auto mb-5 shadow-lg">
           <Crown className="w-7 h-7 text-white" />
         </div>
         <h1 className="text-3xl font-bold mb-2">
@@ -58,14 +58,14 @@ export default function UpgradePage() {
             key={plan.id}
             className={`relative rounded-2xl p-6 border flex flex-col ${
               plan.id === 'yearly'
-                ? 'bg-gradient-to-br from-brand-green/10 to-brand-yellow/10 border-brand-green/30 shadow-lg shadow-brand-green/10'
+                ? 'bg-brand-primary/10 border-brand-primary/30 shadow-lg'
                 : 'glass border-black/[0.06]'
             }`}
           >
             {plan.badge && (
               <span
                 className={`absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wide font-semibold px-2.5 py-1 rounded-full ${
-                  plan.id === 'yearly' ? 'bg-brand-green text-white' : 'bg-brand-yellow-light text-amber-700'
+                  plan.id === 'yearly' ? 'bg-brand-primary text-white' : 'bg-brand-secondary-light text-amber-700'
                 }`}
               >
                 {plan.badge}
@@ -78,7 +78,7 @@ export default function UpgradePage() {
               <span className="text-sm text-gray-500">/{plan.cadence}</span>
             </div>
             {plan.perMonth ? (
-              <p className="text-xs text-brand-green-dark font-medium mb-4">${plan.perMonth}/month, billed annually</p>
+              <p className="text-xs text-brand-primary-dark font-medium mb-4">${plan.perMonth}/month, billed annually</p>
             ) : (
               <p className="text-xs text-gray-400 mb-4">{plan.subtitle}</p>
             )}
@@ -87,7 +87,7 @@ export default function UpgradePage() {
               disabled
               className={`mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm cursor-not-allowed opacity-70 ${
                 plan.id === 'yearly'
-                  ? 'bg-gradient-to-r from-brand-green to-brand-green-dark text-white'
+                  ? 'bg-brand-primary text-white'
                   : 'bg-black/[0.06] text-gray-500'
               }`}
             >
@@ -104,13 +104,13 @@ export default function UpgradePage() {
         <ul className="space-y-3 mb-6">
           {PAID_FEATURES.map((feature) => (
             <li key={feature} className="flex items-start gap-3 text-sm text-gray-700">
-              <CheckCircle2 className="w-5 h-5 text-brand-green shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
               {feature}
             </li>
           ))}
         </ul>
 
-        <div className="bg-brand-yellow-light text-amber-800 rounded-xl p-4 text-sm text-center">
+        <div className="bg-brand-secondary-light text-amber-800 rounded-xl p-4 text-sm text-center">
           Checkout isn&apos;t wired up yet — billing is coming next. For now, plans are upgraded manually.
         </div>
       </div>

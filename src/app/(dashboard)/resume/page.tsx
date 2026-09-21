@@ -52,7 +52,7 @@ export default async function ResumePage() {
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
             atLimit
               ? 'glass glass-hover text-amber-700'
-              : 'bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white shadow-lg shadow-brand-green/20'
+              : 'bg-brand-primary hover:bg-brand-primary-dark text-white shadow-lg'
           }`}
         >
           {atLimit ? <Lock className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -76,7 +76,7 @@ export default async function ResumePage() {
       {atLimit && (
         <p className="text-sm text-gray-500 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
           Free plan is limited to {FREE_TIER_LIMITS.maxResumeProfiles} resume profile.{' '}
-          <Link href="/account/upgrade" className="text-brand-green hover:text-brand-green-dark font-medium">
+          <Link href="/account/upgrade" className="text-brand-primary hover:text-brand-primary-dark font-medium">
             Upgrade
           </Link>{' '}
           to maintain separate resumes for different career tracks.

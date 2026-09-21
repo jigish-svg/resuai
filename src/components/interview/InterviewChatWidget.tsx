@@ -106,10 +106,10 @@ export default function InterviewChatWidget({ jobId, jobTitle, company }: Interv
       {!open && nudgeIndex !== null && (
         <button
           onClick={handleNudgeClick}
-          className="animate-fade-up glass max-w-64 text-left rounded-2xl rounded-br-sm p-3.5 border border-brand-green/20 shadow-xl shadow-black/10 text-sm text-gray-700 hover:border-brand-green/40 transition-colors"
+          className="animate-fade-up glass max-w-64 text-left rounded-2xl rounded-br-sm p-3.5 border border-brand-primary/20 shadow-xl shadow-black/10 text-sm text-gray-700 hover:border-brand-primary/40 transition-colors"
         >
           <span className="flex items-start gap-2">
-            <Sparkles className="w-4 h-4 text-brand-green shrink-0 mt-0.5" />
+            <Sparkles className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />
             {suggestions[nudgeIndex]}
           </span>
         </button>
@@ -117,7 +117,7 @@ export default function InterviewChatWidget({ jobId, jobTitle, company }: Interv
 
       {open && (
         <div className="w-80 sm:w-96 h-[28rem] glass rounded-2xl border border-black/[0.08] shadow-2xl shadow-black/20 flex flex-col overflow-hidden animate-fade-up">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06] bg-gradient-to-r from-brand-green to-brand-green-dark">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06] bg-brand-primary">
             <div className="flex items-center gap-2 text-white">
               <MessageCircle className="w-4 h-4" />
               <p className="font-semibold text-sm">Interview Coach</p>
@@ -140,7 +140,7 @@ export default function InterviewChatWidget({ jobId, jobTitle, company }: Interv
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                     m.role === 'user'
-                      ? 'bg-gradient-to-r from-brand-green to-brand-green-dark text-white rounded-br-sm'
+                      ? 'bg-brand-primary text-white rounded-br-sm'
                       : 'bg-black/[0.04] text-gray-800 rounded-bl-sm'
                   }`}
                 >
@@ -169,12 +169,12 @@ export default function InterviewChatWidget({ jobId, jobTitle, company }: Interv
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask a question…"
               disabled={sending}
-              className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors disabled:opacity-60"
+              className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={sending || !input.trim()}
-              className="w-9 h-9 rounded-xl bg-gradient-to-r from-brand-green to-brand-green-dark disabled:opacity-40 flex items-center justify-center text-white shrink-0"
+              className="w-9 h-9 rounded-xl bg-brand-primary disabled:opacity-40 flex items-center justify-center text-white shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -185,7 +185,7 @@ export default function InterviewChatWidget({ jobId, jobTitle, company }: Interv
       {!open && (
         <button
           onClick={openChat}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-green to-brand-green-dark shadow-xl shadow-brand-green/30 flex items-center justify-center text-white hover:shadow-brand-green/50 transition-shadow"
+          className="w-14 h-14 rounded-full bg-brand-primary shadow-xl flex items-center justify-center text-white transition-shadow"
         >
           <MessageCircle className="w-6 h-6" />
         </button>

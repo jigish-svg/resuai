@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Hanken_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from '@/components/layout/CookieConsentBanner';
 
-const inter = Inter({
+const hanken = Hanken_Grotesk({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-hanken',
   display: 'swap',
 });
 
@@ -29,35 +29,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${hanken.variable} antialiased`}>
         <Toaster
           position="top-right"
           toastOptions={{
             style: {
               background: 'rgb(255 255 255)',
-              color: 'rgb(40 42 58)',
-              border: '1px solid rgba(20,20,43,0.1)',
+              color: 'rgb(29 27 23)',
+              border: '1px solid rgba(29,27,23,0.1)',
               borderRadius: '12px',
               fontSize: '14px',
-              boxShadow: '0 4px 16px rgba(20,20,43,0.08)',
+              boxShadow: '0 4px 16px rgba(29,27,23,0.08)',
             },
             success: {
               iconTheme: {
-                primary: '#10b981',
+                primary: '#00864c',
                 secondary: 'rgb(255 255 255)',
               },
             },
             error: {
               iconTheme: {
-                primary: '#e11d48',
+                primary: '#ba1a1a',
                 secondary: 'rgb(255 255 255)',
               },
             },

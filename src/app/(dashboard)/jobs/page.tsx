@@ -32,7 +32,7 @@ export default async function JobsPage() {
         </div>
         <Link
           href="/jobs/new"
-          className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark transition-all px-5 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20 hover:shadow-brand-green/35"
+          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
         >
           <Plus className="w-4 h-4" />
           Add Job
@@ -41,12 +41,11 @@ export default async function JobsPage() {
 
       {kanbanJobs.length === 0 ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-green/[0.06] rounded-full blur-3xl pointer-events-none" />
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-green/20 to-brand-yellow/20 border border-brand-green/20 flex items-center justify-center mx-auto mb-5 relative">
-            <Briefcase className="w-6 h-6 text-brand-green" />
+          <div className="w-14 h-14 rounded-2xl bg-brand-primary/20 border border-brand-primary/20 flex items-center justify-center mx-auto mb-5 relative">
+            <Briefcase className="w-6 h-6 text-brand-primary" />
           </div>
           <p className="text-gray-700 mb-4 relative">No jobs yet. Add your first job to get a match analysis.</p>
-          <Link href="/jobs/new" className="relative inline-flex items-center gap-1 text-brand-green hover:text-brand-green-dark font-medium transition-colors">
+          <Link href="/jobs/new" className="relative inline-flex items-center gap-1 text-brand-primary hover:text-brand-primary-dark font-medium transition-colors">
             Add a job <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

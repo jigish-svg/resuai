@@ -38,7 +38,7 @@ export default function ScoreRing({ score, size = 140 }: { score: number; size?:
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-3xl font-bold gradient-text">{score}%</span>
+          <span className="text-3xl font-bold gradient-text tabular-nums">{score}%</span>
         </div>
       </div>
       <p className="text-sm mt-2 font-medium" style={{ color: colorMap[color] }}>{label}</p>

@@ -76,7 +76,7 @@ export default async function EditResumePage({ params }: { params: Promise<{ res
       {uncoveredSkills.length > 0 && (
         <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]">
           <div className="flex items-center gap-2 mb-1">
-            <Award className="w-4.5 h-4.5 text-brand-green" />
+            <Award className="w-4.5 h-4.5 text-brand-primary" />
             <h2 className="font-semibold">Suggested Certifications</h2>
           </div>
           <p className="text-sm text-gray-500 mb-4">
@@ -94,7 +94,7 @@ export default async function EditResumePage({ params }: { params: Promise<{ res
                   className="flex items-center justify-between gap-2 glass glass-hover rounded-xl px-4 py-3 text-sm"
                 >
                   <span className="font-medium text-gray-800">{skill}</span>
-                  <span className="flex items-center gap-1 text-brand-green text-xs shrink-0">
+                  <span className="flex items-center gap-1 text-brand-primary text-xs shrink-0">
                     Free course <ExternalLink className="w-3 h-3" />
                   </span>
                 </a>

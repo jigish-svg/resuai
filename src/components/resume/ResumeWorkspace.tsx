@@ -120,7 +120,6 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
   if (mode === 'view' && existingResume) {
     return (
       <div className="animate-fade-up glass rounded-2xl p-8 border border-black/[0.06] relative overflow-hidden">
-        <div className="absolute -top-16 -right-16 w-56 h-56 bg-emerald-500/[0.06] rounded-full blur-3xl pointer-events-none" />
         <div className="flex items-center gap-4 mb-6 relative">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
             <CheckCircle2 className="w-7 h-7 text-white" />
@@ -154,7 +153,7 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
         {parsing ? (
           <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] flex flex-col items-center justify-center text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent pointer-events-none" />
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mb-5 shadow-lg shadow-brand-green/25 animate-glow">
+            <div className="relative w-16 h-16 rounded-2xl bg-brand-primary flex items-center justify-center mb-5 shadow-lg">
               <Loader2 className="w-7 h-7 text-white animate-spin" />
             </div>
             <p className="font-medium relative">Extracting your achievements…</p>
@@ -165,12 +164,12 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
             <div
               {...getRootProps()}
               className={`animate-fade-up glass rounded-2xl p-12 border-2 border-dashed transition-all cursor-pointer text-center ${
-                isDragActive ? 'border-brand-green bg-brand-green/5 scale-[1.01]' : 'border-black/[0.1] hover:border-brand-green/40 hover:bg-black/[0.02]'
+                isDragActive ? 'border-brand-primary bg-brand-primary/5 scale-[1.01]' : 'border-black/[0.1] hover:border-brand-primary/40 hover:bg-black/[0.02]'
               }`}
             >
               <input {...getInputProps()} />
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-green/20 to-brand-yellow/20 border border-brand-green/20 flex items-center justify-center mx-auto mb-4">
-                <UploadCloud className="w-7 h-7 text-brand-green" />
+              <div className="w-16 h-16 rounded-2xl bg-brand-primary/20 border border-brand-primary/20 flex items-center justify-center mx-auto mb-4">
+                <UploadCloud className="w-7 h-7 text-brand-primary" />
               </div>
               <p className="font-medium mb-1">Drop your resume here, or click to browse</p>
               <p className="text-sm text-gray-500">PDF or DOCX</p>
@@ -188,11 +187,11 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="Paste your full resume text here…"
                 rows={10}
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-4 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors resize-none"
+                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-4 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors resize-none"
               />
               <button
                 onClick={handleParseText}
-                className="mt-4 flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark transition-all px-5 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20 hover:shadow-brand-green/35"
+                className="mt-4 flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
               >
                 <Sparkles className="w-4 h-4" />
                 Parse with AI
@@ -290,8 +289,8 @@ function ReviewEditor({
 
   return (
     <div className="space-y-6">
-      <div className="glass rounded-2xl p-4 border border-brand-green/20 bg-brand-green/5 flex items-center gap-3">
-        <Sparkles className="w-5 h-5 text-brand-green shrink-0" />
+      <div className="glass rounded-2xl p-4 border border-brand-primary/20 bg-brand-primary/5 flex items-center gap-3">
+        <Sparkles className="w-5 h-5 text-brand-primary shrink-0" />
         <p className="text-sm text-gray-700">
           Review what the AI extracted before saving. Fix anything that&apos;s wrong — this becomes your Evidence Library.
         </p>
@@ -306,7 +305,7 @@ function ReviewEditor({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
-                isActive ? 'bg-gradient-to-r from-brand-green to-brand-green-dark text-white shadow-md shadow-brand-green/20' : 'text-gray-600 hover:bg-black/[0.04]'
+                isActive ? 'bg-brand-primary text-white shadow-md' : 'text-gray-600 hover:bg-black/[0.04]'
               }`}
             >
               <tab.icon className="w-3.5 h-3.5" />
@@ -342,7 +341,7 @@ function ReviewEditor({
             value={parsed.summary ?? ''}
             onChange={(e) => update('summary', e.target.value)}
             rows={3}
-            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green/60 resize-none"
+            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 resize-none"
           />
         </Section>
       )}
@@ -354,7 +353,7 @@ function ReviewEditor({
           action={
             <button
               onClick={() => update('experience', [...parsed.experience, emptyExperience()])}
-              className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
             >
               <Plus className="w-3.5 h-3.5" /> Add role
             </button>
@@ -381,7 +380,7 @@ function ReviewEditor({
             onChange={(e) => update('skills', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
             rows={2}
             placeholder="Comma-separated skills"
-            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green/60 resize-none"
+            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 resize-none"
           />
           {loadingSuggestions && (
             <p className="text-xs text-gray-400 mt-3 flex items-center gap-1.5">
@@ -399,7 +398,7 @@ function ReviewEditor({
                     key={skill}
                     type="button"
                     onClick={() => addSuggestedSkill(skill)}
-                    className="flex items-center gap-1 text-xs border border-dashed border-brand-green/40 text-brand-green-dark bg-brand-green/5 hover:bg-brand-green/10 px-2.5 py-1 rounded-full transition-colors"
+                    className="flex items-center gap-1 text-xs border border-dashed border-brand-primary/40 text-brand-primary-dark bg-brand-primary/5 hover:bg-brand-primary/10 px-2.5 py-1 rounded-full transition-colors"
                   >
                     <Plus className="w-3 h-3" /> {skill}
                   </button>
@@ -417,7 +416,7 @@ function ReviewEditor({
           action={
             <button
               onClick={() => update('education', [...parsed.education, { institution: '', degree: '' }])}
-              className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
             >
               <Plus className="w-3.5 h-3.5" /> Add
             </button>
@@ -447,7 +446,7 @@ function ReviewEditor({
           action={
             <button
               onClick={() => update('certifications', [...parsed.certifications, { name: '' }])}
-              className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
             >
               <Plus className="w-3.5 h-3.5" /> Add
             </button>
@@ -474,7 +473,7 @@ function ReviewEditor({
         <button
           onClick={onSave}
           disabled={saving}
-          className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark disabled:opacity-60 transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/25"
+          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Save master resume
@@ -492,7 +491,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
     <div className="glass rounded-2xl p-6 border border-black/[0.06] hover:border-black/[0.1] transition-colors">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide flex items-center gap-2">
-          <span className="w-1 h-3.5 rounded-full bg-gradient-to-b from-brand-green to-brand-yellow" />
+          <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
           {title}
         </h3>
         {action}
@@ -509,7 +508,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors"
+        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
       />
     </div>
   );
@@ -552,11 +551,11 @@ function ExperienceEditor({
                 onChange({ ...exp, achievements: list });
               }}
               rows={2}
-              className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-green/60"
+              className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-primary/60"
             />
             <button
               onClick={() => onChange({ ...exp, achievements: exp.achievements.filter((_, j) => j !== i) })}
-              className="text-gray-400 hover:text-rose-600 transition-colors mt-2"
+              className="text-gray-400 hover:text-red-600 transition-colors mt-2"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -564,13 +563,13 @@ function ExperienceEditor({
         ))}
         <button
           onClick={() => onChange({ ...exp, achievements: [...exp.achievements, { text: '', skills: [], metrics: [] }] })}
-          className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+          className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
         >
           <Plus className="w-3.5 h-3.5" /> Add achievement
         </button>
       </div>
 
-      <button onClick={onRemove} className="mt-3 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600">
+      <button onClick={onRemove} className="mt-3 flex items-center gap-1 text-xs text-red-500 hover:text-red-600">
         <Trash2 className="w-3.5 h-3.5" /> Remove role
       </button>
     </div>
@@ -592,7 +591,7 @@ function EducationEditor({
       <Field label="Degree" value={edu.degree} onChange={(v) => onChange({ ...edu, degree: v })} />
       <Field label="Field" value={edu.field ?? ''} onChange={(v) => onChange({ ...edu, field: v })} />
       <Field label="Graduation" value={edu.graduation_date ?? ''} onChange={(v) => onChange({ ...edu, graduation_date: v })} />
-      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 justify-end">
+      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 justify-end">
         <Trash2 className="w-3.5 h-3.5" /> Remove
       </button>
     </div>
@@ -612,7 +611,7 @@ function CertificationEditor({
     <div className="bg-black/[0.02] border border-black/[0.06] rounded-xl p-4 grid grid-cols-2 gap-3">
       <Field label="Name" value={cert.name} onChange={(v) => onChange({ ...cert, name: v })} />
       <Field label="Issuer" value={cert.issuer ?? ''} onChange={(v) => onChange({ ...cert, issuer: v })} />
-      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 justify-end">
+      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 justify-end">
         <Trash2 className="w-3.5 h-3.5" /> Remove
       </button>
     </div>

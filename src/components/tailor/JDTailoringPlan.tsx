@@ -165,8 +165,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
 
       {!plan ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-green/[0.06] rounded-full blur-3xl pointer-events-none" />
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-green/25 relative">
+          <div className="w-14 h-14 rounded-2xl bg-brand-primary flex items-center justify-center mx-auto mb-5 shadow-lg relative">
             <Sparkles className="w-7 h-7 text-white" />
           </div>
           <p className="text-gray-600 mb-6 max-w-md mx-auto relative">
@@ -177,7 +176,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/20"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {generating ? 'Analyzing…' : 'Generate Tailoring Plan'}
@@ -193,7 +192,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                   type="checkbox"
                   checked={acceptSummary}
                   onChange={(e) => setAcceptSummary(e.target.checked)}
-                  className="mt-1 accent-[#009b4d]"
+                  className="mt-1 accent-[#af2b47]"
                 />
                 <div className="flex-1">
                   <p className="font-semibold text-sm text-gray-800 mb-2">Tailored Summary</p>
@@ -201,7 +200,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                     <div className="bg-black/[0.02] border border-black/[0.04] rounded-lg p-3 text-gray-400 line-through decoration-gray-300">
                       {summary.text || '(no current summary)'}
                     </div>
-                    <div className="bg-brand-green-light border border-brand-green/20 rounded-lg p-3 text-brand-green-dark">
+                    <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-success-dark">
                       {plan.summary_change.proposed}
                     </div>
                   </div>
@@ -225,7 +224,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                         type="checkbox"
                         checked={acceptedBullets.has(key)}
                         onChange={() => toggleBullet(key)}
-                        className="mt-1 accent-[#009b4d]"
+                        className="mt-1 accent-[#af2b47]"
                       />
                       <div className="flex-1">
                         {exp && <p className="text-xs text-gray-400 mb-2">{exp.job_title} at {exp.company}</p>}
@@ -236,7 +235,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                           <div className="bg-black/[0.02] border border-black/[0.04] rounded-lg p-3 text-gray-400 line-through decoration-gray-300">
                             {original}
                           </div>
-                          <div className="bg-brand-green-light border border-brand-green/20 rounded-lg p-3 text-brand-green-dark">
+                          <div className="bg-success/10 border border-success/20 rounded-lg p-3 text-success-dark">
                             {change.proposed}
                           </div>
                         </div>
@@ -252,7 +251,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
           {plan.skills_to_add.length > 0 && (
             <div className="animate-fade-up glass rounded-2xl p-5 border border-black/[0.06]" style={{ animationDelay: '0.12s' }}>
               <h2 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                <Plus className="w-4 h-4 text-brand-green" /> Skills to Add ({plan.skills_to_add.length})
+                <Plus className="w-4 h-4 text-success" /> Skills to Add ({plan.skills_to_add.length})
               </h2>
               <div className="space-y-2">
                 {plan.skills_to_add.map((s, i) => (
@@ -261,7 +260,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                       type="checkbox"
                       checked={acceptedSkills.has(i)}
                       onChange={() => toggleSkill(i)}
-                      className="mt-1 accent-[#009b4d]"
+                      className="mt-1 accent-[#af2b47]"
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{s.skill}</p>
@@ -288,7 +287,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
                       type="checkbox"
                       checked={acceptedRemovals.has(i)}
                       onChange={() => toggleRemoval(i)}
-                      className="mt-1 accent-[#009b4d]"
+                      className="mt-1 accent-[#af2b47]"
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-800 line-through decoration-gray-400">{s.skill}</p>
@@ -302,7 +301,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
 
           {plan.bullet_changes.length === 0 && plan.skills_to_add.length === 0 && plan.skills_to_remove.length === 0 && !plan.summary_change && (
             <div className="animate-fade-up glass rounded-2xl p-8 border border-black/[0.06] text-center">
-              <CheckCircle2 className="w-8 h-8 text-brand-green mx-auto mb-3" />
+              <CheckCircle2 className="w-8 h-8 text-success mx-auto mb-3" />
               <p className="text-gray-600">Your resume is already well-aligned for this job — nothing worth changing.</p>
             </div>
           )}
@@ -311,7 +310,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
             <button
               onClick={handleApply}
               disabled={applying || totalSelected === 0}
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/25"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
               Apply {totalSelected > 0 ? `${totalSelected} ` : ''}Selected Change{totalSelected !== 1 ? 's' : ''}

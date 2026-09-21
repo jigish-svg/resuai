@@ -68,7 +68,7 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
   return (
     <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]">
       <div className="flex items-center gap-2 mb-1">
-        <Paperclip className="w-4.5 h-4.5 text-brand-green" />
+        <Paperclip className="w-4.5 h-4.5 text-brand-primary" />
         <h2 className="font-semibold">Certificates & Project Files</h2>
       </div>
       <p className="text-sm text-gray-500 mb-4">
@@ -81,9 +81,9 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Short description (optional)"
-          className="flex-1 bg-black/[0.02] border border-black/[0.08] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors"
+          className="flex-1 bg-black/[0.02] border border-black/[0.08] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
         />
-        <label className="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark transition-all px-4 py-2.5 rounded-xl font-medium text-sm text-white cursor-pointer shrink-0">
+        <label className="flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-4 py-2.5 rounded-full font-medium text-sm text-white cursor-pointer shrink-0">
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
           Upload file
           <input ref={fileInputRef} type="file" onChange={handleFileChange} disabled={uploading} className="hidden" />
@@ -109,7 +109,7 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
                     href={upload.viewUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-brand-green hover:text-brand-green-dark transition-colors"
+                    className="text-brand-primary hover:text-brand-primary-dark transition-colors"
                     title="View"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -118,7 +118,7 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
                 <button
                   onClick={() => handleDelete(upload.id)}
                   disabled={deletingId === upload.id}
-                  className="text-gray-400 hover:text-rose-600 transition-colors disabled:opacity-40"
+                  className="text-gray-400 hover:text-red-600 transition-colors disabled:opacity-40"
                   title="Delete"
                 >
                   {deletingId === upload.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}

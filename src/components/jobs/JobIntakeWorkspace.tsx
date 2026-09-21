@@ -106,7 +106,7 @@ export default function JobIntakeWorkspace() {
         {parsing ? (
           <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] flex flex-col items-center justify-center text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent pointer-events-none" />
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mb-5 shadow-lg shadow-brand-green/25 animate-glow">
+            <div className="relative w-16 h-16 rounded-2xl bg-brand-primary flex items-center justify-center mb-5 shadow-lg">
               <Loader2 className="w-7 h-7 text-white animate-spin" />
             </div>
             <p className="font-medium relative">Extracting requirements…</p>
@@ -117,12 +117,12 @@ export default function JobIntakeWorkspace() {
             <div
               {...getRootProps()}
               className={`animate-fade-up glass rounded-2xl p-12 border-2 border-dashed transition-all cursor-pointer text-center ${
-                isDragActive ? 'border-brand-green bg-brand-green/5 scale-[1.01]' : 'border-black/[0.1] hover:border-brand-green/40 hover:bg-black/[0.02]'
+                isDragActive ? 'border-brand-primary bg-brand-primary/5 scale-[1.01]' : 'border-black/[0.1] hover:border-brand-primary/40 hover:bg-black/[0.02]'
               }`}
             >
               <input {...getInputProps()} />
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-green/20 to-brand-yellow/20 border border-brand-green/20 flex items-center justify-center mx-auto mb-4">
-                <UploadCloud className="w-7 h-7 text-brand-green" />
+              <div className="w-16 h-16 rounded-2xl bg-brand-primary/20 border border-brand-primary/20 flex items-center justify-center mx-auto mb-4">
+                <UploadCloud className="w-7 h-7 text-brand-primary" />
               </div>
               <p className="font-medium mb-1">Drop a job description file here, or click to browse</p>
               <p className="text-sm text-gray-500">PDF or DOCX</p>
@@ -139,18 +139,18 @@ export default function JobIntakeWorkspace() {
                 value={sourceUrl}
                 onChange={(e) => setSourceUrl(e.target.value)}
                 placeholder="Job posting URL (optional)"
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors"
+                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
               />
               <textarea
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="Paste the full job description here…"
                 rows={10}
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-4 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors resize-none"
+                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-4 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors resize-none"
               />
               <button
                 onClick={handleParseText}
-                className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark transition-all px-5 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20 hover:shadow-brand-green/35"
+                className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
               >
                 <Sparkles className="w-4 h-4" />
                 Parse with AI
@@ -165,14 +165,14 @@ export default function JobIntakeWorkspace() {
   if (mode === 'review' && parsed) {
     return (
       <div className="space-y-6">
-        <div className="animate-fade-up glass rounded-2xl p-4 border border-brand-green/20 bg-brand-green/5 flex items-center gap-3">
-          <Sparkles className="w-5 h-5 text-brand-green shrink-0" />
+        <div className="animate-fade-up glass rounded-2xl p-4 border border-brand-primary/20 bg-brand-primary/5 flex items-center gap-3">
+          <Sparkles className="w-5 h-5 text-brand-primary shrink-0" />
           <p className="text-sm text-gray-700">Review the extracted requirements before saving and running the match.</p>
         </div>
 
         <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.06s' }}>
           <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <span className="w-1 h-3.5 rounded-full bg-gradient-to-b from-brand-green to-brand-yellow" />
+            <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
             Job Details
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -186,12 +186,12 @@ export default function JobIntakeWorkspace() {
         <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.12s' }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              <span className="w-1 h-3.5 rounded-full bg-gradient-to-b from-brand-green to-brand-yellow" />
+              <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
               Requirements ({requirements.length})
             </h3>
             <button
               onClick={() => setRequirements([...requirements, { requirement_text: '', category: 'hard_skill', importance: 'medium' }])}
-              className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
             >
               <Plus className="w-3.5 h-3.5" /> Add
             </button>
@@ -212,7 +212,7 @@ export default function JobIntakeWorkspace() {
                 {req.is_implied && (
                   <span
                     title="Not explicitly stated in the JD — commonly expected for this role, so ATS systems often scan for it anyway"
-                    className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-yellow-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium"
+                    className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-secondary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium"
                   >
                     Commonly expected
                   </span>
@@ -245,7 +245,7 @@ export default function JobIntakeWorkspace() {
                 </select>
                 <button
                   onClick={() => setRequirements(requirements.filter((_, j) => j !== i))}
-                  className="text-gray-400 hover:text-rose-600 transition-colors"
+                  className="text-gray-400 hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -258,7 +258,7 @@ export default function JobIntakeWorkspace() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark disabled:opacity-60 transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/25"
+            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             Save & run match
@@ -281,7 +281,7 @@ function TextField({ label, value, onChange }: { label: string; value: string; o
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-green/60"
+        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60"
       />
     </div>
   );

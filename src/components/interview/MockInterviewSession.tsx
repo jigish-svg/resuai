@@ -199,8 +199,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
 
   if (completedSession && completedSession.overall_feedback) {
     return (
-      <div className="animate-fade-up rounded-2xl border border-brand-green/20 bg-gradient-to-br from-brand-green/5 to-brand-yellow/5 p-6 relative overflow-hidden">
-        <div className="absolute -top-10 right-0 w-48 h-48 bg-brand-green/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="animate-fade-up rounded-2xl border border-brand-primary/20 bg-brand-primary/5 p-6 relative overflow-hidden">
         <div className="flex items-center justify-between mb-3 relative">
           <h3 className="font-bold text-lg">Session Summary</h3>
           <span className={`text-2xl font-bold ${getScoreColor(completedSession.overall_feedback.readiness_score)}`}>
@@ -212,7 +211,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
         <div className="grid sm:grid-cols-2 gap-4 relative">
           <div>
             <p className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-brand-green" /> Strengths
+              <CheckCircle2 className="w-3.5 h-3.5 text-success" /> Strengths
             </p>
             <ul className="space-y-1.5">
               {completedSession.overall_feedback.strengths.map((s, i) => (
@@ -235,7 +234,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
         <div className="mt-5 relative">
           <button
             onClick={startCall}
-            className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark transition-all px-5 py-2.5 rounded-xl font-medium text-sm text-white"
+            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm text-white"
           >
             <Sparkles className="w-4 h-4" />
             Practice Again
@@ -248,8 +247,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
   if (callState === 'idle' && transcript.length === 0) {
     return (
       <div className="animate-fade-up glass rounded-2xl p-10 border border-black/[0.06] text-center relative overflow-hidden">
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-green/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-green/30 relative">
+        <div className="w-14 h-14 rounded-2xl bg-brand-primary flex items-center justify-center mx-auto mb-5 shadow-lg relative">
           <Mic className="w-7 h-7 text-white" />
         </div>
         <h2 className="text-xl font-bold mb-2 relative">Ready to practice?</h2>
@@ -257,10 +255,10 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
           You&apos;ll have a real, live voice conversation with an AI interviewer about this {jobTitle} role
           {company ? ` at ${company}` : ''} — just talk, no typing. 5 questions, then a full readiness report.
         </p>
-        {error && <p className="text-sm text-rose-600 mb-4 relative">{error}</p>}
+        {error && <p className="text-sm text-red-600 mb-4 relative">{error}</p>}
         <button
           onClick={startCall}
-          className="relative inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark transition-all px-7 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/25 hover:shadow-brand-green/40 text-white"
+          className="relative inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-7 py-3 rounded-full font-semibold shadow-lg text-white"
         >
           <Sparkles className="w-4 h-4" />
           Start Practice Session
@@ -273,7 +271,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
     <div className="animate-fade-up glass rounded-2xl border border-black/[0.06] overflow-hidden">
       <audio ref={remoteAudioRef} autoPlay hidden />
 
-      <div className="px-6 py-4 border-b border-black/[0.06] flex items-center justify-between bg-gradient-to-r from-brand-green to-brand-green-dark">
+      <div className="px-6 py-4 border-b border-black/[0.06] flex items-center justify-between bg-brand-primary">
         <div className="flex items-center gap-2 text-white">
           <span className={`w-2 h-2 rounded-full ${callState === 'live' ? 'bg-white animate-pulse' : 'bg-white/50'}`} />
           <p className="font-semibold text-sm">
@@ -294,7 +292,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                 b.role === 'candidate'
-                  ? 'bg-gradient-to-r from-brand-green to-brand-green-dark text-white rounded-br-sm'
+                  ? 'bg-brand-primary text-white rounded-br-sm'
                   : 'bg-black/[0.04] text-gray-800 rounded-bl-sm'
               }`}
             >
@@ -304,7 +302,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
         ))}
       </div>
 
-      {error && <p className="px-6 text-sm text-rose-600 pb-2">{error}</p>}
+      {error && <p className="px-6 text-sm text-red-600 pb-2">{error}</p>}
 
       {(callState === 'live' || callState === 'connecting') && (
         <div className="border-t border-black/[0.06] p-4 flex items-center justify-center gap-3">
@@ -315,7 +313,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
             onClick={toggleMicMute}
             disabled={callState !== 'live'}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 ${
-              micMuted ? 'bg-rose-500 text-white' : 'bg-black/[0.04] text-gray-600 hover:bg-black/[0.08]'
+              micMuted ? 'bg-red-500 text-white' : 'bg-black/[0.04] text-gray-600 hover:bg-black/[0.08]'
             }`}
             title={micMuted ? 'Unmute mic' : 'Mute mic'}
           >
@@ -332,7 +330,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
           <button
             onClick={endCall}
             disabled={callState !== 'live'}
-            className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 disabled:opacity-40 transition-all px-5 py-2.5 rounded-xl font-medium text-sm text-white"
+            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 transition-all px-5 py-2.5 rounded-xl font-medium text-sm text-white"
           >
             <PhoneOff className="w-4 h-4" />
             End Interview

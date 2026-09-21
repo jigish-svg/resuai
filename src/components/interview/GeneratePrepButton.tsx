@@ -32,7 +32,7 @@ export default function GeneratePrepButton({ jobId, label = 'Generate Interview 
     <button
       onClick={handleClick}
       disabled={loading}
-      className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/20"
+      className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessagesSquare className="w-4 h-4" />}
       {loading ? 'Preparing…' : label}

@@ -64,9 +64,8 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
       </div>
 
       {!paid ? (
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-yellow/40 text-center relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-yellow/[0.1] rounded-full blur-3xl pointer-events-none" />
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-yellow to-amber-500 flex items-center justify-center mx-auto mb-5 shadow-lg relative">
+        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-secondary/40 text-center relative overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-brand-secondary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
             <Lock className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2 relative">Interview Prep is a paid feature</h2>
@@ -77,7 +76,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
           <div className="relative flex justify-center">
             <Link
               href="/account/upgrade"
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/20"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               <Sparkles className="w-4 h-4" />
               Upgrade to Paid
@@ -86,8 +85,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
         </div>
       ) : !prep ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-green/[0.06] rounded-full blur-3xl pointer-events-none" />
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-green/25 relative">
+          <div className="w-14 h-14 rounded-2xl bg-brand-primary flex items-center justify-center mx-auto mb-5 shadow-lg relative">
             <MessageCircleQuestion className="w-7 h-7 text-white" />
           </div>
           <p className="text-gray-600 mb-6 max-w-md mx-auto relative">
@@ -104,7 +102,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
             <p className="text-sm text-gray-500">
               {questions.length} questions
               {gapCount > 0 && (
-                <span className="ml-2 inline-flex items-center gap-1 text-amber-700 bg-brand-yellow-light px-2 py-0.5 rounded-md text-xs font-medium">
+                <span className="ml-2 inline-flex items-center gap-1 text-amber-700 bg-brand-secondary-light px-2 py-0.5 rounded-md text-xs font-medium">
                   <AlertTriangle className="w-3 h-3" /> {gapCount} gap{gapCount !== 1 ? 's' : ''} to prep for
                 </span>
               )}
@@ -118,7 +116,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
             return (
               <div key={cat} className="animate-fade-up space-y-3" style={{ animationDelay: `${0.06 + i * 0.05}s` }}>
                 <h2 className="flex items-center gap-2 font-semibold text-gray-800">
-                  <span className="w-7 h-7 rounded-md bg-brand-green/10 text-brand-green flex items-center justify-center">
+                  <span className="w-7 h-7 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center">
                     {CATEGORY_META[cat].icon}
                   </span>
                   {CATEGORY_META[cat].label}
@@ -127,14 +125,14 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
                   {items.map((q, idx) => (
                     <div
                       key={idx}
-                      className={`glass rounded-2xl p-5 border ${q.is_gap ? 'border-brand-yellow/40' : 'border-black/[0.06]'}`}
+                      className={`glass rounded-2xl p-5 border ${q.is_gap ? 'border-brand-secondary/40' : 'border-black/[0.06]'}`}
                     >
                       <p className="font-medium text-gray-900 mb-2">{q.question}</p>
                       {q.related_requirement && (
                         <p className="text-xs text-gray-400 mb-3">Targets: {q.related_requirement}</p>
                       )}
                       {q.is_gap && (
-                        <div className="flex items-start gap-2 bg-brand-yellow-light text-amber-800 rounded-lg p-3 mb-3 text-sm">
+                        <div className="flex items-start gap-2 bg-brand-secondary-light text-amber-800 rounded-lg p-3 mb-3 text-sm">
                           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                           <div>
                             <p className="font-medium mb-1">No direct evidence for this — here&apos;s an honest way to answer:</p>
@@ -155,7 +153,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
           {skillGaps.length > 0 && (
             <div className="animate-fade-up space-y-3" style={{ animationDelay: '0.26s' }}>
               <h2 className="flex items-center gap-2 font-semibold text-gray-800">
-                <span className="w-7 h-7 rounded-md bg-brand-yellow/20 text-amber-700 flex items-center justify-center">
+                <span className="w-7 h-7 rounded-md bg-brand-secondary/20 text-amber-700 flex items-center justify-center">
                   <GraduationCap className="w-4 h-4" />
                 </span>
                 Skill Gap Action Plan
@@ -181,7 +179,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
           {questionsToAsk.length > 0 && (
             <div className="animate-fade-up glass rounded-2xl p-5 border border-black/[0.06]" style={{ animationDelay: '0.3s' }}>
               <h2 className="flex items-center gap-2 font-semibold text-gray-800 mb-4">
-                <span className="w-7 h-7 rounded-md bg-brand-yellow/20 text-amber-700 flex items-center justify-center">
+                <span className="w-7 h-7 rounded-md bg-brand-secondary/20 text-amber-700 flex items-center justify-center">
                   <HelpCircle className="w-4 h-4" />
                 </span>
                 Questions to Ask Them
@@ -189,7 +187,7 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               <ul className="space-y-2">
                 {questionsToAsk.map((q, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-brand-green mt-0.5">•</span>
+                    <span className="text-brand-primary mt-0.5">•</span>
                     {q}
                   </li>
                 ))}

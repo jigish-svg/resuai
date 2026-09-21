@@ -18,7 +18,7 @@ export interface KanbanJob {
 
 const COLUMNS: { status: JobStatus; label: string; accent: string }[] = [
   { status: 'saved', label: 'Saved', accent: 'bg-gray-400' },
-  { status: 'tailoring', label: 'Tailoring', accent: 'bg-brand-yellow' },
+  { status: 'tailoring', label: 'Tailoring', accent: 'bg-brand-secondary' },
   { status: 'ready', label: 'Ready', accent: 'bg-sky-400' },
   { status: 'applied', label: 'Applied', accent: 'bg-blue-400' },
   { status: 'recruiter_screen', label: 'Recruiter Screen', accent: 'bg-amber-400' },
@@ -71,7 +71,7 @@ function Column({ status, label, accent, jobs }: { status: JobStatus; label: str
     <div
       ref={setNodeRef}
       className={`w-72 shrink-0 rounded-2xl p-3 border transition-all ${
-        isOver ? 'border-brand-green/50 bg-brand-green/[0.07] shadow-[0_0_20px_rgba(0,155,77,0.12)]' : 'border-black/[0.06] bg-black/[0.02]'
+        isOver ? 'border-brand-primary/50 bg-brand-primary/[0.07]' : 'border-black/[0.06] bg-black/[0.02]'
       }`}
     >
       <div className="flex items-center justify-between px-2 py-1 mb-2">

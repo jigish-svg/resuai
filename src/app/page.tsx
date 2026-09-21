@@ -2,540 +2,515 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import {
-  Sparkles,
-  Shield,
-  Target,
-  ChevronRight,
+  ArrowRight,
+  BookOpen,
+  Check,
+  CheckCircle2,
   ChevronDown,
   FileText,
-  Zap,
-  CheckCircle2,
-  ArrowRight,
-  TrendingUp,
-  BookOpen,
+  GraduationCap,
+  Lock,
+  Mail,
   MessageCircleQuestion,
   Mic,
-  Award,
-  Mail,
+  Shield,
+  Target,
   Wand2,
+  Zap,
 } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
 
-// Cleaner two-tone green gradient for the landing page only — the shared
-// .gradient-text utility (green→yellow) is used across the whole app, so it's
-// left alone rather than changed globally.
-const gradientText = 'bg-gradient-to-r from-brand-green via-emerald-500 to-teal-500 bg-clip-text text-transparent';
+const heroChecks = [
+  { icon: Check, text: 'Evidence-backed: every match cites your actual accomplishments.' },
+  { icon: Shield, text: 'Truth Guard™ fact-checks every AI suggestion against your own resume.' },
+  { icon: Lock, text: '80% fit gate: reach it to unlock a real-time voice mock interview.' },
+];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] },
-  }),
-};
+const auditBars = [
+  { label: 'Hard Technical Skills', score: 92, strong: true },
+  { label: 'Core Responsibilities', score: 86, strong: true },
+  { label: 'Domain & Business Context', score: 80, strong: false },
+  { label: 'ATS Structure & Headers', score: 98, strong: true },
+  { label: 'Semantic Expression Match', score: 85, strong: false },
+];
 
-const features = [
+const integrityStats = [
+  { big: 'Cited', label: 'Every match', desc: 'Each requirement links to the exact achievement that supports it, or is marked missing.', icon: Shield, tone: 'primary' },
+  { big: '6-Dim', label: 'Evidence score', desc: 'Hard skills, responsibilities, experience, education, semantic fit and ATS quality.', icon: Target, tone: 'gold' },
+  { big: '80%', label: 'Unlock gate', desc: 'Voice mock interviews open when your match reaches 80%.', icon: Mic, tone: 'primary' },
+  { big: '1-Click', label: 'PDF & DOCX export', desc: 'Clean, readable documents tailored to the role.', icon: FileText, tone: 'neutral' },
+] as const;
+
+const capabilities = [
   {
     icon: Target,
-    title: 'Evidence Matching',
-    description:
-      'Every requirement mapped to real achievements from your career. No guessing, no fabrication.',
-    color: 'from-brand-green to-brand-green-dark',
+    tone: 'primary',
+    tags: ['Audit engine', 'Cited evidence'],
+    title: 'Evidence-Based Matching',
+    desc: 'We extract every requirement in the job description and cross-examine it against your career timeline. You see the supporting achievement behind every Strong, Partial or Missing result.',
   },
   {
     icon: Shield,
-    title: 'Truth Guard™',
-    description:
-      'Our AI fact-checker flags any unsupported claim before it reaches your resume. Your integrity, protected.',
-    color: 'from-emerald-400 to-teal-500',
+    tone: 'gold',
+    tags: ['Anti-fabrication'],
+    title: 'Truth Guard™ Integrity System',
+    desc: 'Generic AI tools love flattering exaggeration. Truth Guard acts as an uncompromising editor: if a claim is not backed by your own resume, it is flagged before it can reach your application.',
   },
   {
     icon: Zap,
+    tone: 'neutral',
+    tags: ['Screening checks'],
     title: 'Instant ATS Check',
-    description:
-      'Deterministic ATS scoring — not a vague "pass/fail." Real checks, real scores, real improvements.',
-    color: 'from-amber-400 to-orange-500',
+    desc: 'Checks contact details, standard section headings, keyword coverage, dates and length against the job’s key terms, so formatting problems surface before you hit apply.',
   },
   {
     icon: FileText,
-    title: 'PDF & DOCX Export',
-    description:
-      'Multiple professional templates optimized for ATS. Download instantly, apply with confidence.',
-    color: 'from-sky-400 to-blue-500',
+    tone: 'primary',
+    tags: ['Clean output'],
+    title: 'Lossless PDF & DOCX Export',
+    desc: 'Export clean, human-readable documents tailored to the position, with the typographic hierarchy hiring managers expect.',
   },
+] as const;
+
+const steps = [
+  { num: '01', tag: 'Foundation', title: 'Upload Resume Once', desc: 'Upload a PDF or Word document, or paste your text. We turn your achievements, scope and metrics into a private Evidence Library.' },
+  { num: '02', tag: 'Targeting', title: 'Paste the Job Description', desc: 'Paste the posting text. We break it into requirements ranked Critical, High, Medium or Low.' },
+  { num: '03', tag: 'Diagnosis', title: 'Inspect Your Evidence Score', desc: 'Review a 6-dimension alignment score. Missing credentials come with links to free courses so you can close real gaps.' },
+  { num: '04', tag: 'Execution', title: 'Tailor, Practice & Apply', desc: 'Generate truth-bound tailored drafts, rehearse hard questions in a live voice interview once you reach 80%, and export clean documents.' },
 ];
 
-const resources = [
-  { icon: Target, title: 'Evidence Library', description: 'Every achievement you\'ve ever had, extracted once and reused for every job you apply to.' },
-  { icon: Wand2, title: 'JD-Specific Tailoring', description: 'Approve-or-reject resume changes proposed against one exact job description.' },
-  { icon: MessageCircleQuestion, title: 'Interview Prep', description: 'Likely questions, a skill-gap study plan, and smart questions to ask them back.' },
-  { icon: Mic, title: 'Mock Interview', description: 'A live, real-time voice interview with an AI interviewer — then an honest readiness report.' },
-  { icon: Award, title: 'Certifications & Evidence', description: 'Free course links for skill gaps, plus a place to upload certificates and project files.' },
-  { icon: Mail, title: 'Cover Letters', description: 'AI-written and evidence-based, built around your strongest real achievements for this job.' },
+const suite = [
+  { icon: BookOpen, title: 'Evidence Library', desc: 'Stores structured metrics, tools and outcomes for reuse.' },
+  { icon: Wand2, title: 'JD-Specific Tailoring', desc: 'Approve or reject changes proposed for each posting.' },
+  { icon: MessageCircleQuestion, title: 'Interview Prep', desc: 'Likely questions and a study plan built from your gaps.' },
+  { icon: Mic, title: 'Live Mock Practice', desc: 'A real-time voice interview, then an honest readiness report.' },
+  { icon: GraduationCap, title: 'Free Certification Paths', desc: 'Course links to close legitimate skill gaps.' },
+  { icon: Mail, title: 'Evidence Cover Letters', desc: 'Letters built around your strongest real achievements.' },
 ];
 
 const faqs = [
   {
-    q: 'Is GetJobFit.ai free to use?',
-    a: 'Yes — you can upload a resume, track jobs, and run evidence-based match analysis for free. Paid plans unlock JD-specific tailoring, interview prep, mock interviews, and cover letters.',
+    q: 'How is this different from ChatGPT or other AI resume builders?',
+    a: 'General AI tools will happily invent achievements to make a resume sound better. GetJobFit.ai only works from what you have documented: every match cites your evidence, and Truth Guard flags any suggestion your resume does not support.',
+  },
+  {
+    q: 'Will this make up experience I don’t have?',
+    a: 'No. That is the entire premise of the product. We only present evidence you actually provided, framed as strongly as it honestly supports.',
+  },
+  {
+    q: 'Why does the Voice Mock Interview require an 80% match?',
+    a: 'Practising against a job you are far from matching mostly rehearses gaps. Reaching 80% first means the interview drills the role you are genuinely competitive for. Your final score then blends your match score with your interview performance.',
+  },
+  {
+    q: 'Is GetJobFit.ai free to start?',
+    a: 'Yes. You can upload a resume, track jobs and run an evidence-based match for free. Paid plans unlock JD-specific tailoring, interview prep, mock interviews and cover letters.',
   },
   {
     q: 'What is Truth Guard™?',
-    a: 'It\'s our built-in fact-checker: every AI-generated suggestion is checked against what\'s actually in your resume and Evidence Library. If a rewrite would claim something you haven\'t documented, it gets flagged instead of silently added.',
-  },
-  {
-    q: 'Will this make up experience I don\'t have?',
-    a: 'No — that\'s the entire premise of the product. We only ever present evidence you actually provided, matched and framed as strongly as it honestly supports.',
+    a: 'It is our built-in fact-checker. Every AI-generated suggestion is compared with what is actually in your resume and Evidence Library. If a rewrite would claim something you have not documented, it is flagged instead of silently added.',
   },
   {
     q: 'Is my resume data private?',
-    a: 'Every table in our database is protected by row-level security, so only your account can ever read your data. See our Privacy Policy for the full details on what we collect and why.',
+    a: 'Every table in our database is protected by row-level security, so only your account can read your data. See our Privacy Policy for what we collect and why.',
   },
   {
     q: 'Can I cancel my paid plan anytime?',
-    a: 'Yes, anytime from Account Settings — no lock-in.',
+    a: 'Yes, anytime from Account Settings. There is no lock-in.',
   },
 ];
 
-const steps = [
-  {
-    num: '01',
-    title: 'Upload Your Master Resume',
-    desc: 'Upload PDF, DOCX, or paste text. Our AI extracts every achievement into your personal Evidence Library.',
-    icon: FileText,
-  },
-  {
-    num: '02',
-    title: 'Add the Job Description',
-    desc: 'Paste any JD and we\'ll extract requirements, assign importance levels (Critical → Low), and build a match plan.',
-    icon: Target,
-  },
-  {
-    num: '03',
-    title: 'Get Evidence-Based Analysis',
-    desc: 'Every requirement matched to real evidence from your career. See exactly what\'s strong, what\'s partial, what\'s missing.',
-    icon: Sparkles,
-  },
-  {
-    num: '04',
-    title: 'Tailor, Guard & Export',
-    desc: 'Rewrite bullets with AI — Truth Guard ensures no fabrication. ATS check, then download PDF or DOCX.',
-    icon: Shield,
-  },
-];
+const chipTone = {
+  primary: 'bg-brand-primary-light text-brand-primary',
+  gold: 'bg-brand-secondary-light text-brand-secondary-dark',
+  neutral: 'bg-canvas-chip text-ink-soft',
+} as const;
 
-const stats = [
-  { value: '94%', label: 'Match Accuracy' },
-  { value: '3x', label: 'Interview Rate' },
-  { value: '0', label: 'Fabricated Claims' },
-  { value: '< 5min', label: 'Per Application' },
-];
+const cardShadow = 'shadow-[0_1px_2px_rgba(29,27,23,0.05),0_8px_24px_-12px_rgba(29,27,23,0.1)]';
+
+function ScoreRing({ score }: { score: number }) {
+  const r = 42;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative w-24 h-24 shrink-0">
+      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+        <circle cx="50" cy="50" r={r} fill="none" stroke="#ece7e0" strokeWidth="9" />
+        <circle
+          cx="50"
+          cy="50"
+          r={r}
+          fill="none"
+          stroke="#af2b47"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - score / 100)}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-ink tabular-nums leading-none">{score}%</span>
+        <span className="text-[10px] font-semibold tracking-wider text-ink-muted mt-1">FIT</span>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-hero-gradient overflow-x-hidden">
+    <div className="min-h-screen bg-brand-ivory text-ink overflow-x-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-black/[0.06]">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">GetJobFit.ai</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-brand-ivory/95 backdrop-blur border-b border-black/[0.06]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
+          <Link href="/" aria-label="GetJobFit.ai home">
+            <BrandLogo />
+          </Link>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-ink-soft">
+            <a href="#features" className="hover:text-ink transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
+            <a href="#mock-interview" className="hover:text-ink transition-colors">Mock interview</a>
+            <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
-            <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-gray-900 transition-colors">How it works</a>
-            <a href="#resources" className="hover:text-gray-900 transition-colors">Resources</a>
-            <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors px-4 py-2"
-            >
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/login" className="text-sm font-medium text-ink-soft hover:text-ink transition-colors px-3 py-2">
               Sign in
             </Link>
             <Link
               href="/signup"
-              className="text-sm bg-brand-green hover:bg-brand-green-dark text-white transition-colors px-4 py-2 rounded-lg font-medium shadow-sm shadow-brand-green/20"
+              className="text-sm font-semibold bg-brand-primary hover:bg-brand-primary-dark text-white transition-colors px-5 py-2.5 rounded-full"
             >
-              Get started free
+              Start free
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="pt-40 pb-20 px-6 relative overflow-hidden">
-        {/* Fading dot-grid texture */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(0,80,40,0.16) 1px, transparent 1px)',
-            backgroundSize: '26px 26px',
-            maskImage: 'radial-gradient(ellipse 70% 70% at 50% 25%, black 30%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 70% 70% at 50% 25%, black 30%, transparent 100%)',
-          }}
-        />
-        {/* Soft spotlight glow behind the headline */}
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[46rem] h-[30rem] bg-brand-green/[0.13] rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-72 -right-24 w-80 h-80 bg-brand-yellow/[0.16] rounded-full blur-3xl pointer-events-none" />
+      <section className="pt-32 pb-16 sm:pt-36 sm:pb-20 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+          <div className="text-center lg:text-left animate-fade-up">
+            <span className="inline-flex items-center gap-2 bg-canvas-chip text-brand-primary text-xs sm:text-sm font-semibold px-4 py-2 rounded-full mb-7">
+              <span className="w-2 h-2 rounded-full bg-brand-primary" />
+              Truth Guard™ fact-checking on every suggestion
+            </span>
 
-        <div className="max-w-7xl mx-auto relative grid lg:grid-cols-2 gap-14 items-center">
-          <div>
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              custom={0}
-              variants={fadeUp}
-              className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-sm text-brand-green mb-8 border border-brand-green/20"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Evidence-based resume matching — not AI hallucination
-            </motion.div>
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-[1.08] tracking-[-0.03em] mb-6">
+              The biggest reason you’re not getting interviews isn’t missing skills.{' '}
+              <span className="text-brand-primary">It’s how they’re presented.</span>
+            </h1>
 
-            <motion.h1
-              initial="hidden"
-              animate="visible"
-              custom={0.1}
-              variants={fadeUp}
-              className="text-5xl md:text-6xl font-bold leading-[1.08] tracking-tight mb-6 text-gray-900"
-            >
-              The biggest reason you&apos;re not getting interviews isn&apos;t missing skills.
-              <br />
-              <span className={gradientText}>It&apos;s how they&apos;re presented.</span>
-            </motion.h1>
+            <p className="text-lg text-ink-soft max-w-xl mx-auto lg:mx-0 mb-9 leading-relaxed">
+              Match your resume to any job description using real, verified evidence from your career history.
+              Honest fit scores, no invented claims.
+            </p>
 
-            <motion.p
-              initial="hidden"
-              animate="visible"
-              custom={0.2}
-              variants={fadeUp}
-              className="text-xl text-gray-600 max-w-xl mb-8 leading-relaxed"
-            >
-              We don&apos;t invent a better candidate. We find and present the strongest evidence of
-              the candidate you actually are — matched precisely to what every employer needs.
-            </motion.p>
-
-            <motion.ul
-              initial="hidden"
-              animate="visible"
-              custom={0.28}
-              variants={fadeUp}
-              className="space-y-2.5 mb-10"
-            >
-              {[
-                'Every requirement matched to real evidence from your career',
-                'Truth Guard™ fact-checks every AI suggestion before it reaches your resume',
-                'Real ATS scoring — not a vague pass/fail',
-                'A live, real-time voice mock interview with instant feedback',
-                'Free to start — no credit card required',
-              ].map((point) => (
-                <li key={point} className="flex items-start gap-2.5 text-gray-700">
-                  <CheckCircle2 className="w-5 h-5 text-brand-green shrink-0 mt-0.5" />
-                  {point}
+            <ul className={`bg-white rounded-2xl ${cardShadow} p-5 space-y-4 mb-8 text-left max-w-xl mx-auto lg:mx-0`}>
+              {heroChecks.map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-start gap-3">
+                  <span className="w-8 h-8 rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center shrink-0">
+                    <Icon className="w-4 h-4" />
+                  </span>
+                  <span className="text-ink-soft leading-snug pt-1">{text}</span>
                 </li>
               ))}
-            </motion.ul>
+            </ul>
 
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              custom={0.36}
-              variants={fadeUp}
-              className="flex flex-col sm:flex-row items-center sm:items-start gap-4"
-            >
+            <div className="flex flex-col items-center lg:items-start gap-4 max-w-xl mx-auto lg:mx-0">
               <Link
                 href="/signup"
-                className="group flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/30 hover:scale-[1.02] active:scale-[0.98] hover:shadow-brand-green/40"
+                className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-colors px-9 py-4 rounded-full font-semibold text-lg"
               >
-                Start matching — it&apos;s free
+                Start matching, it’s free
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link
-                href="/login"
-                className="flex items-center gap-2 glass glass-hover px-8 py-4 rounded-xl font-medium text-gray-700"
-              >
-                Sign in
-                <ChevronRight className="w-4 h-4" />
+              <Link href="/login" className="text-sm font-semibold text-ink-soft hover:text-ink transition-colors">
+                Already have an account? Sign in
               </Link>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Mock match dashboard, framed like a browser window */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="rounded-3xl bg-white border border-black/[0.08] shadow-2xl shadow-brand-green/10 overflow-hidden"
-          >
-            <div className="flex items-center gap-2 px-5 py-3 bg-black/[0.03] border-b border-black/[0.06]">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-400" />
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-              <span className="ml-3 flex-1 max-w-xs text-[11px] text-gray-400 bg-white border border-black/[0.06] rounded-md px-3 py-1 truncate">
-                getjobfit.ai/match/senior-data-analyst
+          {/* Live audit canvas (sample data) */}
+          <div className="bg-white rounded-3xl shadow-[0_1px_2px_rgba(29,27,23,0.05),0_20px_40px_-20px_rgba(29,27,23,0.18)] overflow-hidden animate-fade-up">
+            <div className="flex items-center justify-between px-6 py-3.5 bg-canvas-chip">
+              <span className="flex items-center gap-2 eyebrow !text-ink">
+                <span className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
+                Live audit canvas
+              </span>
+              <span className="text-xs font-semibold text-ink-muted">Sample analysis</span>
+            </div>
+
+            <div className="p-5 sm:p-6 space-y-5">
+              <div className="bg-canvas-band rounded-2xl p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="eyebrow mb-1">Target specification</p>
+                  <p className="text-lg font-semibold truncate">Senior Data Analyst</p>
+                  <p className="text-sm text-ink-soft truncate">Acme Corp · Hybrid</p>
+                </div>
+                <span className="text-xs font-semibold bg-brand-primary-light text-brand-primary px-3 py-1.5 rounded-full shrink-0">Parsed</span>
+              </div>
+
+              <div className="bg-brand-ivory border border-black/[0.05] rounded-2xl p-4 flex items-center gap-4">
+                <ScoreRing score={84} />
+                <div className="min-w-0">
+                  <p className="font-semibold">Target readiness</p>
+                  <p className="text-brand-primary font-semibold flex items-center gap-1.5 text-sm">
+                    <span className="w-2 h-2 rounded-full bg-brand-primary" /> Interview ready
+                  </p>
+                  <p className="text-sm text-ink-soft">Unlocks the voice mock lab</p>
+                </div>
+              </div>
+
+              <div className="space-y-3.5">
+                {auditBars.map((b) => (
+                  <div key={b.label}>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="text-ink-soft">{b.label}</span>
+                      <span className="font-semibold tabular-nums">{b.score}%</span>
+                    </div>
+                    <div className="h-2 bg-[#f2ede6] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${b.strong ? 'bg-brand-primary' : 'bg-brand-primary-light'}`}
+                        style={{ width: `${b.score}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <p className="eyebrow mb-3">Itemized evidence audit</p>
+                <div className="space-y-3">
+                  <div className="rounded-2xl border border-black/[0.06] p-4">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-brand-primary mb-1.5">
+                      <span className="w-2 h-2 rounded-full bg-brand-primary" /> Strong match
+                    </p>
+                    <p className="font-semibold text-sm mb-2">Requirement: “Advanced SQL &amp; dimensional modeling”</p>
+                    <p className="text-sm text-ink-soft bg-canvas-band rounded-xl p-3">
+                      <span className="font-semibold text-brand-primary">Resume proof:</span> “Led migration to Snowflake, authoring 140+ star-schema tables.”
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-black/[0.06] p-4">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-brand-secondary-dark mb-1.5">
+                      <span className="w-2 h-2 rounded-full bg-brand-secondary" /> Partial match
+                    </p>
+                    <p className="font-semibold text-sm mb-2">Requirement: “Tableau &amp; Looker visualizations”</p>
+                    <p className="text-sm text-ink-soft bg-canvas-band rounded-xl p-3">
+                      <span className="font-semibold text-brand-secondary-dark">Resume proof:</span> “Built 18 production Looker dashboards.”
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-black/[0.06] p-4">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-red-700 mb-1.5">
+                      <span className="w-2 h-2 rounded-full bg-red-700" /> Missing evidence
+                    </p>
+                    <p className="font-semibold text-sm mb-2">Requirement: “dbt core orchestration”</p>
+                    <p className="text-sm text-ink-soft bg-canvas-band rounded-xl p-3 flex items-center justify-between gap-3">
+                      <span>Suggested: a free dbt Fundamentals course to close this gap.</span>
+                      <GraduationCap className="w-5 h-5 text-brand-primary shrink-0" />
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Honest architecture */}
+      <section className="bg-canvas-band py-16 sm:py-20 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="eyebrow mb-2">Uncompromising integrity</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Honest architecture, real results</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {integrityStats.map((s) => (
+              <div key={s.big} className={`bg-white rounded-2xl p-5 sm:p-6 ${cardShadow}`}>
+                <span className={`w-10 h-10 rounded-full flex items-center justify-center mb-5 ${chipTone[s.tone]}`}>
+                  <s.icon className="w-5 h-5" />
+                </span>
+                <p className={`text-3xl sm:text-4xl font-bold tracking-tight mb-1 ${s.tone === 'primary' ? 'text-brand-primary' : 'text-ink'}`}>{s.big}</p>
+                <p className="font-semibold mb-1">{s.label}</p>
+                <p className="text-sm text-ink-soft leading-snug">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* System capabilities */}
+      <section id="features" className="py-16 sm:py-24 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <p className="eyebrow mb-2">System capabilities</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight max-w-2xl mb-10">Precision tools built for serious professionals</h2>
+          <div className="grid md:grid-cols-2 gap-5">
+            {capabilities.map((c) => (
+              <div key={c.title} className={`bg-white rounded-2xl p-6 sm:p-8 ${cardShadow}`}>
+                <span className={`w-12 h-12 rounded-full flex items-center justify-center mb-5 ${chipTone[c.tone]}`}>
+                  <c.icon className="w-5 h-5" />
+                </span>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  {c.tags.map((t, i) => (
+                    <span
+                      key={t}
+                      className={i === 0 ? 'text-xs font-medium bg-canvas-chip text-ink-soft px-3 py-1 rounded-full' : 'text-xs font-semibold text-brand-primary'}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <h3 className="text-xl font-semibold tracking-tight mb-2">{c.title}</h3>
+                <p className="text-ink-soft leading-relaxed">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Four steps */}
+      <section id="how-it-works" className="bg-canvas-band py-16 sm:py-24 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <p className="eyebrow mb-2">Methodical process</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight max-w-2xl mb-10">Four steps to verifiable application confidence</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {steps.map((s) => (
+              <div key={s.num} className={`bg-white rounded-2xl p-6 ${cardShadow}`}>
+                <div className="flex items-baseline justify-between mb-3">
+                  <span className="text-3xl font-bold text-brand-primary tabular-nums">{s.num}</span>
+                  <span className="text-sm text-ink-muted">{s.tag}</span>
+                </div>
+                <h3 className="text-lg font-semibold tracking-tight mb-2">{s.title}</h3>
+                <p className="text-sm text-ink-soft leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Voice mock interview */}
+      <section id="mock-interview" className="py-16 sm:py-24 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold text-brand-secondary-dark mb-3">
+              <Lock className="w-4 h-4" /> Earned at 80% fit readiness
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Live Voice Mock Interview Lab</h2>
+            <p className="text-lg text-ink-soft leading-relaxed mb-6">
+              When your resume reaches high alignment, the simulator unlocks. Practise answering difficult follow-ups out
+              loud using your actual evidence, then get an honest readiness report built from the whole conversation.
+            </p>
+            <ul className="space-y-3">
+              {['Talk naturally: the interviewer listens and responds in real time', 'Live captions of the whole conversation', 'A readiness report with strengths and focus areas'].map((t) => (
+                <li key={t} className="flex items-start gap-3 text-ink-soft">
+                  <CheckCircle2 className="w-5 h-5 text-success shrink-0 mt-0.5" />
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="bg-[#2f2b27] text-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_40px_-20px_rgba(29,27,23,0.4)]">
+            <div className="flex items-center justify-between mb-8">
+              <span className="flex items-center gap-2 text-xs font-semibold tracking-wider text-white/60">
+                <span className="w-2 h-2 rounded-full bg-brand-primary-bright" /> VOICE SESSION
+              </span>
+              <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full">Sample session</span>
+            </div>
+            <div className="flex justify-center mb-8">
+              <span className="w-28 h-28 rounded-full border border-white/10 flex items-center justify-center">
+                <span className="w-20 h-20 rounded-full border border-white/20 flex items-center justify-center">
+                  <span className="w-14 h-14 rounded-full bg-brand-primary flex items-center justify-center">
+                    <Mic className="w-6 h-6 text-white" />
+                  </span>
+                </span>
               </span>
             </div>
-            <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">Senior Data Analyst · Acme Corp</p>
-                <h3 className="text-xl font-semibold text-gray-900">Your Match Analysis</h3>
+            <div className="space-y-3">
+              <div className="bg-white/[0.08] rounded-2xl p-4">
+                <p className="text-xs text-white/60 mb-1.5">Interviewer</p>
+                <p className="text-sm leading-relaxed">“Tell me about a time you optimized a slow SQL pipeline under a tight deadline. How did you validate accuracy?”</p>
               </div>
-              <div className="text-right">
-                <div className={`text-4xl font-bold ${gradientText}`}>82%</div>
-                <div className="text-sm text-emerald-600 font-medium">Excellent Match</div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-              {[
-                { label: 'Hard Skills', score: 92 },
-                { label: 'Experience', score: 86 },
-                { label: 'Responsibilities', score: 78 },
-                { label: 'Education', score: 100 },
-                { label: 'ATS Score', score: 91 },
-                { label: 'Semantic Fit', score: 75 },
-              ].map((item) => (
-                <div key={item.label} className="bg-black/[0.02] rounded-xl p-3 border border-black/[0.04]">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-600">{item.label}</span>
-                    <span className={item.score >= 85 ? 'text-emerald-600' : item.score >= 70 ? 'text-green-600' : 'text-amber-600'}>
-                      {item.score}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-black/[0.06] rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-brand-green to-brand-yellow"
-                      style={{ width: `${item.score}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <p className="text-emerald-600 font-medium mb-2 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Strong
-                </p>
-                {['SQL', 'Python', 'Power BI', 'Stakeholder Mgmt'].map(s => (
-                  <div key={s} className="text-gray-600 py-0.5">{s}</div>
-                ))}
-              </div>
-              <div>
-                <p className="text-amber-600 font-medium mb-2">⚡ Partial</p>
-                {['Cloud Computing', 'Machine Learning'].map(s => (
-                  <div key={s} className="text-gray-600 py-0.5">{s}</div>
-                ))}
-              </div>
-              <div>
-                <p className="text-rose-600 font-medium mb-2">✗ Missing</p>
-                {['AWS', 'Tableau', 'Snowflake'].map(s => (
-                  <div key={s} className="text-gray-600 py-0.5">{s}</div>
-                ))}
+              <div className="bg-white/[0.08] rounded-2xl p-4">
+                <p className="flex justify-between text-xs text-white/60 mb-1.5"><span>Your answer</span><span>Live transcript</span></p>
+                <p className="text-sm leading-relaxed italic text-white/90">“Our nightly ETL had ballooned to four hours. I partitioned the tables by date and refactored the subqueries into CTEs…”</p>
               </div>
             </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Hero stats */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          custom={0.44}
-          variants={fadeUp}
-          className="max-w-7xl mx-auto mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 relative"
-        >
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-white border border-black/[0.08] rounded-2xl p-6 text-center shadow-sm hover:shadow-lg hover:shadow-brand-green/10 transition-shadow">
-              <div className={`text-3xl font-bold ${gradientText} mb-1`}>{stat.value}</div>
-              <div className="text-sm text-gray-500">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* Repeated CTA banner */}
-      <section className="py-4 px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-3xl mx-auto text-center"
-        >
-          <Link
-            href="/signup"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark text-white transition-all px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-brand-green/30 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            See your real match score
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <p className="text-sm text-gray-500 mt-3">Free to start — upgrade only when you need more.</p>
-        </motion.div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-24 px-6 bg-white border-y border-black/[0.06]">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Built different, <span className={gradientText}>by design</span>
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Every feature is designed around one principle: present your real achievements in their strongest possible light.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {features.map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative overflow-hidden bg-white border border-black/[0.08] hover:border-brand-green/30 hover:shadow-xl hover:shadow-brand-green/10 transition-all rounded-2xl p-8 group"
-              >
-                <span className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green to-emerald-400 opacity-70" />
-                <div
-                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-md`}
-                >
-                  <feature.icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-900">{feature.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-              </motion.div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              From resume to tailored in <span className={gradientText}>minutes</span>
-            </h2>
-          </motion.div>
-
-          <div className="space-y-8">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="flex gap-6 items-start bg-white border border-black/[0.08] rounded-2xl p-8 shadow-sm hover:shadow-lg hover:shadow-brand-green/10 transition-shadow"
-              >
-                <div className={`text-4xl font-black ${gradientText} opacity-60 shrink-0 w-12`}>{step.num}</div>
+      {/* Progression */}
+      <section className="bg-canvas-band py-16 sm:py-24 px-5 sm:px-8">
+        <div className="max-w-3xl mx-auto">
+          <p className="eyebrow mb-2">The progression</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10">Earn your readiness step by step</h2>
+          <div className="space-y-4">
+            {[
+              { n: 'Phase 01', t: 'Preliminary Check', d: 'A quick keyword and core-requirement pass before you run the full analysis.' },
+              { n: 'Phase 02', t: 'Deep Evidence Analysis', d: 'Every requirement is matched against your evidence across all six scoring dimensions.' },
+            ].map((p) => (
+              <div key={p.n} className={`bg-white rounded-2xl p-5 flex items-start gap-4 ${cardShadow}`}>
+                <span className="w-10 h-10 rounded-full bg-brand-primary text-white flex items-center justify-center shrink-0">
+                  <Check className="w-5 h-5" />
+                </span>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900">{step.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{step.desc}</p>
+                  <p className="text-xs text-ink-muted">{p.n}</p>
+                  <p className="font-semibold text-lg tracking-tight">{p.t}</p>
+                  <p className="text-ink-soft text-sm leading-relaxed">{p.d}</p>
                 </div>
-                <step.icon className="w-8 h-8 text-brand-green shrink-0 mt-1" />
-              </motion.div>
+              </div>
             ))}
+            <div className={`bg-white rounded-2xl p-5 flex items-start gap-4 border-l-4 border-brand-secondary ${cardShadow}`}>
+              <span className="w-11 h-11 rounded-full bg-brand-secondary text-brand-secondary-dark text-sm font-bold flex items-center justify-center shrink-0">80%</span>
+              <div>
+                <p className="text-xs font-semibold text-brand-secondary-dark">Milestone gate</p>
+                <p className="font-semibold text-lg tracking-tight">Voice Mock Interview unlocked</p>
+                <p className="text-ink-soft text-sm leading-relaxed">
+                  Practise out loud with an AI interviewer, then see a final score that blends your match with your interview performance.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Resources */}
-      <section id="resources" className="py-24 px-6 bg-white border-y border-black/[0.06]">
+      {/* Complete suite */}
+      <section id="resources" className="py-16 sm:py-24 px-5 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Everything you need, <span className={gradientText}>in one place</span>
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto flex items-center justify-center gap-2">
-              <BookOpen className="w-5 h-5 text-brand-green" />
-              A full toolkit for every stage of applying — all built on the same evidence.
-            </p>
-          </motion.div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((r, i) => (
-              <motion.div
-                key={r.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="relative overflow-hidden bg-white border border-black/[0.08] hover:border-brand-green/30 hover:shadow-xl hover:shadow-brand-green/10 transition-all rounded-2xl p-6"
-              >
-                <span className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-green to-emerald-400 opacity-70" />
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mb-4 shadow-md">
-                  <r.icon className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-900">{r.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{r.description}</p>
-              </motion.div>
+          <p className="eyebrow mb-2">Complete career suite</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight max-w-2xl mb-10">Everything you need for genuine preparation</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {suite.map((s) => (
+              <div key={s.title} className={`bg-white rounded-2xl p-5 sm:p-6 ${cardShadow}`}>
+                <s.icon className="w-6 h-6 text-brand-primary mb-4" />
+                <h3 className="font-semibold tracking-tight mb-1">{s.title}</h3>
+                <p className="text-sm text-ink-soft leading-snug">{s.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-24 px-6">
+      <section id="faq" className="bg-canvas-band py-16 sm:py-24 px-5 sm:px-8">
         <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-              Frequently asked <span className={gradientText}>questions</span>
-            </h2>
-          </motion.div>
-
+          <p className="eyebrow mb-2">Clarity · direct answers</p>
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10">Frequently asked questions</h2>
           <div className="space-y-3">
             {faqs.map((item, i) => {
               const isOpen = openFaq === i;
               return (
-                <motion.div
-                  key={item.q}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-white border border-black/[0.08] rounded-2xl overflow-hidden shadow-sm"
-                >
+                <div key={item.q} className={`bg-white rounded-2xl ${cardShadow} overflow-hidden`}>
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : i)}
                     className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+                    aria-expanded={isOpen}
                   >
-                    <span className="font-medium text-gray-900">{item.q}</span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <span className="font-medium">{item.q}</span>
+                    <ChevronDown className={`w-5 h-5 text-ink-muted shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  {isOpen && (
-                    <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed">{item.a}</div>
-                  )}
-                </motion.div>
+                  {isOpen && <div className="px-6 pb-5 text-ink-soft leading-relaxed">{item.a}</div>}
+                </div>
               );
             })}
           </div>
@@ -543,55 +518,41 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 relative overflow-hidden bg-gradient-to-br from-brand-green-dark via-brand-green to-emerald-600">
-        <div
-          className="absolute inset-0 pointer-events-none opacity-40"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.22) 1px, transparent 1px)',
-            backgroundSize: '26px 26px',
-            maskImage: 'radial-gradient(ellipse 60% 80% at 50% 50%, black 20%, transparent 100%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 60% 80% at 50% 50%, black 20%, transparent 100%)',
-          }}
-        />
-        <div className="absolute -bottom-24 right-10 w-80 h-80 bg-brand-yellow/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="max-w-3xl mx-auto text-center relative">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+      <section className="py-16 sm:py-24 px-5 sm:px-8">
+        <div className="max-w-4xl mx-auto bg-brand-primary rounded-3xl px-6 py-14 sm:px-14 sm:py-16 text-center text-white shadow-[0_20px_40px_-20px_rgba(175,43,71,0.5)]">
+          <span className="inline-block eyebrow !text-white bg-white/15 px-4 py-1.5 rounded-full mb-6">Evidence over illusion</span>
+          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">Stop guessing why applications get ignored.</h2>
+          <p className="text-white/85 text-lg max-w-xl mx-auto mb-9 leading-relaxed">
+            Analyze your resume against a target role and see exactly which requirements are backed by real evidence.
+          </p>
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 bg-brand-ivory text-brand-primary hover:bg-white transition-colors px-9 py-4 rounded-full font-semibold text-lg"
           >
-            <TrendingUp className="w-12 h-12 text-brand-yellow mx-auto mb-6" />
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
-              Ready to match with confidence?
-            </h2>
-            <p className="text-white/80 mb-10 text-lg max-w-xl mx-auto">
-              Upload your resume, paste a job description, and see exactly where you stand — and how to improve it — in under 5 minutes.
-            </p>
-            <Link
-              href="/signup"
-              className="inline-flex items-center gap-2 bg-white text-brand-green-dark hover:bg-brand-yellow hover:text-gray-900 transition-all px-10 py-4 rounded-xl font-semibold text-lg shadow-xl shadow-black/20 hover:scale-[1.03] active:scale-[0.98]"
-            >
-              Get started — it&apos;s free
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </motion.div>
+            Start matching, it’s free
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          <p className="flex items-center justify-center gap-2 text-sm text-white/80 mt-6">
+            <CheckCircle2 className="w-4 h-4" /> Free to start
+          </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-950 py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-white font-medium">GetJobFit.ai</span>
+      <footer className="bg-canvas-band py-12 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <BrandLogo />
+          <p className="text-ink-soft max-w-md mt-4 mb-8 leading-relaxed">
+            Editorial-grade precision for career readiness, resume alignment and verifiable skill matching.
+          </p>
+          <div className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-medium text-ink-soft mb-8">
+            <a href="#features" className="hover:text-ink transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
+            <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
+            <Link href="/privacy" className="hover:text-ink transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-ink transition-colors">Terms of Service</Link>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
-            <p>© 2026 GetJobFit.ai. Built with evidence, not hallucination.</p>
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-          </div>
+          <p className="text-xs font-semibold tracking-wide text-ink-muted">© 2026 GetJobFit.ai. Evidence over illusion.</p>
         </div>
       </footer>
     </div>

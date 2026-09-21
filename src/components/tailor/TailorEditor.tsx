@@ -239,7 +239,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
               { id: 'education', icon: GraduationCap },
               { id: 'certifications', icon: Award },
             ].map(({ id, icon: Icon }) => (
-              <a key={id} href={`#section-${id}`} className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-brand-green-dark hover:bg-brand-green/[0.08] transition-colors capitalize">
+              <a key={id} href={`#section-${id}`} className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-gray-500 hover:text-brand-primary-dark hover:bg-brand-primary/[0.08] transition-colors capitalize">
                 <Icon className="w-3.5 h-3.5" />
                 {id}
               </a>
@@ -266,7 +266,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
             value={summary.text}
             onChange={(e) => setSections(setContent(sections, 'summary', { text: e.target.value }))}
             rows={3}
-            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors resize-none"
+            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors resize-none"
           />
         </section>
 
@@ -293,7 +293,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
                               updateExperiences(experiences);
                             }}
                             rows={2}
-                            className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-green/60"
+                            className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-primary/60"
                           />
                           <button
                             onClick={() => {
@@ -304,7 +304,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
                               };
                               updateExperiences(experiences);
                             }}
-                            className="text-gray-400 hover:text-rose-600 transition-colors mt-2"
+                            className="text-gray-400 hover:text-red-600 transition-colors mt-2"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -315,7 +315,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
                             if (e.target.value) handleRewrite(expIndex, bulletIndex, e.target.value);
                             e.target.value = '';
                           }}
-                          className="text-xs bg-black/[0.03] border border-black/[0.08] rounded-lg px-2 py-1 text-brand-green-dark"
+                          className="text-xs bg-black/[0.03] border border-black/[0.08] rounded-lg px-2 py-1 text-brand-primary-dark"
                           defaultValue=""
                         >
                           <option value="" disabled>
@@ -336,7 +336,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
                       experiences[expIndex] = { ...experiences[expIndex], bullets: [...experiences[expIndex].bullets, ''] };
                       updateExperiences(experiences);
                     }}
-                    className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+                    className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add bullet
                   </button>
@@ -352,7 +352,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
             value={skillsContent.skills.join(', ')}
             onChange={(e) => setSections(setContent(sections, 'skills', { skills: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) }))}
             rows={2}
-            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors"
+            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm resize-none focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
           />
         </section>
 
@@ -379,7 +379,6 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
       {/* Right: score + actions */}
       <div className="space-y-4 animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <div className="glass rounded-2xl p-5 border border-black/[0.06] sticky top-24 space-y-5 relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand-green/[0.08] rounded-full blur-3xl pointer-events-none" />
           {match && (
             <div className="relative">
               <p className="text-xs text-gray-500 mb-2">Match Score</p>
@@ -390,7 +389,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
           <button
             onClick={handleOptimizeATS}
             disabled={optimizing}
-            className="relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark disabled:opacity-60 transition-all px-4 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20 hover:shadow-brand-green/35"
+            className="relative w-full flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
           >
             {optimizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4" />}
             {optimizing ? 'Optimizing…' : 'Optimize for ATS'}
@@ -398,13 +397,13 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
           {optimizeResult && (
             <div className="relative -mt-2 text-xs space-y-2">
               {optimizeResult.keywords_added.length > 0 && (
-                <div className="bg-brand-green-light text-brand-green-dark rounded-lg p-2.5">
+                <div className="bg-success/10 text-success-dark rounded-lg p-2.5">
                   <p className="font-medium mb-1">Added ({optimizeResult.keywords_added.length}):</p>
                   <p>{optimizeResult.keywords_added.join(', ')}</p>
                 </div>
               )}
               {optimizeResult.keywords_still_missing.length > 0 && (
-                <div className="bg-brand-yellow-light text-amber-800 rounded-lg p-2.5">
+                <div className="bg-brand-secondary-light text-amber-800 rounded-lg p-2.5">
                   <p className="font-medium mb-1">Can&apos;t honestly add — no evidence in your resume:</p>
                   <p>{optimizeResult.keywords_still_missing.join(', ')}</p>
                 </div>
@@ -427,11 +426,11 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
               disabled={checkingTruth}
               className="w-full flex items-center justify-center gap-2 glass glass-hover px-4 py-2.5 rounded-xl font-medium text-sm disabled:opacity-60"
             >
-              {checkingTruth ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4 text-brand-green" />}
+              {checkingTruth ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4 text-success" />}
               Run Truth Guard
             </button>
             {truthResult && (
-              <div className={`mt-2 text-xs rounded-lg p-3 ${truthResult.passed ? 'bg-brand-green-light text-brand-green-dark' : 'bg-rose-50 text-rose-700'}`}>
+              <div className={`mt-2 text-xs rounded-lg p-3 ${truthResult.passed ? 'bg-success/10 text-success-dark' : 'bg-red-50 text-red-700'}`}>
                 {truthResult.passed ? (
                   <p className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" /> No unsupported claims found</p>
                 ) : (
@@ -482,7 +481,7 @@ function TextInput({ label, value, onChange }: { label: string; value: string; o
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors"
+        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
       />
     </div>
   );
@@ -491,7 +490,7 @@ function TextInput({ label, value, onChange }: { label: string; value: string; o
 function SectionHeading({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-      <span className="w-6 h-6 rounded-md bg-brand-green/15 text-brand-green flex items-center justify-center">{icon}</span>
+      <span className="w-6 h-6 rounded-md bg-brand-primary/15 text-brand-primary flex items-center justify-center">{icon}</span>
       {children}
     </h3>
   );

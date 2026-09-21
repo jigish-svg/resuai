@@ -77,14 +77,14 @@ function EntryCard({
       onClick={onClick}
       className={`group text-left rounded-2xl p-6 border transition-all card-hover flex flex-col ${
         highlight
-          ? 'bg-gradient-to-br from-brand-green/10 to-brand-yellow/10 border-brand-green/25'
+          ? 'bg-brand-primary/10 border-brand-primary/25'
           : 'glass border-black/[0.06]'
       }`}
     >
       <div className="flex items-center justify-between mb-4">
         <span
           className={`w-11 h-11 rounded-xl flex items-center justify-center ${
-            highlight ? 'bg-brand-green text-white' : 'bg-black/[0.04] text-brand-green'
+            highlight ? 'bg-brand-primary text-white' : 'bg-black/[0.04] text-brand-primary'
           }`}
         >
           {icon}

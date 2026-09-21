@@ -108,7 +108,6 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
 
       {!match ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-brand-green/[0.06] rounded-full blur-3xl pointer-events-none" />
           <p className="text-gray-700 mb-6 max-w-md mx-auto relative">
             Run an evidence-based match analysis to see exactly how your master resume stacks up against this job.
           </p>
@@ -119,7 +118,6 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
       ) : (
         <>
           <div className="animate-fade-up glass rounded-2xl p-8 border border-black/[0.06] flex flex-col md:flex-row items-center gap-10 relative overflow-hidden" style={{ animationDelay: '0.06s' }}>
-            <div className="absolute -top-20 -left-20 w-72 h-72 bg-brand-green/[0.07] rounded-full blur-3xl pointer-events-none" />
             <div className="relative">
               <ScoreRing score={match.overall_score} size={160} />
             </div>
@@ -132,7 +130,7 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
                   </div>
                   <div className="h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-brand-green to-brand-yellow transition-all duration-700"
+                      className="h-full rounded-full bg-brand-primary transition-all duration-700"
                       style={{ width: `${b.score}%` }}
                     />
                   </div>
@@ -150,8 +148,8 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
             <EvidenceColumn
               title="Strong Matches"
               icon={<CheckCircle2 className="w-4 h-4" />}
-              color="text-brand-green"
-              accent="from-brand-green to-emerald-600"
+              color="text-success"
+              accent="from-success to-emerald-600"
               items={strongMatches}
               delay={0.12}
             />
@@ -159,15 +157,15 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
               title="Partial Matches"
               icon={<AlertTriangle className="w-4 h-4" />}
               color="text-amber-600"
-              accent="from-brand-yellow to-amber-500"
+              accent="from-brand-secondary to-amber-500"
               items={partialMatches}
               delay={0.18}
             />
             <EvidenceColumn
               title="Missing Evidence"
               icon={<XCircle className="w-4 h-4" />}
-              color="text-rose-600"
-              accent="from-rose-500 to-red-500"
+              color="text-red-600"
+              accent="from-red-500 to-red-500"
               items={missingItems}
               delay={0.24}
             />
@@ -182,7 +180,7 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
                 {atsResult.checks.map((check, i) => (
                   <div key={i} className={`flex items-start gap-2 text-sm rounded-lg p-2 -mx-2 ${check.passed ? '' : 'bg-orange-500/[0.06]'}`}>
                     {check.passed ? (
-                      <CheckCircle2 className="w-4 h-4 text-brand-green shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
                     ) : (
                       <XCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
                     )}
@@ -334,14 +332,14 @@ function FeatureCard({
         locked
           ? 'bg-black/[0.02] border-dashed border-black/[0.12]'
           : highlight
-          ? 'bg-gradient-to-br from-brand-green/10 to-brand-yellow/10 border-brand-green/25'
+          ? 'bg-brand-primary/10 border-brand-primary/25'
           : 'glass border-black/[0.06]'
       }`}
     >
       <div className="flex items-center justify-between mb-3">
         <span
           className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-            locked ? 'bg-brand-yellow/20 text-amber-700' : highlight ? 'bg-brand-green text-white' : 'bg-black/[0.04] text-brand-green'
+            locked ? 'bg-brand-secondary/20 text-amber-700' : highlight ? 'bg-brand-primary text-white' : 'bg-black/[0.04] text-brand-primary'
           }`}
         >
           {icon}
@@ -350,12 +348,12 @@ function FeatureCard({
       </div>
       <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
         {title}
-        {locked && <span className="text-[10px] uppercase tracking-wide bg-brand-yellow-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium">Paid</span>}
+        {locked && <span className="text-[10px] uppercase tracking-wide bg-brand-secondary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium">Paid</span>}
       </h3>
       <ul className="space-y-1.5">
         {points.map((point, i) => (
           <li key={i} className="flex items-start gap-1.5 text-xs text-gray-500 leading-relaxed">
-            <span className="text-brand-green mt-0.5">•</span>
+            <span className="text-brand-primary mt-0.5">•</span>
             {point}
           </li>
         ))}

@@ -34,7 +34,7 @@ export default function DeleteAccountButton() {
     return (
       <button
         onClick={() => setConfirming(true)}
-        className="flex items-center gap-2 border border-rose-200 text-rose-600 hover:bg-rose-50 transition-colors px-4 py-2.5 rounded-xl text-sm font-medium"
+        className="flex items-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 transition-colors px-4 py-2.5 rounded-xl text-sm font-medium"
       >
         <Trash2 className="w-4 h-4" />
         Delete my account
@@ -43,12 +43,12 @@ export default function DeleteAccountButton() {
   }
 
   return (
-    <div className="border border-rose-200 bg-rose-50/60 rounded-xl p-5 space-y-4">
+    <div className="border border-red-200 bg-red-50/60 rounded-xl p-5 space-y-4">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+        <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
         <div>
-          <p className="font-semibold text-rose-900">This permanently deletes everything</p>
-          <p className="text-sm text-rose-700 mt-1">
+          <p className="font-semibold text-red-900">This permanently deletes everything</p>
+          <p className="text-sm text-red-700 mt-1">
             Your account, every resume profile, saved jobs, match history, tailored resumes, cover letters, and
             interview prep will be permanently deleted. This cannot be undone.
           </p>
@@ -56,14 +56,14 @@ export default function DeleteAccountButton() {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-rose-800 mb-1.5">
+        <label className="block text-xs font-medium text-red-800 mb-1.5">
           Type <span className="font-mono font-bold">DELETE</span> to confirm
         </label>
         <input
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
           disabled={deleting}
-          className="w-full bg-white border border-rose-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-rose-400 disabled:opacity-60"
+          className="w-full bg-white border border-red-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-400 disabled:opacity-60"
         />
       </div>
 
@@ -71,7 +71,7 @@ export default function DeleteAccountButton() {
         <button
           onClick={handleDelete}
           disabled={confirmText !== 'DELETE' || deleting}
-          className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors px-4 py-2.5 rounded-xl text-sm font-semibold"
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors px-4 py-2.5 rounded-xl text-sm font-semibold"
         >
           {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
           Permanently delete my account

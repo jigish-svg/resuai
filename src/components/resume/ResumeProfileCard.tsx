@@ -64,7 +64,7 @@ export default function ResumeProfileCard({ id, name, updatedAt, achievementCoun
       <div className="flex items-center gap-4 min-w-0">
         <div
           className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-            isDefault ? 'bg-gradient-to-br from-brand-green to-brand-green-dark shadow-lg shadow-brand-green/25' : 'bg-black/[0.04]'
+            isDefault ? 'bg-brand-primary shadow-lg' : 'bg-black/[0.04]'
           }`}
         >
           <CheckCircle2 className={`w-5 h-5 ${isDefault ? 'text-white' : 'text-gray-400'}`} />
@@ -73,7 +73,7 @@ export default function ResumeProfileCard({ id, name, updatedAt, achievementCoun
           <p className="font-medium text-gray-900 flex items-center gap-2 truncate">
             {name}
             {isDefault && (
-              <span className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-green-light text-brand-green-dark px-1.5 py-0.5 rounded-md font-medium">
+              <span className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-primary-light text-brand-primary-dark px-1.5 py-0.5 rounded-md font-medium">
                 Default
               </span>
             )}
@@ -100,7 +100,7 @@ export default function ResumeProfileCard({ id, name, updatedAt, achievementCoun
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="flex items-center gap-1.5 glass glass-hover px-3 py-2 rounded-lg text-xs font-medium text-rose-500 hover:text-rose-600 disabled:opacity-60"
+          className="flex items-center gap-1.5 glass glass-hover px-3 py-2 rounded-lg text-xs font-medium text-red-500 hover:text-red-600 disabled:opacity-60"
         >
           {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
         </button>

@@ -177,9 +177,9 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
                 onClick={() => setStepIndex(i)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-gradient-to-r from-brand-green to-brand-green-dark text-white shadow-md shadow-brand-green/20'
+                    ? 'bg-brand-primary text-white shadow-md'
                     : isDone
-                    ? 'text-brand-green-dark hover:bg-black/[0.04]'
+                    ? 'text-brand-primary-dark hover:bg-black/[0.04]'
                     : 'text-gray-500 hover:bg-black/[0.04]'
                 }`}
               >
@@ -218,7 +218,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
               onChange={(e) => update('summary', e.target.value)}
               rows={4}
               placeholder="Write 2-4 sentences about who you are professionally and what you bring…"
-              className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green/60 resize-none"
+              className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 resize-none"
             />
             <RewriteButton
               active={rewritingKey === 'summary'}
@@ -233,7 +233,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
             action={
               <button
                 onClick={() => update('experience', [...parsed.experience, emptyExperience()])}
-                className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+                className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
               >
                 <Plus className="w-3.5 h-3.5" /> Add role
               </button>
@@ -277,7 +277,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
               onChange={(e) => update('skills', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
               rows={3}
               placeholder="Comma-separated skills, e.g. Python, SQL, Project Management"
-              className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-green/60 resize-none"
+              className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 resize-none"
             />
           </Section>
         )}
@@ -288,7 +288,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
             action={
               <button
                 onClick={() => update('education', [...parsed.education, { institution: '', degree: '' }])}
-                className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+                className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
               >
                 <Plus className="w-3.5 h-3.5" /> Add
               </button>
@@ -318,7 +318,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
             action={
               <button
                 onClick={() => update('certifications', [...parsed.certifications, { name: '' }])}
-                className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+                className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
               >
                 <Plus className="w-3.5 h-3.5" /> Add
               </button>
@@ -356,7 +356,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
             <button
               onClick={goNext}
               disabled={!canGoNext}
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all px-5 py-2.5 rounded-xl font-medium text-sm shadow-lg shadow-brand-green/20"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
             >
               Next <ArrowRight className="w-4 h-4" />
             </button>
@@ -364,7 +364,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
             <button
               onClick={handleSave}
               disabled={saving || !parsed.candidate.name}
-              className="flex items-center gap-2 bg-gradient-to-r from-brand-green to-brand-green-dark hover:from-brand-green-dark hover:to-brand-green-dark disabled:opacity-50 transition-all px-6 py-3 rounded-xl font-semibold shadow-lg shadow-brand-green/25"
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-50 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
               Save resume
@@ -390,7 +390,7 @@ function RewriteButton({ active, onClick }: { active: boolean; onClick: () => vo
       onClick={onClick}
       disabled={active}
       type="button"
-      className="mt-2 flex items-center gap-1.5 text-xs text-brand-green hover:text-brand-green-dark disabled:opacity-60 transition-colors"
+      className="mt-2 flex items-center gap-1.5 text-xs text-brand-primary hover:text-brand-primary-dark disabled:opacity-60 transition-colors"
     >
       {active ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
       Rewrite with AI
@@ -403,7 +403,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
     <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide flex items-center gap-2">
-          <span className="w-1 h-3.5 rounded-full bg-gradient-to-b from-brand-green to-brand-yellow" />
+          <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
           {title}
         </h3>
         {action}
@@ -420,7 +420,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-green/60 focus:bg-white transition-colors"
+        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
       />
     </div>
   );
@@ -471,13 +471,13 @@ function ExperienceEditor({
                 }}
                 rows={2}
                 placeholder="Describe an achievement — start with an action verb…"
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-green/60"
+                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-primary/60"
               />
               <RewriteButton active={rewritingKey === `${rewriteKeyPrefix}-${i}`} onClick={() => onRewriteBullet(i, a.text)} />
             </div>
             <button
               onClick={() => onChange({ ...exp, achievements: exp.achievements.filter((_, j) => j !== i) })}
-              className="text-gray-400 hover:text-rose-600 transition-colors mt-2"
+              className="text-gray-400 hover:text-red-600 transition-colors mt-2"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -485,13 +485,13 @@ function ExperienceEditor({
         ))}
         <button
           onClick={() => onChange({ ...exp, achievements: [...exp.achievements, { text: '', skills: [], metrics: [] }] })}
-          className="flex items-center gap-1 text-xs text-brand-green hover:text-brand-green-dark"
+          className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
         >
           <Plus className="w-3.5 h-3.5" /> Add achievement
         </button>
       </div>
 
-      <button onClick={onRemove} className="mt-3 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600">
+      <button onClick={onRemove} className="mt-3 flex items-center gap-1 text-xs text-red-500 hover:text-red-600">
         <Trash2 className="w-3.5 h-3.5" /> Remove role
       </button>
     </div>
@@ -513,7 +513,7 @@ function EducationEditor({
       <Field label="Degree" value={edu.degree} onChange={(v) => onChange({ ...edu, degree: v })} />
       <Field label="Field" value={edu.field ?? ''} onChange={(v) => onChange({ ...edu, field: v })} />
       <Field label="Graduation" value={edu.graduation_date ?? ''} onChange={(v) => onChange({ ...edu, graduation_date: v })} />
-      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 justify-end">
+      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 justify-end">
         <Trash2 className="w-3.5 h-3.5" /> Remove
       </button>
     </div>
@@ -533,7 +533,7 @@ function CertificationEditor({
     <div className="bg-black/[0.02] border border-black/[0.06] rounded-xl p-4 grid grid-cols-2 gap-3">
       <Field label="Name" value={cert.name} onChange={(v) => onChange({ ...cert, name: v })} />
       <Field label="Issuer" value={cert.issuer ?? ''} onChange={(v) => onChange({ ...cert, issuer: v })} />
-      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 justify-end">
+      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 justify-end">
         <Trash2 className="w-3.5 h-3.5" /> Remove
       </button>
     </div>
