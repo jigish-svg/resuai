@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CheckCircle2, AlertTriangle, XCircle, ArrowRight, Pencil, ListChecks, MessageCircleQuestion, Target, Mail, Lock } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, ArrowRight, Pencil, ListChecks, MessageCircleQuestion, Target, Mail, Lock, Mic } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import ScoreRing from '@/components/match/ScoreRing';
 import RunMatchButton from '@/components/match/RunMatchButton';
+import ReadinessJourney, { MOCK_INTERVIEW_UNLOCK_SCORE } from '@/components/match/ReadinessJourney';
 import { getScoreColor } from '@/lib/utils';
 import { MatchItemWithDetails, ATSCheckResult } from '@/types/match';
 import { runATSCheck } from '@/lib/openai/ats-checker';
@@ -36,24 +37,42 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
   }
 
   let atsResult: ATSCheckResult | null = null;
-  if (match) {
-    const resume = await getResumeForJob(supabase, user!.id, job.resume_id);
-    const { data: resumeSections } = resume
-      ? await supabase.from('resume_sections').select('section_type, content').eq('resume_id', resume.id)
-      : { data: null };
+  const resume = await getResumeForJob(supabase, user!.id, job.resume_id);
+  if (resume) {
+    const { data: resumeSections } = await supabase
+      .from('resume_sections')
+      .select('section_type, content')
+      .eq('resume_id', resume.id);
 
     atsResult = runATSCheck({
-      candidateName: resume?.candidate_name || '',
+      candidateName: resume.candidate_name || '',
       contactInfo: {
-        email: resume?.candidate_email ?? undefined,
-        phone: resume?.candidate_phone ?? undefined,
-        linkedin: resume?.candidate_linkedin ?? undefined,
+        email: resume.candidate_email ?? undefined,
+        phone: resume.candidate_phone ?? undefined,
+        linkedin: resume.candidate_linkedin ?? undefined,
       },
       sections: (resumeSections ?? []).map((s) => ({ type: s.section_type, content: JSON.stringify(s.content) })),
       targetKeywords: job.keywords ?? [],
-      text: resume?.raw_text ?? '',
+      text: resume.raw_text ?? '',
     });
   }
+
+  const { data: latestMockSession } = await supabase
+    .from('mock_interview_sessions')
+    .select('overall_feedback')
+    .eq('job_id', jobId)
+    .eq('user_id', user!.id)
+    .eq('status', 'completed')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const mockInterviewScore = (latestMockSession?.overall_feedback as { readiness_score?: number } | null)?.readiness_score ?? null;
+  const finalScore = match && mockInterviewScore !== null
+    ? Math.round(match.overall_score * 0.6 + mockInterviewScore * 0.4)
+    : null;
+
+  const mockInterviewUnlocked = paid && (match?.overall_score ?? 0) >= MOCK_INTERVIEW_UNLOCK_SCORE;
 
   const importanceRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
   const sortByImportance = (a: MatchItemWithDetails, b: MatchItemWithDetails) =>
@@ -82,6 +101,10 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
           <h1 className="text-3xl font-bold">{job.title}</h1>
         </div>
       </div>
+
+      {atsResult && (
+        <ReadinessJourney preliminaryScore={atsResult.score} matchScore={match?.overall_score ?? null} finalScore={finalScore} />
+      )}
 
       {!match ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
@@ -218,6 +241,20 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
                   'AI-written, evidence-based cover letter for this exact job',
                   'Built around your 2-3 strongest, most relevant real achievements',
                   paid ? 'Editable, with DOCX export' : 'Paid feature — upgrade to unlock',
+                ]}
+              />
+              <FeatureCard
+                href={mockInterviewUnlocked ? `/mock-interview/${jobId}` : paid ? `/match/${jobId}` : '/account/upgrade'}
+                icon={mockInterviewUnlocked ? <Mic className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                title="Mock Interview"
+                locked={!mockInterviewUnlocked}
+                points={[
+                  'A live, real-time voice interview grounded in this job and your evidence',
+                  !paid
+                    ? 'Paid feature — upgrade to unlock'
+                    : mockInterviewUnlocked
+                    ? 'Ends in an AI-generated readiness report'
+                    : `Reach ${MOCK_INTERVIEW_UNLOCK_SCORE}% match score to unlock (currently ${match?.overall_score ?? 0}%)`,
                 ]}
               />
             </div>

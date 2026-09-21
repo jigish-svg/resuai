@@ -14,6 +14,7 @@ import {
   Crown,
   ArrowRight,
   Mic,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,23 +29,40 @@ const navItems = [
   { href: '/cover-letter', label: 'Cover Letter', icon: Mail },
 ];
 
-export default function DashboardSidebar() {
+interface DashboardSidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export default function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white/90 backdrop-blur-xl border-r border-black/[0.06] flex flex-col z-40">
+    <aside
+      className={cn(
+        'fixed left-0 top-0 bottom-0 w-64 bg-white/90 backdrop-blur-xl border-r border-black/[0.06] flex flex-col z-50 transition-transform duration-300',
+        open ? 'translate-x-0' : '-translate-x-full'
+      )}
+    >
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-black/[0.06]">
+      <div className="h-16 flex items-center justify-between px-6 border-b border-black/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center shadow-lg shadow-brand-green/20 group-hover:shadow-brand-green/40 transition-shadow">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <span className="font-bold text-base tracking-tight">GetJobFit.ai</span>
         </Link>
+        <button
+          onClick={onClose}
+          className="md:hidden text-gray-400 hover:text-gray-700 transition-colors"
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
           return (
@@ -61,7 +79,7 @@ export default function DashboardSidebar() {
               {isActive && (
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-gradient-to-b from-brand-green to-brand-yellow" />
               )}
-              <item.icon className={cn('w-4.5 h-4.5', isActive ? 'text-brand-green' : '')} />
+              <item.icon className={cn('w-4.5 h-4.5 shrink-0', isActive ? 'text-brand-green' : '')} />
               {item.label}
             </Link>
           );

@@ -4,15 +4,16 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import { LogOut, ChevronDown, Settings } from 'lucide-react';
+import { LogOut, ChevronDown, Settings, Menu } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 
 interface DashboardHeaderProps {
   user: SupabaseUser;
+  onToggleSidebar: () => void;
 }
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
+export default function DashboardHeader({ user, onToggleSidebar }: DashboardHeaderProps) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -33,8 +34,14 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
     .slice(0, 2);
 
   return (
-    <header className="h-16 border-b border-black/[0.06] bg-white/80 backdrop-blur-sm flex items-center justify-between px-8 sticky top-0 z-30">
-      <div />
+    <header className="h-16 border-b border-black/[0.06] bg-white/80 backdrop-blur-sm flex items-center justify-between px-4 sm:px-8 sticky top-0 z-30">
+      <button
+        onClick={onToggleSidebar}
+        className="text-gray-500 hover:text-gray-900 transition-colors p-1.5 -ml-1.5 rounded-lg hover:bg-black/[0.04]"
+        aria-label="Toggle menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
 
       {/* User menu */}
       <div className="relative">
