@@ -22,7 +22,7 @@ import {
   Target,
 } from 'lucide-react';
 import { TailoredSection, TruthGuardFlag } from '@/types/match';
-import { ParsedEducation, ParsedCertification } from '@/types/resume';
+import { ParsedEducation, ParsedCertification, ResumeTemplate } from '@/types/resume';
 import { ResumeDocumentExperience } from '@/types/export';
 import { getScoreColor } from '@/lib/utils';
 
@@ -59,6 +59,7 @@ interface TailorEditorProps {
   requirements: Requirement[];
   match: MatchSummary | null;
   initialSections: TailoredSection[];
+  template?: ResumeTemplate;
 }
 
 function getContent<T>(sections: TailoredSection[], type: string, fallback: T): T {
@@ -73,7 +74,7 @@ function setContent(sections: TailoredSection[], type: string, content: unknown)
   return [...sections, { section_type: type, content, sort_order: sections.length }];
 }
 
-export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements, match, initialSections }: TailorEditorProps) {
+export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements, match, initialSections, template }: TailorEditorProps) {
   const [sections, setSections] = useState<TailoredSection[]>(initialSections);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
@@ -192,27 +193,45 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
     }
   };
 
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   const handleExport = async (format: 'pdf' | 'docx') => {
     setExporting(format);
+    const baseName = header.name.replace(/\s+/g, '_') || 'resume';
     try {
-      const res = await fetch(`/api/export/${format}`, {
+      if (format === 'pdf') {
+        // Built in the browser (same renderer as the live preview): rendering it inside a
+        // server route breaks under Next's server React build.
+        const [{ pdf }, { ResumePDF }, { buildResumeDocumentFromSections }] = await Promise.all([
+          import('@react-pdf/renderer'),
+          import('@/lib/export/pdf-generator'),
+          import('@/lib/export/build-document'),
+        ]);
+        const doc = buildResumeDocumentFromSections(sections, template);
+        const blob = await pdf(<ResumePDF doc={doc} />).toBlob();
+        downloadBlob(blob, `${baseName}.pdf`);
+        return;
+      }
+
+      const res = await fetch('/api/export/docx', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sections, jobId, fileName: header.name.replace(/\s+/g, '_') || 'resume' }),
+        body: JSON.stringify({ sections, jobId, fileName: baseName }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || `Failed to export ${format.toUpperCase()}`);
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to export DOCX');
       }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${header.name.replace(/\s+/g, '_') || 'resume'}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      downloadBlob(await res.blob(), `${baseName}.docx`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : `Failed to export ${format.toUpperCase()}`);
     } finally {

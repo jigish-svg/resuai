@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   Link,
-  renderToBuffer,
 } from '@react-pdf/renderer';
 import type { Style } from '@react-pdf/types';
 import { ResumeDocument } from '@/types/export';
@@ -234,10 +233,6 @@ function ResumePDF({ doc }: { doc: ResumeDocument }) {
       </Page>
     </Document>
   );
-}
-
-export async function generateResumePDF(doc: ResumeDocument): Promise<Buffer> {
-  return renderToBuffer(<ResumePDF doc={doc} />);
 }
 
 export { ResumePDF };

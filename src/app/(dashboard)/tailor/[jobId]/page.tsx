@@ -8,7 +8,7 @@ export default async function TailorPage({ params }: { params: Promise<{ jobId: 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: job } = await supabase.from('jobs').select('id, title, company').eq('id', jobId).eq('user_id', user!.id).single();
+  const { data: job } = await supabase.from('jobs').select('id, title, company, resume_id').eq('id', jobId).eq('user_id', user!.id).single();
   if (!job) notFound();
 
   const { data: requirements } = await supabase
@@ -26,6 +26,10 @@ export default async function TailorPage({ params }: { params: Promise<{ jobId: 
 
   const initialSections = await getInitialTailoredSections(supabase, user!.id, jobId);
 
+  const { data: resumeRow } = job.resume_id
+    ? await supabase.from('resumes').select('template').eq('id', job.resume_id).eq('user_id', user!.id).maybeSingle()
+    : { data: null };
+
   return (
     <TailorEditor
       jobId={jobId}
@@ -34,6 +38,7 @@ export default async function TailorPage({ params }: { params: Promise<{ jobId: 
       requirements={requirements ?? []}
       match={match ?? null}
       initialSections={initialSections}
+      template={resumeRow?.template ?? undefined}
     />
   );
 }
