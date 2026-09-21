@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -7,12 +8,19 @@ import {
   Shield,
   Target,
   ChevronRight,
+  ChevronDown,
   FileText,
   Zap,
   CheckCircle2,
   ArrowRight,
   Star,
   TrendingUp,
+  BookOpen,
+  MessageCircleQuestion,
+  Mic,
+  Award,
+  Mail,
+  Wand2,
 } from 'lucide-react';
 
 const fadeUp = {
@@ -50,8 +58,40 @@ const features = [
     icon: FileText,
     title: 'PDF & DOCX Export',
     description:
-      '3 professional templates optimized for ATS. Download instantly, apply with confidence.',
+      'Multiple professional templates optimized for ATS. Download instantly, apply with confidence.',
     color: 'from-sky-400 to-blue-500',
+  },
+];
+
+const resources = [
+  { icon: Target, title: 'Evidence Library', description: 'Every achievement you\'ve ever had, extracted once and reused for every job you apply to.' },
+  { icon: Wand2, title: 'JD-Specific Tailoring', description: 'Approve-or-reject resume changes proposed against one exact job description.' },
+  { icon: MessageCircleQuestion, title: 'Interview Prep', description: 'Likely questions, a skill-gap study plan, and smart questions to ask them back.' },
+  { icon: Mic, title: 'Mock Interview', description: 'A live, real-time voice interview with an AI interviewer — then an honest readiness report.' },
+  { icon: Award, title: 'Certifications & Evidence', description: 'Free course links for skill gaps, plus a place to upload certificates and project files.' },
+  { icon: Mail, title: 'Cover Letters', description: 'AI-written and evidence-based, built around your strongest real achievements for this job.' },
+];
+
+const faqs = [
+  {
+    q: 'Is GetJobFit.ai free to use?',
+    a: 'Yes — you can upload a resume, track jobs, and run evidence-based match analysis for free. Paid plans unlock JD-specific tailoring, interview prep, mock interviews, and cover letters.',
+  },
+  {
+    q: 'What is Truth Guard™?',
+    a: 'It\'s our built-in fact-checker: every AI-generated suggestion is checked against what\'s actually in your resume and Evidence Library. If a rewrite would claim something you haven\'t documented, it gets flagged instead of silently added.',
+  },
+  {
+    q: 'Will this make up experience I don\'t have?',
+    a: 'No — that\'s the entire premise of the product. We only ever present evidence you actually provided, matched and framed as strongly as it honestly supports.',
+  },
+  {
+    q: 'Is my resume data private?',
+    a: 'Every table in our database is protected by row-level security, so only your account can ever read your data. See our Privacy Policy for the full details on what we collect and why.',
+  },
+  {
+    q: 'Can I cancel my paid plan anytime?',
+    a: 'Yes, anytime from Account Settings — no lock-in.',
   },
 ];
 
@@ -90,6 +130,8 @@ const stats = [
 ];
 
 export default function LandingPage() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
   return (
     <div className="min-h-screen bg-hero-gradient overflow-x-hidden">
       {/* Nav */}
@@ -104,6 +146,8 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-gray-900 transition-colors">How it works</a>
+            <a href="#resources" className="hover:text-gray-900 transition-colors">Resources</a>
+            <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -351,6 +395,88 @@ export default function LandingPage() {
                 <step.icon className="w-8 h-8 text-brand-green shrink-0 mt-1" />
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Resources */}
+      <section id="resources" className="py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              Everything you need, <span className="gradient-text">in one place</span>
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto flex items-center justify-center gap-2">
+              <BookOpen className="w-5 h-5 text-brand-green" />
+              A full toolkit for every stage of applying — all built on the same evidence.
+            </p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {resources.map((r, i) => (
+              <motion.div
+                key={r.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="glass glass-hover rounded-2xl p-6"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-green to-brand-green-dark flex items-center justify-center mb-4 shadow-md">
+                  <r.icon className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-gray-900">{r.title}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{r.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-24 px-6">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+              Frequently asked <span className="gradient-text">questions</span>
+            </h2>
+          </motion.div>
+
+          <div className="space-y-3">
+            {faqs.map((item, i) => {
+              const isOpen = openFaq === i;
+              return (
+                <motion.div
+                  key={item.q}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className="glass rounded-2xl overflow-hidden"
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+                  >
+                    <span className="font-medium text-gray-900">{item.q}</span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed">{item.a}</div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
