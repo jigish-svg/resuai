@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import BrandLogo from '@/components/brand/BrandLogo';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
@@ -88,6 +89,7 @@ export default function SignupPage() {
 
         {/* Form */}
         <div className="glass rounded-2xl p-8 border border-black/[0.06]">
+          <GoogleSignInButton label="Sign up with Google" />
           <form onSubmit={handleSignup} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="name">
@@ -168,6 +170,13 @@ export default function SignupPage() {
               )}
             </button>
           </form>
+
+          <p className="text-sm text-gray-600 text-center mt-5">
+            Prefer no password?{' '}
+            <Link href="/login?mode=code" className="text-brand-primary hover:text-brand-primary-dark font-medium">
+              Get a sign-in code by email
+            </Link>
+          </p>
         </div>
 
         <p className="text-center mt-4 text-xs text-gray-500">
