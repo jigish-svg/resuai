@@ -180,6 +180,16 @@ const landingJsonLd = {
         acceptedAnswer: { '@type': 'Answer', text: f.a },
       })),
     },
+    {
+      '@type': 'HowTo',
+      name: 'How to tailor your resume with GetJobFit.ai',
+      step: steps.map((s) => ({
+        '@type': 'HowToStep',
+        position: Number(s.num),
+        name: s.title,
+        text: s.desc,
+      })),
+    },
   ],
 };
 
