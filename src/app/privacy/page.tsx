@@ -3,7 +3,9 @@ import BrandLogo from '@/components/brand/BrandLogo';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata = {
-  title: 'Privacy Policy — GetJobFit.ai',
+  title: 'Privacy Policy',
+  description: 'How GetJobFit.ai collects, uses, and protects your data.',
+  alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPolicyPage() {

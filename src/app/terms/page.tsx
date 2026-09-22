@@ -3,7 +3,9 @@ import BrandLogo from '@/components/brand/BrandLogo';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata = {
-  title: 'Terms of Service — GetJobFit.ai',
+  title: 'Terms of Service',
+  description: 'The terms of service governing your use of GetJobFit.ai.',
+  alternates: { canonical: '/terms' },
 };
 
 export default function TermsOfServicePage() {
