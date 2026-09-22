@@ -145,7 +145,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 1: no plan started yet
   if (!plan) {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
+      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
         <button
@@ -163,7 +163,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 2: studying — show materials
   if (plan.status === 'studying') {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
+      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
 
@@ -210,7 +210,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   if (plan.status === 'quiz') {
     const allAnswered = answers.length > 0 && answers.every((a) => a !== -1);
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
+      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill} — Knowledge Check</p>
         <p className="text-sm text-gray-600 mb-4">
           Answer all {plan.quiz_questions.length} questions honestly — this is to confirm you&apos;ve actually learned it, not to trick you.
@@ -229,7 +229,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
                       name={`q-${qi}`}
                       checked={answers[qi] === oi}
                       onChange={() => setAnswer(qi, oi)}
-                      className="accent-[#006d39]"
+                      className="accent-[#006d42]"
                     />
                     {opt}
                   </label>
@@ -253,7 +253,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 4a: failed
   if (plan.status === 'failed') {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-secondary/40">
+      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">
           Scored {plan.quiz_score}% — not quite there yet. Review what you missed, study a bit more, then try again.

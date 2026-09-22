@@ -57,7 +57,7 @@ export default async function DashboardPage() {
       value: jobCount.toString(),
       icon: Target,
       color: 'text-brand-primary',
-      bg: 'from-brand-primary/10 to-brand-secondary/10 border-brand-primary/20',
+      bg: 'from-brand-primary/10 to-brand-tertiary/10 border-brand-primary/20',
       href: '/jobs',
     },
     {
@@ -206,7 +206,7 @@ export default async function DashboardPage() {
                     <span className={`text-xs px-2.5 py-1 rounded-lg font-medium ${
                       job.status === 'applied' ? 'bg-blue-100 text-blue-700' :
                       job.status === 'interview' ? 'bg-success/10 text-success-dark' :
-                      job.status === 'offer' ? 'bg-brand-secondary-light text-amber-700' :
+                      job.status === 'offer' ? 'bg-brand-tertiary-light text-amber-700' :
                       'bg-black/[0.04] text-gray-600'
                     }`}>
                       {job.status.replace('_', ' ')}

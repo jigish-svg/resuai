@@ -122,11 +122,11 @@ const faqs = [
 
 const chipTone = {
   primary: 'bg-brand-primary-light text-brand-primary',
-  gold: 'bg-brand-secondary-light text-brand-secondary-dark',
+  gold: 'bg-brand-tertiary-light text-brand-tertiary-dark',
   neutral: 'bg-canvas-chip text-ink-soft',
 } as const;
 
-const cardShadow = 'shadow-[0_1px_2px_rgba(22,28,24,0.05),0_8px_24px_-12px_rgba(22,28,24,0.1)]';
+const cardShadow = 'shadow-[0_1px_2px_rgba(22,29,30,0.05),0_8px_24px_-12px_rgba(22,29,30,0.1)]';
 
 function ScoreRing({ score }: { score: number }) {
   const r = 42;
@@ -134,13 +134,13 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative w-24 h-24 shrink-0">
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#e2ebe5" strokeWidth="9" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke="#d4dbdd" strokeWidth="9" />
         <circle
           cx="50"
           cy="50"
           r={r}
           fill="none"
-          stroke="#006d39"
+          stroke="#006d42"
           strokeWidth="9"
           strokeLinecap="round"
           strokeDasharray={c}
@@ -273,7 +273,7 @@ export default function LandingPage() {
           </div>
 
           {/* Live audit canvas (sample data) */}
-          <div className="bg-white rounded-3xl shadow-[0_1px_2px_rgba(22,28,24,0.05),0_20px_40px_-20px_rgba(22,28,24,0.18)] overflow-hidden animate-fade-up">
+          <div className="bg-white rounded-3xl shadow-[0_1px_2px_rgba(22,29,30,0.05),0_20px_40px_-20px_rgba(22,29,30,0.18)] overflow-hidden animate-fade-up">
             <div className="flex items-center justify-between px-6 py-3.5 bg-canvas-chip">
               <span className="flex items-center gap-2 eyebrow !text-ink">
                 <span className="w-2.5 h-2.5 rounded-full bg-brand-primary" />
@@ -310,7 +310,7 @@ export default function LandingPage() {
                       <span className="text-ink-soft">{b.label}</span>
                       <span className="font-semibold tabular-nums">{b.score}%</span>
                     </div>
-                    <div className="h-2 bg-[#e6eee9] rounded-full overflow-hidden">
+                    <div className="h-2 bg-[#dde4e6] rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${b.strong ? 'bg-brand-primary' : 'bg-brand-primary-light'}`}
                         style={{ width: `${b.score}%` }}
@@ -323,25 +323,25 @@ export default function LandingPage() {
               <div>
                 <p className="eyebrow mb-3">Itemized evidence audit</p>
                 <div className="space-y-3">
-                  <div className="rounded-2xl border border-black/[0.06] p-4">
+                  <div className="rounded-2xl border border-black/[0.06] border-l-4 border-l-brand-secondary p-4">
                     <p className="flex items-center gap-2 text-sm font-semibold text-brand-primary mb-1.5">
-                      <span className="w-2 h-2 rounded-full bg-brand-primary" /> Strong match
+                      <span className="w-2 h-2 rounded-full bg-brand-secondary" /> Strong match
                     </p>
                     <p className="font-semibold text-sm mb-2">Requirement: “Advanced SQL &amp; dimensional modeling”</p>
                     <p className="text-sm text-ink-soft bg-canvas-band rounded-xl p-3">
                       <span className="font-semibold text-brand-primary">Resume proof:</span> “Led migration to Snowflake, authoring 140+ star-schema tables.”
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-black/[0.06] p-4">
-                    <p className="flex items-center gap-2 text-sm font-semibold text-brand-secondary-dark mb-1.5">
-                      <span className="w-2 h-2 rounded-full bg-brand-secondary" /> Partial match
+                  <div className="rounded-2xl border border-black/[0.06] border-l-4 border-l-brand-tertiary p-4">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-brand-tertiary-dark mb-1.5">
+                      <span className="w-2 h-2 rounded-full bg-brand-tertiary" /> Partial match
                     </p>
                     <p className="font-semibold text-sm mb-2">Requirement: “Tableau &amp; Looker visualizations”</p>
                     <p className="text-sm text-ink-soft bg-canvas-band rounded-xl p-3">
-                      <span className="font-semibold text-brand-secondary-dark">Resume proof:</span> “Built 18 production Looker dashboards.”
+                      <span className="font-semibold text-brand-tertiary-dark">Resume proof:</span> “Built 18 production Looker dashboards.”
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-black/[0.06] p-4">
+                  <div className="rounded-2xl border border-black/[0.06] border-l-4 border-l-red-700 p-4">
                     <p className="flex items-center gap-2 text-sm font-semibold text-red-700 mb-1.5">
                       <span className="w-2 h-2 rounded-full bg-red-700" /> Missing evidence
                     </p>
@@ -433,7 +433,7 @@ export default function LandingPage() {
       <section id="mock-interview" className="py-16 sm:py-24 px-5 sm:px-8">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
-            <p className="flex items-center gap-2 text-sm font-semibold text-brand-secondary-dark mb-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-brand-tertiary-dark mb-3">
               <Lock className="w-4 h-4" /> Earned at 80% fit readiness
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">Live Voice Mock Interview Lab</h2>
@@ -451,7 +451,7 @@ export default function LandingPage() {
             </ul>
           </div>
 
-          <div className="bg-[#29332b] text-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_40px_-20px_rgba(22,28,24,0.4)]">
+          <div className="bg-[#2b3233] text-white rounded-3xl p-6 sm:p-7 shadow-[0_20px_40px_-20px_rgba(22,29,30,0.4)]">
             <div className="flex items-center justify-between mb-8">
               <span className="flex items-center gap-2 text-xs font-semibold tracking-wider text-white/60">
                 <span className="w-2 h-2 rounded-full bg-brand-primary-bright" /> VOICE SESSION
@@ -502,10 +502,10 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
-            <div className={`bg-white rounded-2xl p-5 flex items-start gap-4 border-l-4 border-brand-secondary ${cardShadow}`}>
-              <span className="w-11 h-11 rounded-full bg-brand-secondary text-brand-secondary-dark text-sm font-bold flex items-center justify-center shrink-0">80%</span>
+            <div className={`bg-white rounded-2xl p-5 flex items-start gap-4 border-l-4 border-brand-tertiary ${cardShadow}`}>
+              <span className="w-11 h-11 rounded-full bg-brand-tertiary text-brand-tertiary-dark text-sm font-bold flex items-center justify-center shrink-0">80%</span>
               <div>
-                <p className="text-xs font-semibold text-brand-secondary-dark">Milestone gate</p>
+                <p className="text-xs font-semibold text-brand-tertiary-dark">Milestone gate</p>
                 <p className="font-semibold text-lg tracking-tight">Voice Mock Interview unlocked</p>
                 <p className="text-ink-soft text-sm leading-relaxed">
                   Practise out loud with an AI interviewer, then see a final score that blends your match with your interview performance.
@@ -561,7 +561,7 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="py-16 sm:py-24 px-5 sm:px-8">
-        <div className="max-w-4xl mx-auto bg-brand-primary rounded-3xl px-6 py-14 sm:px-14 sm:py-16 text-center text-white shadow-[0_20px_40px_-20px_rgba(0,109,57,0.5)]">
+        <div className="max-w-4xl mx-auto bg-brand-primary rounded-3xl px-6 py-14 sm:px-14 sm:py-16 text-center text-white shadow-[0_20px_40px_-20px_rgba(0,109,66,0.5)]">
           <span className="inline-block eyebrow !text-white bg-white/15 px-4 py-1.5 rounded-full mb-6">Evidence over illusion</span>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">Stop guessing why applications get ignored.</h2>
           <p className="text-white/85 text-lg max-w-xl mx-auto mb-9 leading-relaxed">

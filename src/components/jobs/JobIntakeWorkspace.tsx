@@ -212,7 +212,7 @@ export default function JobIntakeWorkspace() {
                 {req.is_implied && (
                   <span
                     title="Not explicitly stated in the JD — commonly expected for this role, so ATS systems often scan for it anyway"
-                    className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-secondary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium"
+                    className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-tertiary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium"
                   >
                     Commonly expected
                   </span>

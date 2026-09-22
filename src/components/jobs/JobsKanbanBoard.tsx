@@ -18,7 +18,7 @@ export interface KanbanJob {
 
 const COLUMNS: { status: JobStatus; label: string; accent: string }[] = [
   { status: 'saved', label: 'Saved', accent: 'bg-gray-400' },
-  { status: 'tailoring', label: 'Tailoring', accent: 'bg-brand-secondary' },
+  { status: 'tailoring', label: 'Tailoring', accent: 'bg-brand-tertiary' },
   { status: 'ready', label: 'Ready', accent: 'bg-sky-400' },
   { status: 'applied', label: 'Applied', accent: 'bg-blue-400' },
   { status: 'recruiter_screen', label: 'Recruiter Screen', accent: 'bg-amber-400' },

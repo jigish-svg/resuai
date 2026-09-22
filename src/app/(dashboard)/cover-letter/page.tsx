@@ -13,8 +13,8 @@ export default async function CoverLetterHubPage() {
   if (!paid) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-secondary/40 text-center relative overflow-hidden">
-          <div className="w-14 h-14 rounded-2xl bg-brand-secondary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
+        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-tertiary/40 text-center relative overflow-hidden">
+          <div className="w-14 h-14 rounded-2xl bg-brand-tertiary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
             <Lock className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2 relative">Cover Letters are a paid feature</h2>

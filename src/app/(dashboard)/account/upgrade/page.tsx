@@ -65,7 +65,7 @@ export default function UpgradePage() {
             {plan.badge && (
               <span
                 className={`absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wide font-semibold px-2.5 py-1 rounded-full ${
-                  plan.id === 'yearly' ? 'bg-brand-primary text-white' : 'bg-brand-secondary-light text-amber-700'
+                  plan.id === 'yearly' ? 'bg-brand-primary text-white' : 'bg-brand-tertiary-light text-amber-700'
                 }`}
               >
                 {plan.badge}
@@ -110,7 +110,7 @@ export default function UpgradePage() {
           ))}
         </ul>
 
-        <div className="bg-brand-secondary-light text-amber-800 rounded-xl p-4 text-sm text-center">
+        <div className="bg-brand-tertiary-light text-amber-800 rounded-xl p-4 text-sm text-center">
           Checkout isn&apos;t wired up yet — billing is coming next. For now, plans are upgraded manually.
         </div>
       </div>

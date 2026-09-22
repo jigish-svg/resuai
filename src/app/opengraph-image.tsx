@@ -42,11 +42,11 @@ export default function OpengraphImage() {
               <circle cx="33.6" cy="32" r="4" fill="#E5A910" />
             </svg>
           </div>
-          <div style={{ display: 'flex', fontSize: 56, fontWeight: 700, color: '#161c18' }}>
+          <div style={{ display: 'flex', fontSize: 56, fontWeight: 700, color: '#161d1e' }}>
             GetJobFit<span style={{ color: '#0B6E4F' }}>.ai</span>
           </div>
         </div>
-        <div style={{ display: 'flex', fontSize: 40, fontWeight: 700, color: '#161c18', maxWidth: 920 }}>
+        <div style={{ display: 'flex', fontSize: 40, fontWeight: 700, color: '#161d1e', maxWidth: 920 }}>
           Evidence-Based Resume Tailoring
         </div>
         <div style={{ display: 'flex', fontSize: 26, color: '#4b544e', marginTop: 20, maxWidth: 880 }}>

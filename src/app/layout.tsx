@@ -97,15 +97,15 @@ export default function RootLayout({
           toastOptions={{
             style: {
               background: 'rgb(255 255 255)',
-              color: 'rgb(22 28 24)',
-              border: '1px solid rgba(22,28,24,0.1)',
+              color: 'rgb(22 29 30)',
+              border: '1px solid rgba(22,29,30,0.1)',
               borderRadius: '12px',
               fontSize: '14px',
-              boxShadow: '0 4px 16px rgba(22,28,24,0.08)',
+              boxShadow: '0 4px 16px rgba(22,29,30,0.08)',
             },
             success: {
               iconTheme: {
-                primary: '#006d39',
+                primary: '#006d42',
                 secondary: 'rgb(255 255 255)',
               },
             },

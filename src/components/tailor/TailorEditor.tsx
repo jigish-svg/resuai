@@ -422,7 +422,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
                 </div>
               )}
               {optimizeResult.keywords_still_missing.length > 0 && (
-                <div className="bg-brand-secondary-light text-amber-800 rounded-lg p-2.5">
+                <div className="bg-brand-tertiary-light text-amber-800 rounded-lg p-2.5">
                   <p className="font-medium mb-1">Can&apos;t honestly add — no evidence in your resume:</p>
                   <p>{optimizeResult.keywords_still_missing.join(', ')}</p>
                 </div>

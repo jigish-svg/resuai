@@ -157,7 +157,7 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
               title="Partial Matches"
               icon={<AlertTriangle className="w-4 h-4" />}
               color="text-amber-600"
-              accent="from-brand-secondary to-amber-500"
+              accent="from-brand-tertiary to-amber-500"
               items={partialMatches}
               delay={0.18}
             />
@@ -339,7 +339,7 @@ function FeatureCard({
       <div className="flex items-center justify-between mb-3">
         <span
           className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-            locked ? 'bg-brand-secondary/20 text-amber-700' : highlight ? 'bg-brand-primary text-white' : 'bg-black/[0.04] text-brand-primary'
+            locked ? 'bg-brand-tertiary/20 text-amber-700' : highlight ? 'bg-brand-primary text-white' : 'bg-black/[0.04] text-brand-primary'
           }`}
         >
           {icon}
@@ -348,7 +348,7 @@ function FeatureCard({
       </div>
       <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
         {title}
-        {locked && <span className="text-[10px] uppercase tracking-wide bg-brand-secondary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium">Paid</span>}
+        {locked && <span className="text-[10px] uppercase tracking-wide bg-brand-tertiary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium">Paid</span>}
       </h3>
       <ul className="space-y-1.5">
         {points.map((point, i) => (

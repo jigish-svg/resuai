@@ -1,46 +1,53 @@
 @import "tailwindcss";
 
 /*
-  "Editorial Rigor" design system (from Stitch, v5). Mint canvas, white raised
-  cards, emerald primary, amber accent, hairline borders and soft shadows.
-  No blur, glows or gradients.
+  "Editorial Rigor" design system (from Stitch, v7). Mint canvas, white raised
+  cards, mint-green primary, teal secondary, amber tertiary, hairline borders
+  and soft shadows. No blur, glows or gradients.
 
-  - brand-primary (#006d39) is the accessible action green (white text 6.5:1);
-    brand-primary-bright (#03da79) is the exact seed, for decoration only.
-  - brand-secondary is the amber accent (partial / locked / paid states).
+  - brand-primary (#006d42) is the accessible action green (white text 6.7:1);
+    brand-primary-bright (#73dfa2) is the exact v7 seed, for decoration only.
+  - brand-secondary is the new teal accent (readiness advisories, evidence
+    highlights, "Strong match" badge borders).
+  - brand-tertiary is the amber accent (partial/attention/locked/paid states)
+    — this was called brand-secondary in v5; renamed to match v7's own naming
+    now that Stitch introduced a real second accent (teal) alongside it.
   - green is also the "success" colour; danger is a true red (red-*).
 */
 @theme {
   --font-sans: var(--font-hanken), 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
 
-  --color-brand-primary: #006d39;
-  --color-brand-primary-dark: #00522a;
-  --color-brand-primary-light: #a8f0ba;
-  --color-brand-primary-bright: #03da79;
-  --color-brand-secondary: #ffb570;
-  --color-brand-secondary-dark: #895114;
-  --color-brand-secondary-light: #ffdcc0;
-  --color-brand-ivory: #f6faf7;
-  --color-canvas-band: #eef4f0;
-  --color-canvas-chip: #e2ebe5;
-  --color-success: #006d39;
-  --color-success-dark: #00522a;
-  --color-ink: #161c18;
-  --color-ink-soft: #414944;
-  --color-ink-muted: #6b7b6d;
+  --color-brand-primary: #006d42;
+  --color-brand-primary-dark: #00502f;
+  --color-brand-primary-light: #d7f5e5;
+  --color-brand-primary-bright: #73dfa2;
+  --color-brand-secondary: #006876;
+  --color-brand-secondary-dark: #004e59;
+  --color-brand-secondary-light: #d7f2f5;
+  --color-brand-tertiary: #ffb53e;
+  --color-brand-tertiary-dark: #825500;
+  --color-brand-tertiary-light: #ffe9c7;
+  --color-brand-ivory: #f4fafd;
+  --color-canvas-band: #e8eff1;
+  --color-canvas-chip: #d4dbdd;
+  --color-success: #006d42;
+  --color-success-dark: #00502f;
+  --color-ink: #161d1e;
+  --color-ink-soft: #3c494c;
+  --color-ink-muted: #6e7a70;
 }
 
 @layer base {
   :root {
-    --background: 246 250 247;
-    --foreground: 22 28 24;
+    --background: 244 250 253;
+    --foreground: 22 29 30;
     --card: 255 255 255;
-    --card-border: 22 28 24 / 0.07;
-    --primary: 0 109 57;
-    --primary-light: 3 218 121;
-    --accent: 255 181 112;
-    --muted: 107 123 109;
-    --success: 0 109 57;
+    --card-border: 22 29 30 / 0.07;
+    --primary: 0 109 66;
+    --primary-light: 115 223 162;
+    --accent: 255 181 62;
+    --muted: 110 122 112;
+    --success: 0 109 66;
     --warning: 217 150 0;
     --danger: 186 26 26;
   }
@@ -73,16 +80,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgb(238 244 240);
+    background: rgb(232 239 241);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgb(184 197 190);
+    background: rgb(189 202 190);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgb(107 123 109);
+    background: rgb(110 122 112);
   }
 }
 
@@ -90,8 +97,8 @@
   /* Raised white card: hairline border + soft shadow, no blur. */
   .glass {
     background: #ffffff;
-    border: 1px solid rgba(22,28,24, 0.07);
-    box-shadow: 0 1px 2px rgba(22,28,24, 0.04), 0 8px 24px -12px rgba(22,28,24, 0.1);
+    border: 1px solid rgba(22, 29, 30, 0.07);
+    box-shadow: 0 1px 2px rgba(22, 29, 30, 0.04), 0 8px 24px -12px rgba(22, 29, 30, 0.1);
   }
 
   .glass-hover {
@@ -100,17 +107,17 @@
 
   .glass-hover:hover {
     background: #ffffff;
-    border-color: rgba(22,28,24, 0.16);
-    box-shadow: 0 1px 2px rgba(22,28,24, 0.05), 0 12px 28px -12px rgba(22,28,24, 0.14);
+    border-color: rgba(22, 29, 30, 0.16);
+    box-shadow: 0 1px 2px rgba(22, 29, 30, 0.05), 0 12px 28px -12px rgba(22, 29, 30, 0.14);
   }
 
-  /* Emphasis colour for headline accents (solid crimson, no gradient). */
+  /* Emphasis colour for headline accents (solid green, no gradient). */
   .gradient-text {
-    color: #006d39;
+    color: #006d42;
   }
 
   .gradient-border {
-    border: 1px solid rgba(0,109,57, 0.25);
+    border: 1px solid rgba(0, 109, 66, 0.25);
   }
 
   .animate-float {
@@ -143,9 +150,9 @@
     transition: stroke-dashoffset 1s ease-in-out;
   }
 
-  /* Solid warm canvas (kept as a class so existing pages pick it up). */
+  /* Solid canvas (kept as a class so existing pages pick it up). */
   .bg-hero-gradient {
-    background: rgb(246, 250, 247);
+    background: rgb(244, 250, 253);
   }
 
   /* Small uppercase label style used for section eyebrows and tags. */
@@ -155,6 +162,6 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #6b7b6d;
+    color: #6e7a70;
   }
 }
