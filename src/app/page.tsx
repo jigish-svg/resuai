@@ -591,6 +591,7 @@ export default function LandingPage() {
             <a href="#features" className="hover:text-ink transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-ink transition-colors">How it works</a>
             <a href="#faq" className="hover:text-ink transition-colors">FAQ</a>
+            <Link href="/guides" className="hover:text-ink transition-colors">Guides</Link>
             <Link href="/privacy" className="hover:text-ink transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-ink transition-colors">Terms of Service</Link>
           </div>

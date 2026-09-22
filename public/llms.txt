@@ -30,3 +30,9 @@ Generic AI resume tools will often embellish or invent experience to make a cand
 - [Sign up](https://www.getjobfit.in/signup): create a free account.
 - [Privacy Policy](https://www.getjobfit.in/privacy)
 - [Terms of Service](https://www.getjobfit.in/terms)
+
+## Guides
+
+- [Is It Safe to Use AI to Tailor Your Resume?](https://www.getjobfit.in/guides/is-ai-resume-tailoring-safe): what can go wrong with AI resume tools and how to avoid fabrication.
+- [ATS Resume Checklist](https://www.getjobfit.in/guides/ats-resume-checklist): what Applicant Tracking Systems actually check for.
+- [How to Tailor Your Resume for Each Job Application](https://www.getjobfit.in/guides/how-to-tailor-your-resume-for-each-job): a repeatable five-step tailoring process.
