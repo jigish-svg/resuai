@@ -1,20 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MessageCircleQuestion, HelpCircle, AlertTriangle, Briefcase, Users, Code, Building2, GraduationCap, Lock, Sparkles } from 'lucide-react';
+import { ArrowLeft, MessageCircleQuestion, HelpCircle, AlertTriangle, GraduationCap, Lock, Sparkles, Trophy } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { isPaidUser } from '@/lib/plan';
 import GeneratePrepButton from '@/components/interview/GeneratePrepButton';
 import SkillPrepJourney from '@/components/interview/SkillPrepJourney';
 import InterviewChatWidget from '@/components/interview/InterviewChatWidget';
-import { InterviewQuestion, InterviewQuestionCategory, SkillGapPrep } from '@/types/interview';
+import InterviewQuestionCarousel from '@/components/interview/InterviewQuestionCarousel';
+import { InterviewQuestion, SkillGapPrep } from '@/types/interview';
 import { SkillPrepPlan } from '@/types/skill-prep';
-
-const CATEGORY_META: Record<InterviewQuestionCategory, { label: string; icon: React.ReactNode }> = {
-  behavioral: { label: 'Behavioral', icon: <Users className="w-4 h-4" /> },
-  technical: { label: 'Technical', icon: <Code className="w-4 h-4" /> },
-  role_specific: { label: 'Role-Specific', icon: <Briefcase className="w-4 h-4" /> },
-  company: { label: 'Company', icon: <Building2 className="w-4 h-4" /> },
-};
 
 export default async function InterviewPrepPage({ params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params;
@@ -44,15 +38,19 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
     .eq('user_id', user!.id);
   const plansBySkill = new Map((existingPlans ?? []).map((p) => [p.skill, p as SkillPrepPlan]));
 
-  const grouped = questions.reduce<Record<string, InterviewQuestion[]>>((acc, q) => {
-    (acc[q.category] ??= []).push(q);
-    return acc;
-  }, {});
+  const categoryOrder = ['behavioral', 'technical', 'role_specific', 'company'];
+  const orderedQuestions = [...questions].sort(
+    (a, b) => categoryOrder.indexOf(a.category) - categoryOrder.indexOf(b.category)
+  );
 
   const gapCount = questions.filter((q) => q.is_gap).length;
+  const masteredCount = skillGaps.filter((g) => {
+    const status = plansBySkill.get(g.keyword)?.status;
+    return status === 'passed' || status === 'added_to_resume';
+  }).length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-8">
       <div className="animate-fade-up">
         <Link href={`/match/${jobId}`} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-3">
           <ArrowLeft className="w-3.5 h-3.5" /> Back to match
@@ -110,90 +108,59 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
             <GeneratePrepButton jobId={jobId} label="Regenerate" />
           </div>
 
-          {(Object.keys(CATEGORY_META) as InterviewQuestionCategory[]).map((cat, i) => {
-            const items = grouped[cat];
-            if (!items || items.length === 0) return null;
-            return (
-              <div key={cat} className="animate-fade-up space-y-3" style={{ animationDelay: `${0.06 + i * 0.05}s` }}>
-                <h2 className="flex items-center gap-2 font-semibold text-gray-800">
-                  <span className="w-7 h-7 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center">
-                    {CATEGORY_META[cat].icon}
-                  </span>
-                  {CATEGORY_META[cat].label}
-                </h2>
+          <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+            <div className="animate-fade-up" style={{ animationDelay: '0.06s' }}>
+              <InterviewQuestionCarousel questions={orderedQuestions} />
+            </div>
+
+            <div className="space-y-5 lg:sticky lg:top-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+              {skillGaps.length > 0 && (
                 <div className="space-y-3">
-                  {items.map((q, idx) => (
-                    <div
-                      key={idx}
-                      className={`glass rounded-2xl p-5 border ${q.is_gap ? 'border-brand-tertiary/40' : 'border-black/[0.06]'}`}
-                    >
-                      <p className="font-medium text-gray-900 mb-2">{q.question}</p>
-                      {q.related_requirement && (
-                        <p className="text-xs text-gray-400 mb-3">Targets: {q.related_requirement}</p>
-                      )}
-                      {q.is_gap && (
-                        <div className="flex items-start gap-2 bg-brand-tertiary-light text-amber-800 rounded-lg p-3 mb-3 text-sm">
-                          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-medium mb-1">No direct evidence for this — here&apos;s an honest way to answer:</p>
-                            <p>{q.gap_strategy}</p>
-                          </div>
-                        </div>
-                      )}
-                      <div className="bg-black/[0.02] border border-black/[0.04] rounded-lg p-3 text-sm text-gray-700 leading-relaxed">
-                        {q.talking_points}
-                      </div>
-                    </div>
-                  ))}
+                  <div className="flex items-center gap-2 bg-brand-tertiary-light rounded-xl px-3 py-2">
+                    <Trophy className="w-4 h-4 text-brand-tertiary-dark shrink-0" />
+                    <p className="text-sm font-semibold text-brand-tertiary-dark">
+                      {masteredCount}/{skillGaps.length} skills mastered
+                    </p>
+                  </div>
+                  <h2 className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
+                    <GraduationCap className="w-4 h-4 text-brand-tertiary-dark" />
+                    Skill Gap Action Plan
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Learn it, prove it with a quick quiz, then add it to your resume.
+                  </p>
+                  <div className="space-y-3">
+                    {skillGaps.map((gap, i) => (
+                      <SkillPrepJourney
+                        key={i}
+                        jobId={jobId}
+                        skill={gap.keyword}
+                        whatItInvolves={gap.what_it_involves}
+                        initialPlan={plansBySkill.get(gap.keyword) ?? null}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              )}
 
-          {skillGaps.length > 0 && (
-            <div className="animate-fade-up space-y-3" style={{ animationDelay: '0.26s' }}>
-              <h2 className="flex items-center gap-2 font-semibold text-gray-800">
-                <span className="w-7 h-7 rounded-md bg-brand-tertiary/20 text-amber-700 flex items-center justify-center">
-                  <GraduationCap className="w-4 h-4" />
-                </span>
-                Skill Gap Action Plan
-              </h2>
-              <p className="text-sm text-gray-500">
-                For each one: build a study plan, work through it, then pass a 10-question knowledge check before it
-                goes anywhere near your resume.
-              </p>
-              <div className="space-y-3">
-                {skillGaps.map((gap, i) => (
-                  <SkillPrepJourney
-                    key={i}
-                    jobId={jobId}
-                    skill={gap.keyword}
-                    whatItInvolves={gap.what_it_involves}
-                    initialPlan={plansBySkill.get(gap.keyword) ?? null}
-                  />
-                ))}
-              </div>
+              {questionsToAsk.length > 0 && (
+                <div className="glass rounded-2xl p-4 border border-black/[0.06]">
+                  <h2 className="flex items-center gap-2 font-semibold text-gray-800 text-sm mb-3">
+                    <HelpCircle className="w-4 h-4 text-brand-tertiary-dark" />
+                    Questions to Ask Them
+                  </h2>
+                  <ul className="space-y-2">
+                    {questionsToAsk.map((q, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
+                        <span className="text-brand-primary mt-0.5">•</span>
+                        {q}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          )}
-
-          {questionsToAsk.length > 0 && (
-            <div className="animate-fade-up glass rounded-2xl p-5 border border-black/[0.06]" style={{ animationDelay: '0.3s' }}>
-              <h2 className="flex items-center gap-2 font-semibold text-gray-800 mb-4">
-                <span className="w-7 h-7 rounded-md bg-brand-tertiary/20 text-amber-700 flex items-center justify-center">
-                  <HelpCircle className="w-4 h-4" />
-                </span>
-                Questions to Ask Them
-              </h2>
-              <ul className="space-y-2">
-                {questionsToAsk.map((q, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-brand-primary mt-0.5">•</span>
-                    {q}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          </div>
         </>
       )}
 

@@ -33,7 +33,12 @@ export default function ResumeCreateEntry({ redirectOnSaveTo }: ResumeCreateEntr
   }
 
   return (
-    <div className="grid sm:grid-cols-2 gap-5">
+    <div className="space-y-4">
+      <p className="text-sm text-gray-500 max-w-2xl">
+        Works the same way whether you&apos;re in engineering, commerce, design, or any other field — everything is
+        built from your own achievements, tailored to the job you&apos;re targeting.
+      </p>
+      <div className="grid sm:grid-cols-2 gap-5">
       <EntryCard
         icon={<UploadCloud className="w-6 h-6" />}
         title="Upload or Paste a Resume"
@@ -47,6 +52,7 @@ export default function ResumeCreateEntry({ redirectOnSaveTo }: ResumeCreateEntr
         onClick={() => setMode('build')}
         highlight
       />
+      </div>
     </div>
   );
 }

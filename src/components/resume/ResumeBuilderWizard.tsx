@@ -84,6 +84,8 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]['id'];
 
+const SKIPPABLE_STEPS = new Set<StepId>(['experience', 'education', 'certifications']);
+
 export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderWizardProps) {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
@@ -166,6 +168,10 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
   return (
     <div className="grid lg:grid-cols-[1fr_360px] gap-6 items-start">
       <div className="space-y-6 min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Step {stepIndex + 1} of {STEPS.length}
+        </p>
+
         {/* Step tabs */}
         <div className="glass rounded-2xl p-1.5 border border-black/[0.06] flex flex-wrap gap-1">
           {STEPS.map((s, i) => {
@@ -353,13 +359,23 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
           </button>
 
           {stepIndex < STEPS.length - 1 ? (
-            <button
-              onClick={goNext}
-              disabled={!canGoNext}
-              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
-            >
-              Next <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-3">
+              {SKIPPABLE_STEPS.has(step) && (
+                <button
+                  onClick={goNext}
+                  className="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors"
+                >
+                  Skip for now — add later
+                </button>
+              )}
+              <button
+                onClick={goNext}
+                disabled={!canGoNext}
+                className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-40 disabled:cursor-not-allowed transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
+              >
+                Next <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <button
               onClick={handleSave}
