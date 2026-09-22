@@ -167,7 +167,10 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         <p className="font-semibold text-gray-900 mb-1">{skill}</p>
         <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
 
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Study these before moving on</p>
+        <p className="text-xs text-gray-500 mb-3">
+          A short, real-world-checked shortlist — not a reading list. Enough to speak about this credibly by your
+          next interview.
+        </p>
         <div className="space-y-2 mb-4">
           {plan.study_materials.map((m, i) => {
             const Icon = MATERIAL_ICONS[m.type];
@@ -188,6 +191,11 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
                     <ExternalLink className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </p>
                   <p className="text-xs text-gray-500">{m.description}</p>
+                  {m.estimated_time && (
+                    <span className="inline-block mt-1 text-[10px] font-medium text-brand-tertiary-dark bg-brand-tertiary-light px-1.5 py-0.5 rounded-md">
+                      {m.estimated_time}
+                    </span>
+                  )}
                 </div>
               </a>
             );

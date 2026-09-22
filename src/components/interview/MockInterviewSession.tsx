@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, PhoneOff, Loader2, Sparkles, CheckCircle2, Target, Volume2, VolumeX } from 'lucide-react';
+import Link from 'next/link';
+import { Mic, MicOff, PhoneOff, Loader2, Sparkles, CheckCircle2, Target, Volume2, VolumeX, BookOpen } from 'lucide-react';
 import { getScoreColor } from '@/lib/utils';
 import { MockInterviewSession as MockInterviewSessionType, MockInterviewTranscriptEntry } from '@/types/mock-interview';
 
@@ -12,6 +13,10 @@ interface MockInterviewSessionProps {
 }
 
 type CallState = 'idle' | 'connecting' | 'live' | 'finalizing';
+
+// Below this readiness score, nudge the candidate toward Interview Prep instead of
+// just letting them keep retrying the same live interview cold.
+const STRUGGLE_THRESHOLD = 50;
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -230,6 +235,24 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
             </ul>
           </div>
         </div>
+
+        {completedSession.overall_feedback.readiness_score < STRUGGLE_THRESHOLD && (
+          <div className="mt-4 flex items-start gap-3 bg-brand-tertiary-light border border-brand-tertiary/40 rounded-xl p-4 relative">
+            <BookOpen className="w-4 h-4 text-brand-tertiary-dark shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-brand-tertiary-dark mb-1">That was a tough one — and that&apos;s the point.</p>
+              <p className="text-xs text-gray-600 mb-2">
+                Head to Interview Prep to work through the focus areas above, then come back and try this again.
+              </p>
+              <Link
+                href={`/interview-prep/${jobId}`}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-tertiary-dark hover:underline"
+              >
+                Go to Interview Prep →
+              </Link>
+            </div>
+          </div>
+        )}
 
         <div className="mt-5 relative">
           <button

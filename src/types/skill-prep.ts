@@ -5,6 +5,8 @@ export interface StudyMaterial {
   title: string;
   description: string;
   url: string;
+  /** Realistic time to work through it, e.g. "25 min read" — lets someone judge if it fits before tomorrow's interview. */
+  estimated_time?: string;
 }
 
 export interface QuizQuestion {

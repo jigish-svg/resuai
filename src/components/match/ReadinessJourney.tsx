@@ -7,12 +7,9 @@ interface ReadinessJourneyProps {
   finalScore: number | null;
 }
 
-export const MOCK_INTERVIEW_UNLOCK_SCORE = 80;
-
 export default function ReadinessJourney({ preliminaryScore, matchScore, finalScore }: ReadinessJourneyProps) {
   const matchReached = matchScore !== null;
   const finalReached = finalScore !== null;
-  const unlockedForMock = (matchScore ?? 0) >= MOCK_INTERVIEW_UNLOCK_SCORE;
 
   const stages: { label: string; score: number | null; reached: boolean; description: string }[] = [
     {
@@ -35,9 +32,7 @@ export default function ReadinessJourney({ preliminaryScore, matchScore, finalSc
       reached: finalReached,
       description: finalReached
         ? 'Combines your match score with real interview performance.'
-        : unlockedForMock
-        ? 'Complete a Mock Interview to get your precise final score.'
-        : `Reach ${MOCK_INTERVIEW_UNLOCK_SCORE}% match score to unlock Mock Interview.`,
+        : 'Take a Mock Interview anytime to get your precise final score.',
     },
   ];
 

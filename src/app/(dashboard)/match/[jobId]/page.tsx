@@ -4,7 +4,7 @@ import { CheckCircle2, AlertTriangle, XCircle, ArrowRight, Pencil, ListChecks, M
 import { createClient } from '@/lib/supabase/server';
 import ScoreRing from '@/components/match/ScoreRing';
 import RunMatchButton from '@/components/match/RunMatchButton';
-import ReadinessJourney, { MOCK_INTERVIEW_UNLOCK_SCORE } from '@/components/match/ReadinessJourney';
+import ReadinessJourney from '@/components/match/ReadinessJourney';
 import { getScoreColor } from '@/lib/utils';
 import { MatchItemWithDetails, ATSCheckResult } from '@/types/match';
 import { runATSCheck } from '@/lib/openai/ats-checker';
@@ -71,8 +71,6 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
   const finalScore = match && mockInterviewScore !== null
     ? Math.round(match.overall_score * 0.6 + mockInterviewScore * 0.4)
     : null;
-
-  const mockInterviewUnlocked = paid && (match?.overall_score ?? 0) >= MOCK_INTERVIEW_UNLOCK_SCORE;
 
   const importanceRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
   const sortByImportance = (a: MatchItemWithDetails, b: MatchItemWithDetails) =>
@@ -242,17 +240,14 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
                 ]}
               />
               <FeatureCard
-                href={mockInterviewUnlocked ? `/mock-interview/${jobId}` : paid ? `/match/${jobId}` : '/account/upgrade'}
-                icon={mockInterviewUnlocked ? <Mic className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                href={paid ? `/mock-interview/${jobId}` : '/account/upgrade'}
+                icon={paid ? <Mic className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
                 title="Mock Interview"
-                locked={!mockInterviewUnlocked}
+                locked={!paid}
                 points={[
                   'A live, real-time voice interview grounded in this job and your evidence',
-                  !paid
-                    ? 'Paid feature — upgrade to unlock'
-                    : mockInterviewUnlocked
-                    ? 'Ends in an AI-generated readiness report'
-                    : `Reach ${MOCK_INTERVIEW_UNLOCK_SCORE}% match score to unlock (currently ${match?.overall_score ?? 0}%)`,
+                  'Practice anytime — no minimum match score required',
+                  paid ? 'Ends in an AI-generated readiness report' : 'Paid feature — upgrade to unlock',
                 ]}
               />
             </div>

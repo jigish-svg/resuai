@@ -8,7 +8,8 @@ const StudyMaterialsSchema = z.object({
     type: z.enum(['video', 'article', 'course', 'docs']),
     title: z.string(),
     description: z.string(),
-    search_query: z.string(),
+    url: z.string(),
+    estimated_time: z.string().optional(),
   })),
 });
 
@@ -21,28 +22,68 @@ const QuizSchema = z.object({
   })),
 });
 
+const STUDY_MATERIALS_INSTRUCTIONS = `You are a sharp, experienced technical mentor helping someone cram for a real job interview happening very soon — tomorrow, or sometime this week. You have a live web search tool. Actually use it to find what's currently out there for this specific skill, then shortlist only the best of it.
+
+Your job is triage, not a reading list. Pick the 3-4 resources — no more — that get someone from "knows nothing about this" to "can speak about it credibly in an interview" the fastest. Prioritize: the official docs' own quickstart/intro page, one well-known free crash course or tutorial (freeCodeCamp, official framework tutorial, a widely-recommended YouTube crash course, etc.), and if relevant one small hands-on exercise. Skip anything niche, paywalled, or slow — this has to be realistically finishable in a few hours, not a multi-week course.
+
+For each resource, give the REAL, SPECIFIC url you found via search (not a generic homepage unless that genuinely is the best entry point, and never an invented or guessed URL — if you can't find a specific enough page, link the most authoritative general page you did find). Also give a realistic "estimated_time" someone would actually need (e.g. "15 min read", "45 min video", "1-2 hr hands-on") so they can judge whether it fits before their interview.
+
+Respond with ONLY strict JSON, no markdown fences, no commentary, matching exactly this shape:
+{"materials":[{"type":"video"|"article"|"course"|"docs","title":"...","description":"one honest sentence on why this made the shortlist","url":"...","estimated_time":"..."}]}`;
+
+function extractJson(text: string): unknown {
+  const cleaned = text.trim().replace(/^```(json)?/i, '').replace(/```$/, '').trim();
+  return JSON.parse(cleaned);
+}
+
 export async function generateStudyMaterials(skill: string, whatItInvolves: string): Promise<StudyMaterial[]> {
-  const response = await openai.beta.chat.completions.parse({
+  try {
+    const response = await openai.responses.create({
+      model: MODEL,
+      tools: [{ type: 'web_search_preview', search_context_size: 'medium' }],
+      instructions: STUDY_MATERIALS_INSTRUCTIONS,
+      input: [
+        {
+          role: 'user',
+          content: `Skill: ${skill}\nWhat it involves: ${whatItInvolves}\n\nSearch for and shortlist the best real study resources now.`,
+        },
+      ],
+    });
+
+    const parsed = StudyMaterialsSchema.parse(extractJson(response.output_text));
+    if (parsed.materials.length > 0) {
+      return parsed.materials;
+    }
+  } catch (error) {
+    console.error('Study material web search failed, falling back to search links:', error);
+  }
+
+  // Fallback: same shape as before this change — a search-query link per resource, no live search.
+  const fallback = await openai.beta.chat.completions.parse({
     model: MODEL,
     messages: [
       {
         role: 'system',
-        content: `You are a learning-path designer. Given a skill someone needs to genuinely learn before a job interview, suggest 4-6 concrete study resources covering it from beginner fundamentals to being able to speak about it credibly.
+        content: `You are a learning-path designer. Given a skill someone needs to genuinely learn before a job interview, suggest 3-4 concrete study resources covering it from fundamentals to being able to speak about it credibly.
 
-For each resource, give a "search_query" — a precise search phrase someone would type to find a great real resource (e.g. "Kubernetes basics tutorial for beginners official"), NOT a URL. Never invent a specific URL, video ID, or article link — only the search phrase. Mix resource types: official documentation/docs, a well-known free course or tutorial series, a solid explainer video, and a hands-on practice exercise.`,
+For each resource, give a "search_query" — a precise search phrase someone would type to find a great real resource (e.g. "Kubernetes basics tutorial for beginners official"), NOT a URL. Never invent a specific URL. Mix resource types.`,
       },
-      {
-        role: 'user',
-        content: `Skill: ${skill}
-What it involves: ${whatItInvolves}
-
-Suggest study resources.`,
-      },
+      { role: 'user', content: `Skill: ${skill}\nWhat it involves: ${whatItInvolves}\n\nSuggest study resources.` },
     ],
-    response_format: zodResponseFormat(StudyMaterialsSchema, 'study_materials'),
+    response_format: zodResponseFormat(
+      z.object({
+        materials: z.array(z.object({
+          type: z.enum(['video', 'article', 'course', 'docs']),
+          title: z.string(),
+          description: z.string(),
+          search_query: z.string(),
+        })),
+      }),
+      'study_materials_fallback'
+    ),
   });
 
-  const result = response.choices[0].message.parsed;
+  const result = fallback.choices[0].message.parsed;
   if (!result) {
     throw new Error('Study material generation failed: no result returned');
   }
