@@ -1,4 +1,7 @@
-export type MatchStatus = 'matched' | 'partial' | 'no_evidence';
+import type { FitLabel } from '@/lib/score/types';
+import type { RequirementCategory, RequirementImportance } from '@/types/job';
+
+export type MatchStatus ='matched' | 'partial' | 'no_evidence';
 export type MatchConfidence = 'high' | 'medium' | 'low';
 
 export interface Match {
@@ -6,7 +9,16 @@ export interface Match {
   user_id: string;
   job_id: string;
   resume_id: string;
-  overall_score: number;
+  // Null means "Not enough to score yet". Rows with a null score_config_version
+  // predate fit score v1 and hold a score from the old formula.
+  overall_score: number | null;
+  score_config_version: number | null;
+  label: FitLabel | null;
+  evaluated_count: number | null;
+  scored_total: number | null;
+  range_low: number | null;
+  range_high: number | null;
+  // Pre-v1 sub-scores. No longer written.
   skill_score: number;
   responsibility_score: number;
   experience_score: number;
@@ -40,8 +52,9 @@ export interface MatchResult {
 export interface MatchItemWithDetails extends MatchItem {
   requirement: {
     requirement_text: string;
-    category: string;
-    importance: string;
+    category: RequirementCategory;
+    importance: RequirementImportance;
+    is_implied: boolean;
   };
   achievement?: {
     achievement_text: string;

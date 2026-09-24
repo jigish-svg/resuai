@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { FileText, Plus, Target, TrendingUp, ArrowRight, Sparkles, Clock, CheckCircle2, Pencil } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getScoreColor } from '@/lib/utils';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -37,8 +37,9 @@ export default async function DashboardPage() {
 
   const hasMasterResume = !!masterResume;
   const jobCount = jobsResult.count ?? 0;
-  const avgScore = matchesResult.data && matchesResult.data.length > 0
-    ? Math.round(matchesResult.data.reduce((sum, m) => sum + m.overall_score, 0) / matchesResult.data.length)
+  const scored = (matchesResult.data ?? []).filter((m): m is { overall_score: number } => m.overall_score !== null);
+  const avgScore = scored.length > 0
+    ? Math.round(scored.reduce((sum, m) => sum + m.overall_score, 0) / scored.length)
     : null;
 
   const displayName = user?.user_metadata?.full_name?.split(' ')[0] || 'there';
@@ -173,14 +174,15 @@ export default async function DashboardPage() {
           </div>
           <div className="divide-y divide-black/[0.06]">
             {recentJobs.map((job) => {
-              const matchScore = Array.isArray(job.matches) && job.matches.length > 0
-                ? (job.matches[0] as { overall_score: number }).overall_score
+              const hasMatch = Array.isArray(job.matches) && job.matches.length > 0;
+              const matchScore = hasMatch
+                ? (job.matches[0] as { overall_score: number | null }).overall_score
                 : null;
 
               return (
                 <Link
                   key={job.id}
-                  href={matchScore ? `/match/${job.id}` : `/jobs/${job.id}`}
+                  href={hasMatch ? `/match/${job.id}` : `/jobs/${job.id}`}
                   className="flex items-center justify-between px-6 py-4 hover:bg-black/[0.02] transition-colors group"
                 >
                   <div className="flex items-center gap-4">
@@ -199,7 +201,7 @@ export default async function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     {matchScore !== null && (
-                      <div className={`text-sm font-bold ${matchScore >= 60 ? 'text-success' : matchScore >= 45 ? 'text-amber-600' : 'text-orange-600'}`}>
+                      <div className={`text-sm font-bold ${getScoreColor(matchScore)}`}>
                         {matchScore}%
                       </div>
                     )}

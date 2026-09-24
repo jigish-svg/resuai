@@ -19,7 +19,7 @@ export default async function TailorPage({ params }: { params: Promise<{ jobId: 
 
   const { data: match } = await supabase
     .from('matches')
-    .select('overall_score, skill_score, responsibility_score, experience_score, education_score, semantic_score, ats_score')
+    .select('overall_score, label, score_config_version')
     .eq('job_id', jobId)
     .eq('user_id', user!.id)
     .maybeSingle();

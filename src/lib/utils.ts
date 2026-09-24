@@ -21,22 +21,20 @@ export function truncate(str: string, maxLength: number): string {
   return str.substring(0, maxLength - 3) + '...';
 }
 
-// Thresholds match getMatchLabel in lib/openai/match-scorer.ts — kept in
-// sync so the color and the label never disagree with each other.
+// Thresholds match the label bands in lib/score/config.ts so the color and
+// the label never disagree with each other.
 export function getScoreColor(score: number): string {
-  if (score >= 75) return 'text-success';
-  if (score >= 60) return 'text-green-600';
+  if (score >= 80) return 'text-success';
+  if (score >= 65) return 'text-green-600';
   if (score >= 45) return 'text-amber-600';
-  if (score >= 30) return 'text-orange-600';
-  return 'text-red-600';
+  return 'text-orange-600';
 }
 
 export function getScoreBgColor(score: number): string {
-  if (score >= 75) return 'bg-success/10 border-success/25';
-  if (score >= 60) return 'bg-green-500/10 border-green-500/25';
+  if (score >= 80) return 'bg-success/10 border-success/25';
+  if (score >= 65) return 'bg-green-500/10 border-green-500/25';
   if (score >= 45) return 'bg-amber-500/10 border-amber-500/25';
-  if (score >= 30) return 'bg-orange-500/10 border-orange-500/25';
-  return 'bg-red-500/10 border-red-500/25';
+  return 'bg-orange-500/10 border-orange-500/25';
 }
 
 export function delay(ms: number): Promise<void> {

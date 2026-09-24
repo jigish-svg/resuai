@@ -34,13 +34,10 @@ interface Requirement {
 }
 
 interface MatchSummary {
-  overall_score: number;
-  skill_score: number;
-  responsibility_score: number;
-  experience_score: number;
-  education_score: number;
-  semantic_score: number;
-  ats_score: number;
+  overall_score: number | null;
+  label: string | null;
+  // Null for scores from before fit score v1, which are not shown.
+  score_config_version: number | null;
 }
 
 interface HeaderContent {
@@ -398,10 +395,17 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
       {/* Right: score + actions */}
       <div className="space-y-4 animate-fade-up" style={{ animationDelay: '0.1s' }}>
         <div className="glass rounded-2xl p-5 border border-black/[0.06] sticky top-24 space-y-5 relative overflow-hidden">
-          {match && (
+          {match && match.score_config_version !== null && (
             <div className="relative">
               <p className="text-xs text-gray-500 mb-2">Match Score</p>
-              <p className={`text-3xl font-bold ${getScoreColor(match.overall_score)}`}>{match.overall_score}%</p>
+              {match.overall_score === null ? (
+                <p className="text-sm font-medium text-gray-700">Not enough to score yet.</p>
+              ) : (
+                <>
+                  <p className={`text-3xl font-bold ${getScoreColor(match.overall_score)}`}>{match.overall_score}%</p>
+                  {match.label && <p className="text-xs text-gray-500 mt-1">{match.label}</p>}
+                </>
+              )}
             </div>
           )}
 

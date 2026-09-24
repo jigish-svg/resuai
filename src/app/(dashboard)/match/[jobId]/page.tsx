@@ -10,6 +10,9 @@ import { MatchItemWithDetails, ATSCheckResult } from '@/types/match';
 import { runATSCheck } from '@/lib/openai/ats-checker';
 import { isPaidUser } from '@/lib/plan';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
+import { computeFitScore } from '@/lib/score/fit-score';
+import { SCORE_CONFIG_V1 } from '@/lib/score/config';
+import { fromLegacyMatch } from '@/lib/score/legacy-adapter';
 
 export default async function MatchPage({ params }: { params: Promise<{ jobId: string }> }) {
   const { jobId } = await params;
@@ -29,7 +32,7 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
       .from('match_items')
       .select(`
         id, match_id, requirement_id, achievement_id, status, confidence, evidence_text, explanation,
-        requirement:job_requirements(requirement_text, category, importance),
+        requirement:job_requirements(requirement_text, category, importance, is_implied),
         achievement:achievements(achievement_text, company, job_title)
       `)
       .eq('match_id', match.id);
@@ -68,7 +71,7 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
     .maybeSingle();
 
   const mockInterviewScore = (latestMockSession?.overall_feedback as { readiness_score?: number } | null)?.readiness_score ?? null;
-  const finalScore = match && mockInterviewScore !== null
+  const finalScore = match && match.overall_score !== null && mockInterviewScore !== null
     ? Math.round(match.overall_score * 0.6 + mockInterviewScore * 0.4)
     : null;
 
@@ -80,16 +83,28 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
   const partialMatches = items.filter((i) => i.status === 'partial').sort(sortByImportance);
   const missingItems = items.filter((i) => i.status === 'no_evidence').sort(sortByImportance);
 
-  const breakdown = match
-    ? [
-        { label: 'Hard Skills', weight: '35%', score: match.skill_score },
-        { label: 'Responsibilities', weight: '25%', score: match.responsibility_score },
-        { label: 'Experience', weight: '15%', score: match.experience_score },
-        { label: 'Education & Certs', weight: '10%', score: match.education_score },
-        { label: 'Semantic Fit', weight: '5%', score: match.semantic_score },
-        { label: 'ATS Quality', weight: '5%', score: match.ats_score },
-      ]
-    : [];
+  // Rows from before fit score v1 hold a number from the old formula; ask for a re-run instead of showing it.
+  const isCurrentScore = match?.score_config_version != null;
+
+  // Dimension scores are recomputed from the saved results. The score is a pure
+  // function of them, so this always agrees with the stored number.
+  const fit = match && isCurrentScore
+    ? computeFitScore(
+        items.map((i) =>
+          fromLegacyMatch(
+            { id: i.requirement_id, category: i.requirement.category, importance: i.requirement.importance, is_implied: i.requirement.is_implied },
+            i
+          )
+        ),
+        SCORE_CONFIG_V1
+      )
+    : null;
+
+  const breakdown = (fit?.dimensions ?? []).map((d) => ({
+    label: d.name,
+    weight: `${Math.round(d.effectiveWeight * 100)}%`,
+    score: Math.round(d.score * 100),
+  }));
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -116,8 +131,26 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
       ) : (
         <>
           <div className="animate-fade-up glass rounded-2xl p-8 border border-black/[0.06] flex flex-col md:flex-row items-center gap-10 relative overflow-hidden" style={{ animationDelay: '0.06s' }}>
-            <div className="relative">
-              <ScoreRing score={match.overall_score} size={160} />
+            <div className="relative text-center">
+              {!isCurrentScore ? (
+                <p className="text-sm text-gray-700 max-w-[200px]">
+                  This score was worked out with an older method. Re-run the analysis to update it.
+                </p>
+              ) : match.overall_score === null || match.label === null ? (
+                <p className="text-lg font-semibold text-gray-700 max-w-[200px]">Not enough to score yet.</p>
+              ) : (
+                <ScoreRing score={match.overall_score} label={match.label} size={160} />
+              )}
+              {isCurrentScore && match.scored_total !== null && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {match.evaluated_count} of {match.scored_total} requirements checked
+                </p>
+              )}
+              {match.range_low !== null && match.range_high !== null && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Could be {match.range_low} to {match.range_high} once the open items are checked.
+                </p>
+              )}
             </div>
             <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4 w-full relative">
               {breakdown.map((b) => (

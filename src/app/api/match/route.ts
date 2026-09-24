@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { matchRequirementsToAchievements } from '@/lib/openai/evidence-matcher';
-import { calculateMatchScore } from '@/lib/openai/match-scorer';
+import { computeFitScore } from '@/lib/score/fit-score';
+import { SCORE_CONFIG_V1 } from '@/lib/score/config';
+import { fromLegacyMatch } from '@/lib/score/legacy-adapter';
 import { runATSCheck } from '@/lib/openai/ats-checker';
 import { MatchStatus, MatchConfidence } from '@/types/match';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
@@ -115,9 +117,10 @@ export async function POST(request: NextRequest) {
       text: resume.raw_text ?? '',
     });
 
-    const scores = calculateMatchScore(
-      scoredItems.map(({ item, requirement }) => ({ item: { ...item, id: '', match_id: '' }, requirement })),
-      atsResult.score
+    // The ATS check is shown to the user but never reaches the fit score.
+    const fit = computeFitScore(
+      scoredItems.map(({ item, requirement }) => fromLegacyMatch(requirement, item)),
+      SCORE_CONFIG_V1
     );
 
     // Persist match + match items (replace any previous match for this job)
@@ -129,13 +132,13 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         job_id: jobId,
         resume_id: resume.id,
-        overall_score: scores.overall,
-        skill_score: scores.skill_score,
-        responsibility_score: scores.responsibility_score,
-        experience_score: scores.experience_score,
-        education_score: scores.education_score,
-        semantic_score: scores.semantic_score,
-        ats_score: scores.ats_score,
+        overall_score: fit.score,
+        label: fit.label,
+        score_config_version: fit.scoreConfigVersion,
+        evaluated_count: fit.evaluatedCount,
+        scored_total: fit.scoredTotal,
+        range_low: fit.range?.low ?? null,
+        range_high: fit.range?.high ?? null,
       })
       .select('id')
       .single();
@@ -155,7 +158,7 @@ export async function POST(request: NextRequest) {
 
     await supabase.from('jobs').update({ status: job.status === 'saved' ? 'tailoring' : job.status }).eq('id', jobId);
 
-    return NextResponse.json({ matchId: match.id, scores, atsResult });
+    return NextResponse.json({ matchId: match.id, fit, atsResult });
   } catch (error) {
     console.error('Match error:', error);
     const message = error instanceof Error ? error.message : 'Failed to run match analysis';

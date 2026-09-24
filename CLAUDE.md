@@ -44,9 +44,10 @@ npm run dev            # dev server
 npm run build          # production build
 npm run lint           # lint
 npx tsc --noEmit       # type check (was clean at commit 3f7d69e)
+npm test               # unit tests (Vitest, src/**/*.test.ts)
 ```
 
-- There is no test runner yet. Phase 0 adds one. Record the chosen command here when it exists.
+- Tests run with Vitest (`npm test`). The fit score lives in `src/lib/score/` with its tests in `__tests__/`.
 - Before saying a task is done: type check, lint and tests must pass. Show the results.
 
 ## Stack and layout
@@ -59,7 +60,7 @@ Next.js 15 (App Router, TypeScript), React 19, Tailwind 4, Supabase (auth, Postg
 - `src/lib/export/` PDF and DOCX generation
 - `src/lib/supabase/` clients; `src/lib/plan.ts` (placeholder plan check); `src/lib/rate-limit.ts`
 - `src/types/` shared types
-- `supabase/migrations/` numbered SQL. Latest is 017. The next is 018.
+- `supabase/migrations/` numbered SQL. Latest is 018. The next is 019.
 
 ## Conventions
 

@@ -19,7 +19,7 @@ export default async function JobsPage() {
     company: job.company,
     status: job.status,
     matchScore: Array.isArray(job.matches) && job.matches.length > 0
-      ? (job.matches[0] as { overall_score: number }).overall_score
+      ? (job.matches[0] as { overall_score: number | null }).overall_score
       : null,
   }));
 
