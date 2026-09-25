@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { generateInterviewPrep } from '@/lib/openai/interview-prep';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
 import { isPaidUser } from '@/lib/plan';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 import { InterviewQuestion } from '@/types/interview';
 import { MockInterviewSessionQuestion } from '@/types/mock-interview';
 
@@ -49,9 +49,8 @@ export async function POST(request: NextRequest) {
     return apiError('forbidden', 'Mock Interview Practice is a paid feature. Upgrade to unlock it.');
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.mockInterviewStart))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.mockInterviewStart));
+  if (limited) return limited;
 
   const body = await parseJsonBody(request, JobIdBody);
   if (!body.ok) return body.response;

@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { extractDocumentText, ParseTimeoutError, UnsupportedFileError } from '@/lib/parsers/extract-text';
 import { parseJobDescription, extractRequirements } from '@/lib/openai/jd-parser';
 import { assertFileWithinLimit, assertTextWithinLimit, UploadLimitError } from '@/lib/validation/upload-limits';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -17,9 +17,8 @@ export async function POST(request: NextRequest) {
     return unauthorized();
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.jobParse))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.jobParse));
+  if (limited) return limited;
 
   const form = await readFormData(request);
   if (!form.ok) return form.response;

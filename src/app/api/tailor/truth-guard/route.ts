@@ -5,7 +5,7 @@ import { TruthGuardBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
 import { runTruthGuard } from '@/lib/openai/tailoring-engine';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -16,9 +16,8 @@ export async function POST(request: NextRequest) {
     return unauthorized();
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.truthGuard))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.truthGuard));
+  if (limited) return limited;
 
   const body = await parseJsonBody(request, TruthGuardBody);
   if (!body.ok) return body.response;

@@ -6,7 +6,7 @@ import { SaveResumeBody } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { getEmbedding } from '@/lib/openai/evidence-matcher';
 import { isPaidUser, FREE_TIER_LIMITS } from '@/lib/plan';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 import { buildResumeSavePayload } from '@/lib/resume/save-payload';
 
 export const runtime = 'nodejs';
@@ -20,9 +20,8 @@ export async function POST(request: NextRequest) {
     return unauthorized();
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.resumeSave))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.resumeSave));
+  if (limited) return limited;
 
   const body = await parseJsonBody(request, SaveResumeBody);
   if (!body.ok) return body.response;

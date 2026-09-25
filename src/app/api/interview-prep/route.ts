@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { generateInterviewPrep } from '@/lib/openai/interview-prep';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
 import { isPaidUser } from '@/lib/plan';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
     return apiError('forbidden', 'Interview Prep is a paid feature. Upgrade to unlock it.');
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.interviewPrep))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.interviewPrep));
+  if (limited) return limited;
 
   const body = await parseJsonBody(request, JobIdBody);
   if (!body.ok) return body.response;

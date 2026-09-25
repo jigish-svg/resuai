@@ -4,7 +4,7 @@ import { parseJsonBody } from '@/lib/api/parse-body';
 import { RewriteTextBody } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { rewriteResumeText } from '@/lib/openai/resume-writer';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -15,9 +15,8 @@ export async function POST(request: NextRequest) {
     return unauthorized();
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.resumeRewriteText))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.resumeRewriteText));
+  if (limited) return limited;
 
   const body = await parseJsonBody(request, RewriteTextBody);
   if (!body.ok) return body.response;

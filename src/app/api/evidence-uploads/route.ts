@@ -5,7 +5,7 @@ import { EvidenceUploadFields } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { assertFileWithinLimit, UploadLimitError } from '@/lib/validation/upload-limits';
 import { detectFileType, FILE_TYPES, sanitizeFileName } from '@/lib/validation/file-type';
-import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -18,9 +18,8 @@ export async function POST(request: NextRequest) {
     return unauthorized();
   }
 
-  if (!(await checkRateLimit(supabase, RATE_LIMITS.evidenceUpload))) {
-    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
-  }
+  const limited = rateLimitResponse(await checkRateLimit(supabase, RATE_LIMITS.evidenceUpload));
+  if (limited) return limited;
 
   const form = await readFormData(request);
   if (!form.ok) return form.response;
