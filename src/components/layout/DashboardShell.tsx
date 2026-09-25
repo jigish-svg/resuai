@@ -35,7 +35,7 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-hero-gradient flex relative overflow-hidden">
+    <div className="min-h-screen bg-brand-ivory flex relative overflow-hidden">
 
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
