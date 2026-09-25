@@ -47,7 +47,6 @@ export const RATE_LIMITS = {
   suggestSkills: { bucket: 'suggest_skills', maxRequests: 20, windowSeconds: HOUR },
   skillPrepStart: { bucket: 'skill_prep_start', maxRequests: 15, windowSeconds: HOUR },
   skillPrepQuiz: { bucket: 'skill_prep_quiz', maxRequests: 30, windowSeconds: HOUR },
-  interviewChat: { bucket: 'interview_chat', maxRequests: 30, windowSeconds: HOUR },
   mockInterviewStart: { bucket: 'mock_interview_start', maxRequests: 15, windowSeconds: HOUR },
   mockInterviewFinalize: { bucket: 'mock_interview_finalize', maxRequests: 15, windowSeconds: HOUR },
   evidenceUpload: { bucket: 'evidence_upload', maxRequests: 20, windowSeconds: HOUR },

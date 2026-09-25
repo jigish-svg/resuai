@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server';
 import { isPaidUser } from '@/lib/plan';
 import GeneratePrepButton from '@/components/interview/GeneratePrepButton';
 import SkillPrepJourney from '@/components/interview/SkillPrepJourney';
-import InterviewChatWidget from '@/components/interview/InterviewChatWidget';
 import InterviewQuestionCarousel from '@/components/interview/InterviewQuestionCarousel';
 import { InterviewQuestion, SkillGapPrep } from '@/types/interview';
 import { SkillPrepPlan } from '@/types/skill-prep';
@@ -163,8 +162,6 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
           </div>
         </>
       )}
-
-      {paid && <InterviewChatWidget jobId={jobId} jobTitle={job.title} company={job.company} />}
     </div>
   );
 }
