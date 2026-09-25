@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { SaveTailoredBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
-import { TailoredSection } from '@/types/match';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
 
 export const runtime = 'nodejs';
@@ -9,19 +11,18 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
-  const { jobId, sections, name }: { jobId: string; sections: TailoredSection[]; name?: string } = await request.json();
-  if (!jobId || !sections) {
-    return NextResponse.json({ error: 'jobId and sections are required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, SaveTailoredBody);
+  if (!body.ok) return body.response;
+  const { jobId, sections, name } = body.data;
 
   try {
     const { data: job } = await supabase.from('jobs').select('resume_id').eq('id', jobId).eq('user_id', user.id).maybeSingle();
     const resume = await getResumeForJob(supabase, user.id, job?.resume_id);
     if (!resume) {
-      return NextResponse.json({ error: 'No master resume found' }, { status: 400 });
+      return apiError('conflict', 'Upload your master resume first.');
     }
 
     const { data: match } = await supabase
@@ -69,7 +70,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ tailoredResumeId });
   } catch (error) {
     console.error('Tailored resume save error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to save tailored resume';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to save tailored resume. Please try again.');
   }
 }

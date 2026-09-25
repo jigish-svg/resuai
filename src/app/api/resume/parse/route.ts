@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { getFile, parseFormFields, readFormData } from '@/lib/api/parse-body';
+import { ParseUploadFields } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { extractTextFromPDF } from '@/lib/parsers/pdf-extractor';
 import { extractTextFromDOCX } from '@/lib/parsers/docx-extractor';
@@ -12,16 +15,19 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.resumeParse))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const formData = await request.formData();
-  const file = formData.get('file') as File | null;
-  const pastedText = formData.get('text') as string | null;
+  const form = await readFormData(request);
+  if (!form.ok) return form.response;
+  const fields = parseFormFields(form.data, ParseUploadFields, ['file']);
+  if (!fields.ok) return fields.response;
+  const file = getFile(form.data, 'file');
+  const pastedText = fields.data.text;
 
   let rawText = '';
 
@@ -34,17 +40,17 @@ export async function POST(request: NextRequest) {
       } else if (file.name.toLowerCase().endsWith('.docx')) {
         rawText = await extractTextFromDOCX(buffer);
       } else {
-        return NextResponse.json({ error: 'Unsupported file type. Please upload a PDF or DOCX.' }, { status: 400 });
+        return apiError('unsupported_media_type', 'Unsupported file type. Please upload a PDF or DOCX.');
       }
     } else if (pastedText) {
       assertTextWithinLimit(pastedText);
       rawText = pastedText;
     } else {
-      return NextResponse.json({ error: 'No file or text provided' }, { status: 400 });
+      return apiError('validation_failed', 'Please upload a file or paste the text.');
     }
 
     if (!rawText.trim() || rawText.trim().length < 50) {
-      return NextResponse.json({ error: 'Could not extract enough text to parse. Try pasting the resume text directly.' }, { status: 400 });
+      return apiError('validation_failed', 'Could not extract enough text to parse. Try pasting the resume text directly.');
     }
     assertTextWithinLimit(rawText);
 
@@ -53,10 +59,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ parsed, rawText });
   } catch (error) {
     if (error instanceof UploadLimitError) {
-      return NextResponse.json({ error: error.message }, { status: 413 });
+      return apiError('payload_too_large', error.message);
     }
     console.error('Resume parse error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to parse resume';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to parse resume. Please try again.');
   }
 }

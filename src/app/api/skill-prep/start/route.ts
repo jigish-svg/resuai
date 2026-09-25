@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { StartSkillPrepBody } from '@/lib/api/schemas/interview';
 import { createClient } from '@/lib/supabase/server';
 import { generateStudyMaterials } from '@/lib/openai/skill-prep';
 import { isPaidUser } from '@/lib/plan';
@@ -10,24 +13,20 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await isPaidUser(supabase, user.id))) {
-    return NextResponse.json(
-      { error: 'Interview Prep is a paid feature. Upgrade to unlock it.', upgradeRequired: true },
-      { status: 403 }
-    );
+    return apiError('forbidden', 'Interview Prep is a paid feature. Upgrade to unlock it.');
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.skillPrepStart))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobId, skill, whatItInvolves }: { jobId: string; skill: string; whatItInvolves: string } = await request.json();
-  if (!jobId || !skill) {
-    return NextResponse.json({ error: 'jobId and skill are required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, StartSkillPrepBody);
+  if (!body.ok) return body.response;
+  const { jobId, skill, whatItInvolves } = body.data;
 
   try {
     const { data: existing } = await supabase
@@ -61,7 +60,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ plan: inserted });
   } catch (error) {
     console.error('Skill prep start error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to start skill prep';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to start skill prep. Please try again.');
   }
 }

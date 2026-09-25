@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { ExportDocxBody, toSafeFileName } from '@/lib/api/schemas/documents';
 import { createClient } from '@/lib/supabase/server';
-import { TailoredSection } from '@/types/match';
 import { buildResumeDocumentFromSections } from '@/lib/export/build-document';
 import { generateResumeDOCX } from '@/lib/export/docx-generator';
 
@@ -10,13 +12,12 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
-  const { sections, fileName }: { sections: TailoredSection[]; fileName?: string } = await request.json();
-  if (!sections) {
-    return NextResponse.json({ error: 'sections is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, ExportDocxBody);
+  if (!body.ok) return body.response;
+  const { sections, fileName } = body.data;
 
   try {
     const doc = buildResumeDocumentFromSections(sections);
@@ -25,12 +26,11 @@ export async function POST(request: NextRequest) {
     return new NextResponse(new Uint8Array(docxBuffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${fileName || 'resume'}.docx"`,
+        'Content-Disposition': `attachment; filename="${toSafeFileName(fileName, 'resume')}.docx"`,
       },
     });
   } catch (error) {
     console.error('DOCX export error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to generate DOCX';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to generate DOCX. Please try again.');
   }
 }

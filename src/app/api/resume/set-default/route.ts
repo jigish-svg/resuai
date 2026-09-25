@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { ResumeIdBody } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -7,18 +10,17 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
-  const { resumeId }: { resumeId: string } = await request.json();
-  if (!resumeId) {
-    return NextResponse.json({ error: 'resumeId is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, ResumeIdBody);
+  if (!body.ok) return body.response;
+  const { resumeId } = body.data;
 
   try {
     const { data: resume } = await supabase.from('resumes').select('id').eq('id', resumeId).eq('user_id', user.id).maybeSingle();
     if (!resume) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return apiError('not_found', 'Resume not found.');
     }
 
     const { error: clearError } = await supabase.from('resumes').update({ is_master: false }).eq('user_id', user.id);
@@ -30,7 +32,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Set default resume error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to set default resume';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to set default resume. Please try again.');
   }
 }

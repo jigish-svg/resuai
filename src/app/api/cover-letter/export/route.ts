@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { ExportCoverLetterBody, toSafeFileName } from '@/lib/api/schemas/documents';
 import { createClient } from '@/lib/supabase/server';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 
@@ -8,13 +11,12 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
-  const { content, fileName }: { content: string; fileName?: string } = await request.json();
-  if (!content) {
-    return NextResponse.json({ error: 'content is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, ExportCoverLetterBody);
+  if (!body.ok) return body.response;
+  const { content, fileName } = body.data;
 
   try {
     const paragraphs = content
@@ -35,12 +37,11 @@ export async function POST(request: NextRequest) {
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="${fileName || 'cover_letter'}.docx"`,
+        'Content-Disposition': `attachment; filename="${toSafeFileName(fileName, 'cover_letter')}.docx"`,
       },
     });
   } catch (error) {
     console.error('Cover letter export error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to export cover letter';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to export cover letter. Please try again.');
   }
 }

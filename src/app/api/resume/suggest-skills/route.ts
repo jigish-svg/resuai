@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { SuggestSkillsBody } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { suggestRoleSkills } from '@/lib/openai/skill-suggestions';
 import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
@@ -9,14 +12,16 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.suggestSkills))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobTitles, currentSkills }: { jobTitles: string[]; currentSkills: string[] } = await request.json();
+  const body = await parseJsonBody(request, SuggestSkillsBody);
+  if (!body.ok) return body.response;
+  const { jobTitles, currentSkills } = body.data;
   if (!jobTitles || jobTitles.length === 0) {
     return NextResponse.json({ suggestions: [] });
   }
@@ -26,7 +31,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ suggestions });
   } catch (error) {
     console.error('Skill suggestion error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to suggest skills';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to suggest skills. Please try again.');
   }
 }

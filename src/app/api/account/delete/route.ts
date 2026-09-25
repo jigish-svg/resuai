@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -8,7 +9,7 @@ export async function POST() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   try {
@@ -22,7 +23,6 @@ export async function POST() {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Account deletion error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to delete account';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to delete account. Please try again.');
   }
 }

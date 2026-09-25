@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { getFile, parseFormFields, readFormData } from '@/lib/api/parse-body';
+import { EvidenceUploadFields } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { assertFileWithinLimit, UploadLimitError } from '@/lib/validation/upload-limits';
 import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
@@ -6,26 +9,27 @@ import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limi
 export const runtime = 'nodejs';
 
 const BUCKET = 'evidence-files';
-const MAX_DESCRIPTION_LENGTH = 500;
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.evidenceUpload))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const formData = await request.formData();
-  const file = formData.get('file') as File | null;
-  const resumeId = formData.get('resumeId') as string | null;
-  const description = ((formData.get('description') as string | null) ?? '').slice(0, MAX_DESCRIPTION_LENGTH);
-
-  if (!file || !resumeId) {
-    return NextResponse.json({ error: 'file and resumeId are required' }, { status: 400 });
+  const form = await readFormData(request);
+  if (!form.ok) return form.response;
+  const fields = parseFormFields(form.data, EvidenceUploadFields, ['file']);
+  if (!fields.ok) return fields.response;
+  const { resumeId } = fields.data;
+  const description = fields.data.description ?? '';
+  const file = getFile(form.data, 'file');
+  if (!file) {
+    return apiError('validation_failed', 'Please choose a file to upload.');
   }
 
   try {
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .maybeSingle();
     if (!resume) {
-      return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+      return apiError('not_found', 'Resume not found.');
     }
 
     const filePath = `${user.id}/${resumeId}/${crypto.randomUUID()}-${file.name}`;
@@ -77,10 +81,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (error instanceof UploadLimitError) {
-      return NextResponse.json({ error: error.message }, { status: 413 });
+      return apiError('payload_too_large', error.message);
     }
     console.error('Evidence upload error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to upload file';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to upload file. Please try again.');
   }
 }

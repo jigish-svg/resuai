@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { JobIdBody } from '@/lib/api/schemas/common';
+import { SaveCoverLetterBody } from '@/lib/api/schemas/documents';
 import { createClient } from '@/lib/supabase/server';
 import { generateCoverLetter } from '@/lib/openai/cover-letter';
 import { isPaidUser } from '@/lib/plan';
@@ -11,24 +15,20 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await isPaidUser(supabase, user.id))) {
-    return NextResponse.json(
-      { error: 'Cover letter generation is a paid feature. Upgrade to unlock it.', upgradeRequired: true },
-      { status: 403 }
-    );
+    return apiError('forbidden', 'Cover letter generation is a paid feature. Upgrade to unlock it.');
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.coverLetter))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobId }: { jobId: string } = await request.json();
-  if (!jobId) {
-    return NextResponse.json({ error: 'jobId is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, JobIdBody);
+  if (!body.ok) return body.response;
+  const { jobId } = body.data;
 
   try {
     const { data: job } = await supabase
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     if (!job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+      return apiError('not_found', 'Job not found.');
     }
 
     const { data: requirements } = await supabase
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const resume = await getResumeForJob(supabase, user.id, job.resume_id);
     if (!resume) {
-      return NextResponse.json({ error: 'Upload your master resume before generating a cover letter' }, { status: 400 });
+      return apiError('conflict', 'Upload your master resume before generating a cover letter.');
     }
 
     const { data: achievements } = await supabase
@@ -95,8 +95,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ coverLetter });
   } catch (error) {
     console.error('Cover letter error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to generate cover letter';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to generate cover letter. Please try again.');
   }
 }
 
@@ -104,13 +103,12 @@ export async function PATCH(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
-  const { jobId, content }: { jobId: string; content: string } = await request.json();
-  if (!jobId || content === undefined) {
-    return NextResponse.json({ error: 'jobId and content are required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, SaveCoverLetterBody);
+  if (!body.ok) return body.response;
+  const { jobId, content } = body.data;
 
   try {
     const { error } = await supabase
@@ -123,7 +121,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Cover letter update error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to save cover letter';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to save cover letter. Please try again.');
   }
 }

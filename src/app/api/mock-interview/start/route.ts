@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { JobIdBody } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 import { generateInterviewPrep } from '@/lib/openai/interview-prep';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
@@ -39,24 +42,20 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await isPaidUser(supabase, user.id))) {
-    return NextResponse.json(
-      { error: 'Mock Interview Practice is a paid feature. Upgrade to unlock it.', upgradeRequired: true },
-      { status: 403 }
-    );
+    return apiError('forbidden', 'Mock Interview Practice is a paid feature. Upgrade to unlock it.');
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.mockInterviewStart))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobId }: { jobId: string } = await request.json();
-  if (!jobId) {
-    return NextResponse.json({ error: 'jobId is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, JobIdBody);
+  if (!body.ok) return body.response;
+  const { jobId } = body.data;
 
   try {
     const { data: job } = await supabase
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     if (!job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+      return apiError('not_found', 'Job not found.');
     }
 
     let { data: prep } = await supabase
@@ -83,7 +82,7 @@ export async function POST(request: NextRequest) {
         .eq('job_id', jobId)
         .order('sort_order');
       if (!requirements || requirements.length === 0) {
-        return NextResponse.json({ error: 'This job has no extracted requirements yet' }, { status: 400 });
+        return apiError('conflict', 'This job has no requirements yet. Re-add the job description and try again.');
       }
 
       const { data: match } = await supabase
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
 
       const resumeForPrep = await getResumeForJob(supabase, user.id, job.resume_id);
       if (!resumeForPrep) {
-        return NextResponse.json({ error: 'Upload your master resume before practicing interviews' }, { status: 400 });
+        return apiError('conflict', 'Upload your master resume before practising interviews.');
       }
 
       const { data: achievements } = await supabase
@@ -159,7 +158,7 @@ export async function POST(request: NextRequest) {
 
     const sessionQuestions = pickSessionQuestions(prep.questions as InterviewQuestion[]);
     if (sessionQuestions.length === 0) {
-      return NextResponse.json({ error: 'No interview questions available for this job yet' }, { status: 400 });
+      return apiError('conflict', 'Generate interview prep for this job first.');
     }
 
     const resume = await getResumeForJob(supabase, user.id, job.resume_id);
@@ -193,7 +192,7 @@ export async function POST(request: NextRequest) {
     if (!clientSecretResponse.ok) {
       const detail = await clientSecretResponse.text();
       console.error('Realtime client secret error:', detail);
-      return NextResponse.json({ error: 'Failed to start the live interview session' }, { status: 502 });
+      return apiError('analysis_failed', 'Failed to start the live interview session. Please try again.');
     }
 
     const clientSecretData: { value: string } = await clientSecretResponse.json();
@@ -217,7 +216,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Mock interview start error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to start mock interview';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to start mock interview. Please try again.');
   }
 }

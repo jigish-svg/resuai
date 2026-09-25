@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { PlanIdBody } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 import { generateSkillQuiz } from '@/lib/openai/skill-prep';
 import { isPaidUser } from '@/lib/plan';
@@ -10,24 +13,20 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await isPaidUser(supabase, user.id))) {
-    return NextResponse.json(
-      { error: 'Interview Prep is a paid feature. Upgrade to unlock it.', upgradeRequired: true },
-      { status: 403 }
-    );
+    return apiError('forbidden', 'Interview Prep is a paid feature. Upgrade to unlock it.');
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.skillPrepQuiz))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { planId }: { planId: string } = await request.json();
-  if (!planId) {
-    return NextResponse.json({ error: 'planId is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, PlanIdBody);
+  if (!body.ok) return body.response;
+  const { planId } = body.data;
 
   try {
     const { data: plan } = await supabase
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     if (!plan) {
-      return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
+      return apiError('not_found', 'Plan not found.');
     }
 
     const priorQuestions: string[] = plan.quiz_questions?.map((q: { question: string }) => q.question) ?? [];
@@ -60,7 +59,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ plan: updated });
   } catch (error) {
     console.error('Skill quiz generation error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to generate quiz';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to generate quiz. Please try again.');
   }
 }

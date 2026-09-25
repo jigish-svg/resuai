@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { TailorSectionsBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
 import { optimizeResumeForATS } from '@/lib/openai/tailoring-engine';
 import { TailoredSection } from '@/types/match';
@@ -24,17 +27,16 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.tailorOptimizeAts))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobId, sections }: { jobId: string; sections: TailoredSection[] } = await request.json();
-  if (!jobId || !sections) {
-    return NextResponse.json({ error: 'jobId and sections are required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, TailorSectionsBody);
+  if (!body.ok) return body.response;
+  const { jobId, sections } = body.data;
 
   try {
     const { data: job } = await supabase
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     if (!job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+      return apiError('not_found', 'Job not found.');
     }
 
     const { data: requirements } = await supabase
@@ -55,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const resume = await getResumeForJob(supabase, user.id, job.resume_id);
     if (!resume) {
-      return NextResponse.json({ error: 'No master resume found' }, { status: 400 });
+      return apiError('conflict', 'Upload your master resume first.');
     }
 
     const { data: achievements } = await supabase
@@ -89,7 +91,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('ATS optimization error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to optimize resume for ATS';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to optimize resume for ATS. Please try again.');
   }
 }

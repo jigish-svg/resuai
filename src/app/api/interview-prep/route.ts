@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { JobIdBody } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 import { generateInterviewPrep } from '@/lib/openai/interview-prep';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
@@ -11,24 +14,20 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await isPaidUser(supabase, user.id))) {
-    return NextResponse.json(
-      { error: 'Interview Prep is a paid feature. Upgrade to unlock it.', upgradeRequired: true },
-      { status: 403 }
-    );
+    return apiError('forbidden', 'Interview Prep is a paid feature. Upgrade to unlock it.');
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.interviewPrep))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobId } = await request.json();
-  if (!jobId) {
-    return NextResponse.json({ error: 'jobId is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, JobIdBody);
+  if (!body.ok) return body.response;
+  const { jobId } = body.data;
 
   try {
     const { data: job } = await supabase
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     if (!job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+      return apiError('not_found', 'Job not found.');
     }
 
     const { data: requirements } = await supabase
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
       .eq('job_id', jobId)
       .order('sort_order');
     if (!requirements || requirements.length === 0) {
-      return NextResponse.json({ error: 'This job has no extracted requirements yet' }, { status: 400 });
+      return apiError('conflict', 'This job has no requirements yet. Re-add the job description and try again.');
     }
 
     const { data: match } = await supabase
@@ -72,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     const resume = await getResumeForJob(supabase, user.id, job.resume_id);
     if (!resume) {
-      return NextResponse.json({ error: 'Upload your master resume before generating interview prep' }, { status: 400 });
+      return apiError('conflict', 'Upload your master resume before generating interview prep.');
     }
 
     const { data: achievements } = await supabase
@@ -130,7 +129,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ interviewPrepId, ...result });
   } catch (error) {
     console.error('Interview prep error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to generate interview prep';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to generate interview prep. Please try again.');
   }
 }

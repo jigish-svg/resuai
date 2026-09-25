@@ -1,39 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { SaveJobBody } from '@/lib/api/schemas/jobs';
 import { createClient } from '@/lib/supabase/server';
-import { ParsedJobDescription, RequirementCategory, RequirementImportance } from '@/types/job';
 import { isPaidUser, FREE_TIER_LIMITS } from '@/lib/plan';
 
 export const runtime = 'nodejs';
-
-interface SaveJobBody {
-  parsed: ParsedJobDescription;
-  requirements: { requirement_text: string; category: RequirementCategory; importance: RequirementImportance; is_implied?: boolean }[];
-  rawText: string;
-  sourceUrl?: string;
-}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
-  const body: SaveJobBody = await request.json();
-  const { parsed, requirements, rawText, sourceUrl } = body;
-
-  if (!parsed || !requirements || !rawText) {
-    return NextResponse.json({ error: 'Missing job data' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, SaveJobBody);
+  if (!body.ok) return body.response;
+  const { parsed, requirements, rawText, sourceUrl } = body.data;
 
   try {
     if (!(await isPaidUser(supabase, user.id))) {
       const { count } = await supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('user_id', user.id);
       if ((count ?? 0) >= FREE_TIER_LIMITS.maxActiveJobs) {
-        return NextResponse.json(
-          { error: `Free plan is limited to ${FREE_TIER_LIMITS.maxActiveJobs} jobs. Upgrade to add more.`, upgradeRequired: true },
-          { status: 403 }
-        );
+        return apiError('forbidden', `Free plan is limited to ${FREE_TIER_LIMITS.maxActiveJobs} jobs. Upgrade to add more.`);
       }
     }
 
@@ -77,7 +66,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ jobId: job.id });
   } catch (error) {
     console.error('Job save error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to save job';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to save job. Please try again.');
   }
 }

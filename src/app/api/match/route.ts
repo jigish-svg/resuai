@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { JobIdBody } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 import { matchRequirementsToAchievements } from '@/lib/openai/evidence-matcher';
 import { computeFitScore } from '@/lib/score/fit-score';
@@ -14,17 +17,16 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.match))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const { jobId } = await request.json();
-  if (!jobId) {
-    return NextResponse.json({ error: 'jobId is required' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, JobIdBody);
+  if (!body.ok) return body.response;
+  const { jobId } = body.data;
 
   try {
     const { data: job, error: jobError } = await supabase
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
     if (jobError || !job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+      return apiError('not_found', 'Job not found.');
     }
 
     const { data: requirements, error: reqError } = await supabase
@@ -44,12 +46,12 @@ export async function POST(request: NextRequest) {
       .order('sort_order');
     if (reqError) throw reqError;
     if (!requirements || requirements.length === 0) {
-      return NextResponse.json({ error: 'This job has no extracted requirements' }, { status: 400 });
+      return apiError('conflict', 'This job has no requirements yet. Re-add the job description and try again.');
     }
 
     const resume = await getResumeForJob(supabase, user.id, job.resume_id);
     if (!resume) {
-      return NextResponse.json({ error: 'Upload your master resume before running a match' }, { status: 400 });
+      return apiError('conflict', 'Upload your master resume before running a match.');
     }
 
     const { data: achievements, error: achError } = await supabase
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
       .eq('resume_id', resume.id);
     if (achError) throw achError;
     if (!achievements || achievements.length === 0) {
-      return NextResponse.json({ error: 'Your master resume has no extracted achievements' }, { status: 400 });
+      return apiError('conflict', 'Your master resume has no achievements yet. Add some and try again.');
     }
 
     const { data: resumeSections } = await supabase
@@ -146,7 +148,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ matchId: match.id, fit });
   } catch (error) {
     console.error('Match error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to run match analysis';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('analysis_failed', 'Failed to run match analysis. Please try again.');
   }
 }

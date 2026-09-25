@@ -1,37 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { parseJsonBody } from '@/lib/api/parse-body';
+import { SaveResumeBody } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
-import { ParsedResume, ResumeTemplate } from '@/types/resume';
 import { getEmbedding } from '@/lib/openai/evidence-matcher';
 import { isPaidUser, FREE_TIER_LIMITS } from '@/lib/plan';
 import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
-interface SaveResumeBody {
-  parsed: ParsedResume;
-  rawText: string;
-  name?: string;
-  resumeId?: string;
-  template?: ResumeTemplate;
-}
-
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
   }
 
   if (!(await checkRateLimit(supabase, RATE_LIMITS.resumeSave))) {
-    return NextResponse.json({ error: RATE_LIMIT_MESSAGE }, { status: 429 });
+    return apiError('rate_limited', RATE_LIMIT_MESSAGE);
   }
 
-  const body: SaveResumeBody = await request.json();
-  const { parsed, rawText, name, resumeId: requestedResumeId, template } = body;
-
-  if (!parsed || !rawText) {
-    return NextResponse.json({ error: 'Missing parsed resume or raw text' }, { status: 400 });
-  }
+  const body = await parseJsonBody(request, SaveResumeBody);
+  if (!body.ok) return body.response;
+  const { parsed, rawText, name, resumeId: requestedResumeId, template } = body.data;
 
   try {
     let resumeId: string;
@@ -45,7 +36,7 @@ export async function POST(request: NextRequest) {
         .eq('user_id', user.id)
         .maybeSingle();
       if (!existing) {
-        return NextResponse.json({ error: 'Resume not found' }, { status: 404 });
+        return apiError('not_found', 'Resume not found.');
       }
 
       resumeId = existing.id;
@@ -75,13 +66,7 @@ export async function POST(request: NextRequest) {
       const existingCount = count ?? 0;
 
       if (existingCount > 0 && !(await isPaidUser(supabase, user.id))) {
-        return NextResponse.json(
-          {
-            error: `Free plan is limited to ${FREE_TIER_LIMITS.maxResumeProfiles} resume profile. Upgrade to create more.`,
-            upgradeRequired: true,
-          },
-          { status: 403 }
-        );
+        return apiError('forbidden', `Free plan is limited to ${FREE_TIER_LIMITS.maxResumeProfiles} resume profile. Upgrade to create more.`);
       }
 
       const defaultName = parsed.experience[0]?.job_title ? `${parsed.experience[0].job_title} Resume` : 'Resume';
@@ -171,7 +156,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ resumeId });
   } catch (error) {
     console.error('Resume save error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to save resume';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to save resume. Please try again.');
   }
 }

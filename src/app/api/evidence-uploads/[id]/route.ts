@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, unauthorized } from '@/lib/api/errors';
+import { id as idSchema } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
@@ -10,7 +12,10 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return unauthorized();
+  }
+  if (!idSchema.safeParse(id).success) {
+    return apiError('not_found', 'Upload not found.');
   }
 
   try {
@@ -21,7 +26,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       .eq('user_id', user.id)
       .maybeSingle();
     if (!upload) {
-      return NextResponse.json({ error: 'Upload not found' }, { status: 404 });
+      return apiError('not_found', 'Upload not found.');
     }
 
     const { error: storageError } = await supabase.storage.from(BUCKET).remove([upload.file_path]);
@@ -33,7 +38,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Evidence upload delete error:', error);
-    const message = error instanceof Error ? error.message : 'Failed to delete file';
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError('internal_error', 'Failed to delete file. Please try again.');
   }
 }

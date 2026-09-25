@@ -47,6 +47,20 @@ export async function parseJsonBody<S extends z.ZodTypeAny>(
   return fromSchema(schema, json);
 }
 
+export async function readFormData(request: Request): Promise<ParseResult<FormData>> {
+  try {
+    return { ok: true, data: await request.formData() };
+  } catch {
+    return { ok: false, response: apiError('validation_failed', INVALID_MESSAGE) };
+  }
+}
+
+/** Returns the named field if it is a file, otherwise null. */
+export function getFile(formData: FormData, name: string): File | null {
+  const value = formData.get(name);
+  return value instanceof File ? value : null;
+}
+
 /**
  * Validates the text fields of a multipart body. Fields named in `fileFields`
  * are skipped here and checked by the route; any other File is rejected.
