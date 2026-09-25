@@ -8,6 +8,43 @@ what's shared with users). It exists so that if something goes wrong, there's al
 If you find a security issue in this codebase, email **jigish2050@gmail.com** with details. Please don't open a
 public GitHub issue for anything that could be actively exploited.
 
+## Application safeguards
+
+What the code does to prevent incidents, and how to check it still does. Keep this current when any of it changes.
+
+- **Row-level security everywhere.** Every user table is scoped to `auth.uid()`, directly or through its parent row.
+  Routes also check ownership explicitly and never take a user id from the request.
+- **Atomic saves** (migration 019). Resume, job, match, tailored-resume, default-resume and delete-resume writes
+  each run in one database function, so a failure part-way changes nothing. The functions are `security invoker`
+  (RLS still applies), check `auth.uid()` themselves, and reject match items that point at another job's
+  requirements or another resume's achievements (foreign keys alone would allow that).
+- **Strict request schemas.** Every API body is validated with zod (`src/lib/api/schemas/`); unknown fields are
+  rejected, lengths and list sizes are capped, and bodies over 1 MB are refused.
+- **No exception text reaches users.** Errors use `{ error: { code, message } }` with fixed, human messages;
+  details are logged server-side. Validation errors list field paths only, never submitted values.
+- **Uploads checked by content** (`src/lib/validation/file-type.ts`). Resume and job parsing accept PDF or Word;
+  evidence uploads accept PDF, Word, PNG or JPEG. The type, the stored content type and the storage key all come
+  from the bytes and a generated name, never from the browser. PDFs over 20 pages are refused.
+- **AI routes fail closed.** If the rate limiter errors, every model-calling route refuses the request
+  (`src/lib/rate-limit.ts`). Only evidence uploads, which call no model, still allow.
+
+### Checking it
+
+- `npm test` runs the unit tests (score, schemas, upload detection, rate limiter).
+- `npm run test:db` starts a throwaway local Postgres in Docker, applies every migration, and runs the SQL tests
+  in `supabase/tests/`: saves under forced failure, and cross-user access through tables and save functions.
+  It needs Docker Desktop running and never connects to a real Supabase project.
+
+### Known gaps
+
+- Parsing has a 15-second limit, but it only stops the request waiting; a hostile PDF could keep using CPU.
+  A hard CPU/memory limit needs parsing in a worker or separate process.
+- No daily caps or per-request cost records on AI routes yet (PRD 21), and no per-IP limits (there are no
+  anonymous routes yet).
+- Evidence files uploaded before content checks existed keep their original storage names and content types.
+- `npm run test:db` uses a minimal stand-in for Supabase's auth and storage schemas
+  (`supabase/tests/_setup/supabase_stub.sql`), not Supabase itself.
+
 ## What counts as a security incident here
 
 - Unauthorized access to user data beyond what row-level security should allow (a user seeing another user's
