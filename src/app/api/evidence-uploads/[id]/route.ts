@@ -29,11 +29,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return apiError('not_found', 'Upload not found.');
     }
 
-    const { error: storageError } = await supabase.storage.from(BUCKET).remove([upload.file_path]);
-    if (storageError) throw storageError;
-
-    const { error: deleteError } = await supabase.from('evidence_uploads').delete().eq('id', id);
+    // Row first: if the file removal then fails, the user never sees a row that
+    // points at a missing file. A leftover object is only logged.
+    const { error: deleteError } = await supabase.from('evidence_uploads').delete().eq('id', id).eq('user_id', user.id);
     if (deleteError) throw deleteError;
+
+    const { error: storageError } = await supabase.storage.from(BUCKET).remove([upload.file_path]);
+    if (storageError) console.error('Evidence file removal failed:', upload.file_path, storageError);
 
     return NextResponse.json({ success: true });
   } catch (error) {

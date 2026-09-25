@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError, unauthorized } from '@/lib/api/errors';
 import { parseJsonBody } from '@/lib/api/parse-body';
+import { rpcError } from '@/lib/api/rpc-error';
 import { SaveJobBody } from '@/lib/api/schemas/jobs';
 import { createClient } from '@/lib/supabase/server';
 import { isPaidUser, FREE_TIER_LIMITS } from '@/lib/plan';
@@ -26,44 +27,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { data: defaultResume } = await supabase
-      .from('resumes')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('is_master', true)
-      .maybeSingle();
-
-    const { data: job, error: jobError } = await supabase
-      .from('jobs')
-      .insert({
-        user_id: user.id,
+    const { data: jobId, error } = await supabase.rpc('save_job', {
+      p_job: {
         title: parsed.job_title,
-        company: parsed.company,
-        location: parsed.location,
-        job_type: parsed.job_type,
-        seniority: parsed.seniority,
+        company: parsed.company ?? null,
+        location: parsed.location ?? null,
+        job_type: parsed.job_type ?? null,
+        seniority: parsed.seniority ?? null,
         raw_text: rawText,
-        source_url: sourceUrl,
+        source_url: sourceUrl ?? null,
         keywords: parsed.keywords,
-        status: 'saved',
-        resume_id: defaultResume?.id ?? null,
-      })
-      .select('id')
-      .single();
-    if (jobError) throw jobError;
+      },
+      // Array order becomes sort_order.
+      p_requirements: requirements.map((r) => ({
+        requirement_text: r.requirement_text,
+        category: r.category,
+        importance: r.importance,
+        is_implied: r.is_implied ?? false,
+      })),
+    });
+    if (error) return rpcError(error, { notFound: 'Job not found.', fallback: 'Failed to save job. Please try again.' });
 
-    const requirementRows = requirements.map((r, i) => ({
-      job_id: job.id,
-      requirement_text: r.requirement_text,
-      category: r.category,
-      importance: r.importance,
-      is_implied: r.is_implied ?? false,
-      sort_order: i,
-    }));
-    const { error: reqError } = await supabase.from('job_requirements').insert(requirementRows);
-    if (reqError) throw reqError;
-
-    return NextResponse.json({ jobId: job.id });
+    return NextResponse.json({ jobId });
   } catch (error) {
     console.error('Job save error:', error);
     return apiError('internal_error', 'Failed to save job. Please try again.');

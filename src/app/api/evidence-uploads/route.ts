@@ -66,7 +66,13 @@ export async function POST(request: NextRequest) {
       })
       .select('id, file_name, description, created_at')
       .single();
-    if (insertError) throw insertError;
+    if (insertError) {
+      // Storage and the database cannot share a transaction: undo the upload so
+      // no file is left without a row pointing at it.
+      const { error: cleanupError } = await supabase.storage.from(BUCKET).remove([filePath]);
+      if (cleanupError) console.error('Evidence upload cleanup failed:', filePath, cleanupError);
+      throw insertError;
+    }
 
     const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(filePath, 3600);
 

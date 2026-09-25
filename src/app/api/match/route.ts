@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError, unauthorized } from '@/lib/api/errors';
 import { parseJsonBody } from '@/lib/api/parse-body';
+import { rpcError } from '@/lib/api/rpc-error';
+import { buildMatchPayload } from '@/lib/match/save-payload';
 import { JobIdBody } from '@/lib/api/schemas/common';
 import { createClient } from '@/lib/supabase/server';
 import { matchRequirementsToAchievements } from '@/lib/openai/evidence-matcher';
@@ -110,42 +112,17 @@ export async function POST(request: NextRequest) {
       SCORE_CONFIG_V1
     );
 
-    // Persist match + match items (replace any previous match for this job)
-    await supabase.from('matches').delete().eq('job_id', jobId).eq('user_id', user.id);
+    // Replaces any previous match for this job in one transaction.
+    const payload = buildMatchPayload(fit, scoredItems.map(({ item }) => item));
+    const { data: matchId, error: saveError } = await supabase.rpc('save_match', {
+      p_job_id: jobId,
+      p_resume_id: resume.id,
+      p_match: payload.match,
+      p_items: payload.items,
+    });
+    if (saveError) return rpcError(saveError, { notFound: 'Job not found.', fallback: 'Failed to save the match. Please try again.' });
 
-    const { data: match, error: matchError } = await supabase
-      .from('matches')
-      .insert({
-        user_id: user.id,
-        job_id: jobId,
-        resume_id: resume.id,
-        overall_score: fit.score,
-        label: fit.label,
-        score_config_version: fit.scoreConfigVersion,
-        evaluated_count: fit.evaluatedCount,
-        scored_total: fit.scoredTotal,
-        range_low: fit.range?.low ?? null,
-        range_high: fit.range?.high ?? null,
-      })
-      .select('id')
-      .single();
-    if (matchError) throw matchError;
-
-    const matchItemRows = scoredItems.map(({ item }) => ({
-      match_id: match.id,
-      requirement_id: item.requirement_id,
-      achievement_id: item.achievement_id,
-      status: item.status,
-      confidence: item.confidence,
-      evidence_text: item.evidence_text,
-      explanation: item.explanation,
-    }));
-    const { error: itemsError } = await supabase.from('match_items').insert(matchItemRows);
-    if (itemsError) throw itemsError;
-
-    await supabase.from('jobs').update({ status: job.status === 'saved' ? 'tailoring' : job.status }).eq('id', jobId);
-
-    return NextResponse.json({ matchId: match.id, fit });
+    return NextResponse.json({ matchId, fit });
   } catch (error) {
     console.error('Match error:', error);
     return apiError('analysis_failed', 'Failed to run match analysis. Please try again.');

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError, unauthorized } from '@/lib/api/errors';
 import { parseJsonBody } from '@/lib/api/parse-body';
+import { rpcError } from '@/lib/api/rpc-error';
 import { SaveTailoredBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
@@ -20,7 +21,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const { data: job } = await supabase.from('jobs').select('resume_id').eq('id', jobId).eq('user_id', user.id).maybeSingle();
-    const resume = await getResumeForJob(supabase, user.id, job?.resume_id);
+    if (!job) {
+      return apiError('not_found', 'Job not found.');
+    }
+    const resume = await getResumeForJob(supabase, user.id, job.resume_id);
     if (!resume) {
       return apiError('conflict', 'Upload your master resume first.');
     }
@@ -32,40 +36,14 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    const { data: existing } = await supabase
-      .from('tailored_resumes')
-      .select('id')
-      .eq('job_id', jobId)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    let tailoredResumeId: string;
-
-    if (existing) {
-      const { error } = await supabase
-        .from('tailored_resumes')
-        .update({ sections, name: name || 'Tailored Resume', match_id: match?.id })
-        .eq('id', existing.id);
-      if (error) throw error;
-      tailoredResumeId = existing.id;
-    } else {
-      const { data: inserted, error } = await supabase
-        .from('tailored_resumes')
-        .insert({
-          user_id: user.id,
-          job_id: jobId,
-          base_resume_id: resume.id,
-          match_id: match?.id,
-          name: name || 'Tailored Resume',
-          sections,
-        })
-        .select('id')
-        .single();
-      if (error) throw error;
-      tailoredResumeId = inserted.id;
-    }
-
-    await supabase.from('jobs').update({ status: 'ready' }).eq('id', jobId).eq('user_id', user.id);
+    const { data: tailoredResumeId, error } = await supabase.rpc('save_tailored_resume', {
+      p_job_id: jobId,
+      p_base_resume_id: resume.id,
+      p_match_id: match?.id ?? null,
+      p_name: name ?? null,
+      p_sections: sections,
+    });
+    if (error) return rpcError(error, { notFound: 'Job not found.', fallback: 'Failed to save tailored resume. Please try again.' });
 
     return NextResponse.json({ tailoredResumeId });
   } catch (error) {
