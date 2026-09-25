@@ -3,8 +3,7 @@ import { apiError, unauthorized } from '@/lib/api/errors';
 import { getFile, parseFormFields, readFormData } from '@/lib/api/parse-body';
 import { ParseUploadFields } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
-import { extractTextFromPDF } from '@/lib/parsers/pdf-extractor';
-import { extractTextFromDOCX } from '@/lib/parsers/docx-extractor';
+import { extractDocumentText, ParseTimeoutError, UnsupportedFileError } from '@/lib/parsers/extract-text';
 import { parseJobDescription, extractRequirements } from '@/lib/openai/jd-parser';
 import { assertFileWithinLimit, assertTextWithinLimit, UploadLimitError } from '@/lib/validation/upload-limits';
 import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
@@ -35,13 +34,7 @@ export async function POST(request: NextRequest) {
     if (file) {
       assertFileWithinLimit(file);
       const buffer = Buffer.from(await file.arrayBuffer());
-      if (file.name.toLowerCase().endsWith('.pdf')) {
-        rawText = await extractTextFromPDF(buffer);
-      } else if (file.name.toLowerCase().endsWith('.docx')) {
-        rawText = await extractTextFromDOCX(buffer);
-      } else {
-        return apiError('unsupported_media_type', 'Unsupported file type. Please upload a PDF or DOCX.');
-      }
+      rawText = await extractDocumentText(buffer);
     } else if (pastedText) {
       assertTextWithinLimit(pastedText);
       rawText = pastedText;
@@ -61,6 +54,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof UploadLimitError) {
       return apiError('payload_too_large', error.message);
+    }
+    if (error instanceof UnsupportedFileError) {
+      return apiError('unsupported_media_type', 'Please upload a PDF or Word document.');
+    }
+    if (error instanceof ParseTimeoutError) {
+      return apiError('validation_failed', 'We could not read this file. Try a text-based PDF or paste the text.');
     }
     console.error('Job parse error:', error);
     return apiError('analysis_failed', 'Failed to parse job description. Please try again.');

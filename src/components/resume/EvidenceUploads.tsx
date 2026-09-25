@@ -87,7 +87,14 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
         <label className="flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-4 py-2.5 rounded-full font-medium text-sm text-white cursor-pointer shrink-0">
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
           Upload file
-          <input ref={fileInputRef} type="file" onChange={handleFileChange} disabled={uploading} className="hidden" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.png,.jpg,.jpeg"
+            onChange={handleFileChange}
+            disabled={uploading}
+            className="hidden"
+          />
         </label>
       </div>
 

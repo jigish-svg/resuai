@@ -4,6 +4,7 @@ import { getFile, parseFormFields, readFormData } from '@/lib/api/parse-body';
 import { EvidenceUploadFields } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { assertFileWithinLimit, UploadLimitError } from '@/lib/validation/upload-limits';
+import { detectFileType, FILE_TYPES, sanitizeFileName } from '@/lib/validation/file-type';
 import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -45,11 +46,19 @@ export async function POST(request: NextRequest) {
       return apiError('not_found', 'Resume not found.');
     }
 
-    const filePath = `${user.id}/${resumeId}/${crypto.randomUUID()}-${file.name}`;
     const buffer = Buffer.from(await file.arrayBuffer());
+    // Type, storage key and served content type all come from the bytes; the
+    // browser-supplied name and MIME type are never trusted.
+    const type = detectFileType(buffer);
+    if (!type) {
+      return apiError('unsupported_media_type', 'Please upload a PDF, Word document, PNG or JPEG.');
+    }
+    const { mime, ext } = FILE_TYPES[type];
+    const fileName = sanitizeFileName(file.name);
+    const filePath = `${user.id}/${resumeId}/${crypto.randomUUID()}.${ext}`;
 
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, buffer, {
-      contentType: file.type || undefined,
+      contentType: mime,
     });
     if (uploadError) throw uploadError;
 
@@ -59,9 +68,9 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         resume_id: resumeId,
         file_path: filePath,
-        file_name: file.name,
+        file_name: fileName,
         description,
-        content_type: file.type || null,
+        content_type: mime,
         size_bytes: file.size,
       })
       .select('id, file_name, description, created_at')
