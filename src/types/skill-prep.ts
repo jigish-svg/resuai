@@ -16,6 +16,7 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+// 'added_to_resume' is legacy: old rows still hold it, but a quiz no longer writes to the resume.
 export type SkillPrepStatus = 'not_started' | 'studying' | 'quiz' | 'passed' | 'failed' | 'added_to_resume';
 
 export interface SkillPrepPlan {

@@ -191,7 +191,7 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
                 locked={!paid}
                 points={[
                   "Likely interview questions built from this job's requirements",
-                  'A full study plan + 10-question quiz for any skill gaps before you claim them',
+                  'A full study plan + 10-question practice quiz for any skill gaps',
                   paid ? 'Smart questions to ask the interviewer' : 'Paid feature — upgrade to unlock',
                 ]}
               />

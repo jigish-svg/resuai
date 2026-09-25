@@ -13,7 +13,6 @@ import {
   XCircle,
   PartyPopper,
   RotateCcw,
-  Plus,
   ExternalLink,
 } from 'lucide-react';
 import { SkillPrepPlan, QuizResultItem } from '@/types/skill-prep';
@@ -45,7 +44,6 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   const [starting, setStarting] = useState(false);
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [addingToResume, setAddingToResume] = useState(false);
   const [answers, setAnswers] = useState<number[]>(
     initialPlan?.status === 'quiz' ? new Array(initialPlan.quiz_questions.length).fill(-1) : []
   );
@@ -111,26 +109,6 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
       toast.error(err instanceof Error ? err.message : 'Failed to submit the quiz');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleAddToResume = async () => {
-    if (!plan) return;
-    setAddingToResume(true);
-    try {
-      const res = await fetch('/api/resume/add-skill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skill: plan.skill, planId: plan.id, jobId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to add skill to resume');
-      setPlan({ ...plan, status: 'added_to_resume' });
-      toast.success(data.alreadyPresent ? `${plan.skill} is already on your resume` : `Added "${plan.skill}" to your resume`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add skill to resume');
-    } finally {
-      setAddingToResume(false);
     }
   };
 
@@ -303,35 +281,16 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
     );
   }
 
-  // Step 4b: passed
-  if (plan.status === 'passed') {
-    return (
-      <div className="glass rounded-2xl p-6 border border-success/30 text-center relative overflow-hidden">
-        <PartyPopper className="w-9 h-9 text-success mx-auto mb-3 relative" />
-        <p className="font-bold text-lg text-gray-900 relative">Congratulations!</p>
-        <p className="text-sm text-gray-600 mb-4 relative">
-          You scored {plan.quiz_score}% on {skill} — you&apos;re ready to talk about this in the interview.
-        </p>
-        <button
-          onClick={handleAddToResume}
-          disabled={addingToResume}
-          className="relative flex items-center gap-2 mx-auto bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-5 py-2.5 rounded-full font-semibold text-sm shadow-lg"
-        >
-          {addingToResume ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Add these skills to my resume
-        </button>
-      </div>
-    );
-  }
-
-  // Step 5: already added
+  // Step 4b: passed. A quiz is practice only: it never reaches the resume or the fit score.
+  // Legacy "added_to_resume" plans land here too.
   return (
-    <div className="glass rounded-2xl p-5 border border-black/[0.06] flex items-center gap-3">
-      <CheckCircle2 className="w-6 h-6 text-success shrink-0" />
-      <div>
-        <p className="font-medium text-gray-900">{skill}</p>
-        <p className="text-sm text-gray-500">Learned, verified, and added to your resume.</p>
-      </div>
+    <div className="glass rounded-2xl p-6 border border-success/30 text-center relative overflow-hidden">
+      <PartyPopper className="w-9 h-9 text-success mx-auto mb-3 relative" />
+      <p className="font-bold text-lg text-gray-900 relative">Practice complete</p>
+      <p className="text-sm text-gray-600 relative">
+        You scored {plan.quiz_score}% on the {skill} practice quiz. This is practice only. It isn&apos;t added to
+        your resume and doesn&apos;t change your fit score.
+      </p>
     </div>
   );
 }
