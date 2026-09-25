@@ -16,6 +16,7 @@ import {
 import { TailoredSection } from '@/types/match';
 import { ResumeDocumentExperience } from '@/types/export';
 import { TailoringPlan } from '@/types/tailoring-plan';
+import { apiErrorMessage } from '@/lib/api/client';
 
 function getContent<T>(sections: TailoredSection[], type: string, fallback: T): T {
   return (sections.find((s) => s.section_type === type)?.content as T) ?? fallback;
@@ -58,7 +59,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
         body: JSON.stringify({ jobId, sections: initialSections }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate tailoring plan');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to generate tailoring plan'));
       const newPlan: TailoringPlan = data.plan;
       setPlan(newPlan);
       setAcceptSummary(!!newPlan.summary_change);
@@ -139,7 +140,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
         body: JSON.stringify({ jobId, sections, name: `${jobTitle} — Tailored` }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to apply changes');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to apply changes'));
 
       toast.success('Applied — opening the full editor');
       router.push(`/tailor/${jobId}`);

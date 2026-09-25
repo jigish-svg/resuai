@@ -29,6 +29,7 @@ import {
 import { buildResumeDocumentFromParsedResume } from '@/lib/export/build-document';
 import TemplateGallery from './TemplateGallery';
 import LivePreview from './LivePreview';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface ResumeBuilderWizardProps {
   /** Where to navigate after a successful save. Omit to stay and refresh in place. */
@@ -123,7 +124,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
         body: JSON.stringify({ text, fieldType, jobTitle, company }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Rewrite failed');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Rewrite failed'));
       apply(data.rewritten);
       toast.success('Rewritten with AI');
     } catch (err) {
@@ -150,7 +151,7 @@ export default function ResumeBuilderWizard({ redirectOnSaveTo }: ResumeBuilderW
         body: JSON.stringify({ parsed, rawText: flattenToRawText(parsed), template: template ?? 'classic' }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save resume');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to save resume'));
       toast.success('Resume saved — Evidence Library is ready');
       if (redirectOnSaveTo) {
         router.push(redirectOnSaveTo);

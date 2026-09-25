@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Loader2, Sparkles, Save, Download, Copy, RotateCcw } from 'lucide-react';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface CoverLetterEditorProps {
   jobId: string;
@@ -25,7 +26,7 @@ export default function CoverLetterEditor({ jobId, candidateName, initialContent
         body: JSON.stringify({ jobId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate cover letter');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to generate cover letter'));
       setContent(data.coverLetter.content);
       toast.success('Cover letter generated');
     } catch (err) {
@@ -44,7 +45,7 @@ export default function CoverLetterEditor({ jobId, candidateName, initialContent
         body: JSON.stringify({ jobId, content }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to save'));
       toast.success('Saved');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
@@ -63,7 +64,7 @@ export default function CoverLetterEditor({ jobId, candidateName, initialContent
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || 'Failed to export');
+        throw new Error(apiErrorMessage(data, 'Failed to export'));
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);

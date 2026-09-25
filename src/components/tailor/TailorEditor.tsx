@@ -25,6 +25,7 @@ import { TailoredSection, TruthGuardFlag } from '@/types/match';
 import { ParsedEducation, ParsedCertification, ResumeTemplate } from '@/types/resume';
 import { ResumeDocumentExperience } from '@/types/export';
 import { getScoreColor } from '@/lib/utils';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface Requirement {
   id: string;
@@ -103,7 +104,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
         body: JSON.stringify({ originalText, requirementText }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Rewrite failed');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Rewrite failed'));
 
       const experiences = [...experienceContent.experiences];
       const bullets = [...experiences[expIndex].bullets];
@@ -127,7 +128,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
         body: JSON.stringify({ jobId, sections }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'ATS optimization failed');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'ATS optimization failed'));
       setSections(data.sections);
       setOptimizeResult({ keywords_added: data.keywords_added, keywords_still_missing: data.keywords_still_missing });
       if (data.keywords_added.length > 0) {
@@ -151,7 +152,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
         body: JSON.stringify({ jobId, sections, name: `${jobTitle} — Tailored` }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to save'));
       toast.success('Tailored resume saved');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
@@ -176,7 +177,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
         body: JSON.stringify({ tailoredText: fullText, jobId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Truth Guard check failed');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Truth Guard check failed'));
       setTruthResult(data);
       if (data.passed) {
         toast.success('Truth Guard passed — no unsupported claims found');
@@ -226,7 +227,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to export DOCX');
+        throw new Error(apiErrorMessage(data, 'Failed to export DOCX'));
       }
       downloadBlob(await res.blob(), `${baseName}.docx`);
     } catch (err) {

@@ -6,6 +6,7 @@ import { useDropzone } from 'react-dropzone';
 import toast from 'react-hot-toast';
 import { UploadCloud, Loader2, Sparkles, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { ParsedJobDescription, RequirementCategory, RequirementImportance } from '@/types/job';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface Requirement {
   requirement_text: string;
@@ -42,7 +43,7 @@ export default function JobIntakeWorkspace() {
     try {
       const res = await fetch('/api/jobs/parse', { method: 'POST', body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to parse job description');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to parse job description'));
       setParsed(data.parsed);
       setRequirements(data.requirements);
       setRawText(data.rawText);
@@ -91,7 +92,7 @@ export default function JobIntakeWorkspace() {
         body: JSON.stringify({ parsed, requirements, rawText, sourceUrl: sourceUrl || undefined }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save job');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to save job'));
       toast.success('Job saved — running match analysis…');
       router.push(`/match/${data.jobId}`);
     } catch (err) {

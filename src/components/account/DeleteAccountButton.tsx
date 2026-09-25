@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, Loader2, Trash2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createClient } from '@/lib/supabase/client';
+import { apiErrorMessage } from '@/lib/api/client';
 
 export default function DeleteAccountButton() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function DeleteAccountButton() {
     try {
       const res = await fetch('/api/account/delete', { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete account');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to delete account'));
 
       const supabase = createClient();
       await supabase.auth.signOut();

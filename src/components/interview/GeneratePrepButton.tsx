@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, MessagesSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { apiErrorMessage } from '@/lib/api/client';
 
 export default function GeneratePrepButton({ jobId, label = 'Generate Interview Prep' }: { jobId: string; label?: string }) {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function GeneratePrepButton({ jobId, label = 'Generate Interview 
         body: JSON.stringify({ jobId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate interview prep');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to generate interview prep'));
       toast.success('Interview prep ready');
       router.refresh();
     } catch (err) {

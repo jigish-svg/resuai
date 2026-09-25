@@ -20,6 +20,7 @@ import {
   Award,
 } from 'lucide-react';
 import { ParsedResume, ParsedExperience, ParsedEducation, ParsedCertification } from '@/types/resume';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface ResumeWorkspaceProps {
   existingResume: {
@@ -54,7 +55,7 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
     try {
       const res = await fetch('/api/resume/parse', { method: 'POST', body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to parse resume');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to parse resume'));
       setParsed(data.parsed);
       setRawText(data.rawText);
       setMode('review');
@@ -102,7 +103,7 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
         body: JSON.stringify({ parsed, rawText, resumeId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save resume');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to save resume'));
       toast.success('Resume saved — Evidence Library is ready');
       if (redirectOnSaveTo) {
         router.push(redirectOnSaveTo);

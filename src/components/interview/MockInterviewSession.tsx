@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Mic, MicOff, PhoneOff, Loader2, Sparkles, CheckCircle2, Target, Volume2, VolumeX, BookOpen } from 'lucide-react';
 import { getScoreColor } from '@/lib/utils';
 import { MockInterviewSession as MockInterviewSessionType, MockInterviewTranscriptEntry } from '@/types/mock-interview';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface MockInterviewSessionProps {
   jobId: string;
@@ -120,7 +121,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
         body: JSON.stringify({ jobId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to start session');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to start session'));
       sessionIdRef.current = data.sessionId;
 
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -181,7 +182,7 @@ export default function MockInterviewSession({ jobId, jobTitle, company }: MockI
         body: JSON.stringify({ sessionId: sessionIdRef.current, transcript: finalTranscript }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate feedback');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to generate feedback'));
       setCompletedSession(data.session);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate feedback');

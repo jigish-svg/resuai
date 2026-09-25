@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { CheckCircle2, Pencil, Star, Trash2, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface ResumeProfileCardProps {
   id: string;
@@ -29,7 +30,7 @@ export default function ResumeProfileCard({ id, name, updatedAt, achievementCoun
         body: JSON.stringify({ resumeId: id }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to set default');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to set default'));
       toast.success(`${name} is now your default resume`);
       router.refresh();
     } catch (err) {
@@ -49,7 +50,7 @@ export default function ResumeProfileCard({ id, name, updatedAt, achievementCoun
         body: JSON.stringify({ resumeId: id }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete resume');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to delete resume'));
       toast.success(`Deleted ${name}`);
       router.refresh();
     } catch (err) {

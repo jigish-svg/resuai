@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { SkillPrepPlan, QuizResultItem } from '@/types/skill-prep';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface SkillPrepJourneyProps {
   jobId: string;
@@ -58,7 +59,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         body: JSON.stringify({ jobId, skill, whatItInvolves }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to build your learning plan');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to build your learning plan'));
       setPlan(data.plan);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to build your learning plan');
@@ -77,7 +78,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         body: JSON.stringify({ planId: plan.id }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to generate the quiz');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to generate the quiz'));
       setPlan(data.plan);
       setAnswers(new Array(data.plan.quiz_questions.length).fill(-1));
       setQuizResult(null);
@@ -102,7 +103,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         body: JSON.stringify({ planId: plan.id, answers }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to submit the quiz');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to submit the quiz'));
       setPlan(data.plan);
       setQuizResult(data);
     } catch (err) {

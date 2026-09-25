@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { Paperclip, Loader2, Trash2, ExternalLink, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { formatDate } from '@/lib/utils';
+import { apiErrorMessage } from '@/lib/api/client';
 
 interface UploadItem {
   id: string;
@@ -38,7 +39,7 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
 
       const res = await fetch('/api/evidence-uploads', { method: 'POST', body: formData });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to upload file');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to upload file'));
 
       setUploads((prev) => [data.upload, ...prev]);
       setDescription('');
@@ -56,7 +57,7 @@ export default function EvidenceUploads({ resumeId, initialUploads }: EvidenceUp
     try {
       const res = await fetch(`/api/evidence-uploads/${id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to delete file');
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to delete file'));
       setUploads((prev) => prev.filter((u) => u.id !== id));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete file');
