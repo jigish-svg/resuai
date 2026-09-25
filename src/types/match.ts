@@ -89,14 +89,3 @@ export interface TruthGuardFlag {
   reason: string;
   source: 'ai_generated' | 'not_in_resume';
 }
-
-export interface ATSCheckResult {
-  score: number;
-  checks: ATSCheck[];
-}
-
-export interface ATSCheck {
-  label: string;
-  passed: boolean;
-  message?: string;
-}

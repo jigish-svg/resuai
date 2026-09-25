@@ -1,15 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CheckCircle2, AlertTriangle, XCircle, ArrowRight, Pencil, ListChecks, MessageCircleQuestion, Target, Mail, Lock, Mic } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, ArrowRight, Pencil, MessageCircleQuestion, Target, Mail, Lock, Mic } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import ScoreRing from '@/components/match/ScoreRing';
 import RunMatchButton from '@/components/match/RunMatchButton';
-import ReadinessJourney from '@/components/match/ReadinessJourney';
 import { getScoreColor } from '@/lib/utils';
-import { MatchItemWithDetails, ATSCheckResult } from '@/types/match';
-import { runATSCheck } from '@/lib/openai/ats-checker';
+import { MatchItemWithDetails } from '@/types/match';
 import { isPaidUser } from '@/lib/plan';
-import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
 import { computeFitScore } from '@/lib/score/fit-score';
 import { SCORE_CONFIG_V1 } from '@/lib/score/config';
 import { fromLegacyMatch } from '@/lib/score/legacy-adapter';
@@ -38,42 +35,6 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
       .eq('match_id', match.id);
     items = (rawItems ?? []) as unknown as MatchItemWithDetails[];
   }
-
-  let atsResult: ATSCheckResult | null = null;
-  const resume = await getResumeForJob(supabase, user!.id, job.resume_id);
-  if (resume) {
-    const { data: resumeSections } = await supabase
-      .from('resume_sections')
-      .select('section_type, content')
-      .eq('resume_id', resume.id);
-
-    atsResult = runATSCheck({
-      candidateName: resume.candidate_name || '',
-      contactInfo: {
-        email: resume.candidate_email ?? undefined,
-        phone: resume.candidate_phone ?? undefined,
-        linkedin: resume.candidate_linkedin ?? undefined,
-      },
-      sections: (resumeSections ?? []).map((s) => ({ type: s.section_type, content: JSON.stringify(s.content) })),
-      targetKeywords: job.keywords ?? [],
-      text: resume.raw_text ?? '',
-    });
-  }
-
-  const { data: latestMockSession } = await supabase
-    .from('mock_interview_sessions')
-    .select('overall_feedback')
-    .eq('job_id', jobId)
-    .eq('user_id', user!.id)
-    .eq('status', 'completed')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const mockInterviewScore = (latestMockSession?.overall_feedback as { readiness_score?: number } | null)?.readiness_score ?? null;
-  const finalScore = match && match.overall_score !== null && mockInterviewScore !== null
-    ? Math.round(match.overall_score * 0.6 + mockInterviewScore * 0.4)
-    : null;
 
   const importanceRank: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
   const sortByImportance = (a: MatchItemWithDetails, b: MatchItemWithDetails) =>
@@ -114,10 +75,6 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
           <h1 className="text-3xl font-bold">{job.title}</h1>
         </div>
       </div>
-
-      {atsResult && (
-        <ReadinessJourney preliminaryScore={atsResult.score} matchScore={match?.overall_score ?? null} finalScore={finalScore} />
-      )}
 
       {!match ? (
         <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
@@ -201,29 +158,6 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
               delay={0.24}
             />
           </div>
-
-          {atsResult && (
-            <div className="animate-fade-up glass rounded-2xl p-5 border border-black/[0.06]" style={{ animationDelay: '0.3s' }}>
-              <h3 className="flex items-center gap-2 font-semibold mb-4 text-sky-600">
-                <ListChecks className="w-4 h-4" /> ATS Checklist ({atsResult.score}%)
-              </h3>
-              <div className="grid md:grid-cols-2 gap-2">
-                {atsResult.checks.map((check, i) => (
-                  <div key={i} className={`flex items-start gap-2 text-sm rounded-lg p-2 -mx-2 ${check.passed ? '' : 'bg-orange-500/[0.06]'}`}>
-                    {check.passed ? (
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                    ) : (
-                      <XCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
-                    )}
-                    <div>
-                      <p className="text-gray-700">{check.label}</p>
-                      {check.message && <p className="text-xs text-gray-400">{check.message}</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="animate-fade-up space-y-4" style={{ animationDelay: '0.36s' }}>
             <h2 className="font-semibold text-gray-800">What do you want to do next?</h2>

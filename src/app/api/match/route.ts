@@ -4,7 +4,6 @@ import { matchRequirementsToAchievements } from '@/lib/openai/evidence-matcher';
 import { computeFitScore } from '@/lib/score/fit-score';
 import { SCORE_CONFIG_V1 } from '@/lib/score/config';
 import { fromLegacyMatch } from '@/lib/score/legacy-adapter';
-import { runATSCheck } from '@/lib/openai/ats-checker';
 import { MatchStatus, MatchConfidence } from '@/types/match';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
 import { checkRateLimit, RATE_LIMITS, RATE_LIMIT_MESSAGE } from '@/lib/rate-limit';
@@ -104,20 +103,6 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Deterministic ATS check
-    const atsResult = runATSCheck({
-      candidateName: resume.candidate_name || '',
-      contactInfo: {
-        email: resume.candidate_email ?? undefined,
-        phone: resume.candidate_phone ?? undefined,
-        linkedin: resume.candidate_linkedin ?? undefined,
-      },
-      sections: (resumeSections ?? []).map((s) => ({ type: s.section_type, content: JSON.stringify(s.content) })),
-      targetKeywords: job.keywords ?? [],
-      text: resume.raw_text ?? '',
-    });
-
-    // The ATS check is shown to the user but never reaches the fit score.
     const fit = computeFitScore(
       scoredItems.map(({ item, requirement }) => fromLegacyMatch(requirement, item)),
       SCORE_CONFIG_V1
@@ -158,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     await supabase.from('jobs').update({ status: job.status === 'saved' ? 'tailoring' : job.status }).eq('id', jobId);
 
-    return NextResponse.json({ matchId: match.id, fit, atsResult });
+    return NextResponse.json({ matchId: match.id, fit });
   } catch (error) {
     console.error('Match error:', error);
     const message = error instanceof Error ? error.message : 'Failed to run match analysis';
