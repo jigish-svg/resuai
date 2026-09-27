@@ -15,14 +15,13 @@ export default async function ResumePage() {
     .eq('user_id', user!.id)
     .order('created_at', { ascending: true });
 
-  // First-time users: keep the exact same single-resume create experience
   if (!resumes || resumes.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="animate-fade-up">
-          <h1 className="text-3xl font-bold mb-1">Make a New <span className="gradient-text">Resume</span></h1>
-          <p className="text-gray-500">
-            Upload once. Every achievement becomes searchable evidence for matching against jobs.
+      <div className="max-w-4xl mx-auto py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-ink mb-1">Make a New Resume</h1>
+          <p className="text-sm text-ink-soft">
+            Upload once. Every achievement becomes searchable evidence.
           </p>
         </div>
         <ResumeCreateEntry />
@@ -41,26 +40,26 @@ export default async function ResumePage() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-start justify-between animate-fade-up">
+    <div className="max-w-4xl mx-auto py-8">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Your <span className="gradient-text">Resumes</span></h1>
-          <p className="text-gray-500">Your default resume is used automatically when you add a new job.</p>
+          <h1 className="text-2xl font-semibold text-ink mb-1">Your Resumes</h1>
+          <p className="text-sm text-ink-soft">Manage your master documents</p>
         </div>
         <Link
           href={atLimit ? '/account/upgrade' : '/resume/new'}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded text-sm font-medium transition-colors ${
             atLimit
-              ? 'glass glass-hover text-amber-700'
-              : 'bg-brand-primary hover:bg-brand-primary-dark text-white shadow-lg'
+              ? 'bg-brand-cream text-ink border border-ink/10'
+              : 'bg-brand-sea-green hover:bg-opacity-90 text-white'
           }`}
         >
           {atLimit ? <Lock className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {atLimit ? 'Upgrade for more' : 'Create New Resume'}
+          {atLimit ? 'Upgrade for more' : 'Create New'}
         </Link>
       </div>
 
-      <div className="space-y-3 animate-fade-up" style={{ animationDelay: '0.06s' }}>
+      <div className="border-t border-ink/10">
         {resumesWithCounts.map((r) => (
           <ResumeProfileCard
             key={r.id}
@@ -74,12 +73,12 @@ export default async function ResumePage() {
       </div>
 
       {atLimit && (
-        <p className="text-sm text-gray-500 text-center animate-fade-up" style={{ animationDelay: '0.1s' }}>
+        <p className="text-xs text-ink-soft mt-6 text-center">
           Free plan is limited to {FREE_TIER_LIMITS.maxResumeProfiles} resume profile.{' '}
-          <Link href="/account/upgrade" className="text-brand-primary hover:text-brand-primary-dark font-medium">
+          <Link href="/account/upgrade" className="text-brand-aqua hover:underline font-medium">
             Upgrade
           </Link>{' '}
-          to maintain separate resumes for different career tracks.
+          for more.
         </p>
       )}
     </div>

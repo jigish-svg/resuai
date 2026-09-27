@@ -49,31 +49,31 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
   }).length;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="animate-fade-up">
-        <Link href={`/match/${jobId}`} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors mb-3">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to match
+    <div className="max-w-6xl mx-auto space-y-8 pb-16">
+      <div>
+        <Link href={`/match/${jobId}`} className="flex items-center gap-1 text-sm text-ink-soft hover:text-ink transition-colors mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back to match
         </Link>
-        <p className="text-sm text-gray-500 mb-1">{job.company || 'Job'}</p>
-        <h1 className="text-3xl font-bold">
-          Interview Prep — <span className="gradient-text">{job.title}</span>
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-1">{job.company || 'Unknown Company'}</p>
+        <h1 className="text-2xl font-bold text-ink mb-1">
+          Interview Prep
         </h1>
+        <p className="text-sm text-ink-soft">For {job.title}</p>
       </div>
 
       {!paid ? (
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-tertiary/40 text-center relative overflow-hidden">
-          <div className="w-14 h-14 rounded-2xl bg-brand-tertiary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
-            <Lock className="w-7 h-7 text-white" />
+        <div className="border border-ink/10 bg-white rounded p-16 text-center">
+          <div className="w-12 h-12 rounded bg-brand-cream flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-5 h-5 text-ink" />
           </div>
-          <h2 className="text-xl font-bold mb-2 relative">Interview Prep is a paid feature</h2>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto relative">
-            Upgrade to unlock likely interview questions, a full skill-gap learning journey with quizzes, and smart
-            questions to ask the interviewer.
+          <h2 className="text-xl font-semibold mb-2 text-ink">Interview Prep is a paid feature</h2>
+          <p className="text-sm text-ink-soft mb-6 max-w-md mx-auto">
+            Upgrade to unlock likely interview questions, a full skill-gap learning journey with quizzes, and smart questions to ask the interviewer.
           </p>
-          <div className="relative flex justify-center">
+          <div className="flex justify-center">
             <Link
               href="/account/upgrade"
-              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
+              className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-6 py-2.5 rounded text-sm font-medium"
             >
               <Sparkles className="w-4 h-4" />
               Upgrade to Paid
@@ -81,53 +81,55 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
           </div>
         </div>
       ) : !prep ? (
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="w-14 h-14 rounded-2xl bg-brand-primary flex items-center justify-center mx-auto mb-5 shadow-lg relative">
-            <MessageCircleQuestion className="w-7 h-7 text-white" />
+        <div className="border border-ink/10 bg-white rounded p-16 text-center">
+          <div className="w-12 h-12 rounded bg-brand-cream text-ink flex items-center justify-center mx-auto mb-4">
+            <MessageCircleQuestion className="w-5 h-5" />
           </div>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto relative">
+          <p className="text-sm text-ink-soft mb-6 max-w-md mx-auto">
             Generate likely interview questions and answer ideas built entirely from your real achievements — including
             honest ways to handle topics you don&apos;t have direct experience in.
           </p>
-          <div className="relative flex justify-center">
+          <div className="flex justify-center">
             <GeneratePrepButton jobId={jobId} />
           </div>
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between animate-fade-up">
-            <p className="text-sm text-gray-500">
-              {questions.length} questions
+          <div className="flex items-center justify-between pb-4 border-b border-ink/10">
+            <div className="text-sm text-ink-soft flex items-center gap-3">
+              <span>{questions.length} questions</span>
               {gapCount > 0 && (
-                <span className="ml-2 inline-flex items-center gap-1 text-amber-700 bg-brand-tertiary-light px-2 py-0.5 rounded-md text-xs font-medium">
-                  <AlertTriangle className="w-3 h-3" /> {gapCount} gap{gapCount !== 1 ? 's' : ''} to prep for
+                <span className="inline-flex items-center gap-1.5 text-brand-brandy bg-brand-brandy/10 px-2 py-1 rounded text-xs font-medium">
+                  <AlertTriangle className="w-3.5 h-3.5" /> {gapCount} gap{gapCount !== 1 ? 's' : ''} to prep for
                 </span>
               )}
-            </p>
+            </div>
             <GeneratePrepButton jobId={jobId} label="Regenerate" />
           </div>
 
-          <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
-            <div className="animate-fade-up" style={{ animationDelay: '0.06s' }}>
+          <div className="grid lg:grid-cols-[1fr_320px] gap-8 items-start">
+            <div>
               <InterviewQuestionCarousel questions={orderedQuestions} />
             </div>
 
-            <div className="space-y-5 lg:sticky lg:top-6 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <div className="space-y-6 lg:sticky lg:top-8">
               {skillGaps.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 bg-brand-tertiary-light rounded-xl px-3 py-2">
-                    <Trophy className="w-4 h-4 text-brand-tertiary-dark shrink-0" />
-                    <p className="text-sm font-semibold text-brand-tertiary-dark">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 bg-brand-brandy/10 rounded p-3">
+                    <Trophy className="w-4 h-4 text-brand-brandy shrink-0" />
+                    <p className="text-sm font-semibold text-brand-brandy">
                       {masteredCount}/{skillGaps.length} skills mastered
                     </p>
                   </div>
-                  <h2 className="flex items-center gap-2 font-semibold text-gray-800 text-sm">
-                    <GraduationCap className="w-4 h-4 text-brand-tertiary-dark" />
-                    Skill Gap Action Plan
-                  </h2>
-                  <p className="text-xs text-gray-500">
-                    Learn it, prove it with a quick quiz, then add it to your resume.
-                  </p>
+                  <div>
+                    <h2 className="flex items-center gap-2 font-semibold text-ink text-sm mb-1">
+                      <GraduationCap className="w-4 h-4 text-brand-sea-green" />
+                      Skill Gap Action Plan
+                    </h2>
+                    <p className="text-xs text-ink-soft">
+                      Learn it, prove it with a quick quiz, then add it to your resume.
+                    </p>
+                  </div>
                   <div className="space-y-3">
                     {skillGaps.map((gap, i) => (
                       <SkillPrepJourney
@@ -143,15 +145,15 @@ export default async function InterviewPrepPage({ params }: { params: Promise<{ 
               )}
 
               {questionsToAsk.length > 0 && (
-                <div className="glass rounded-2xl p-4 border border-black/[0.06]">
-                  <h2 className="flex items-center gap-2 font-semibold text-gray-800 text-sm mb-3">
-                    <HelpCircle className="w-4 h-4 text-brand-tertiary-dark" />
+                <div className="bg-white rounded p-5 border border-ink/10">
+                  <h2 className="flex items-center gap-2 font-semibold text-ink text-sm mb-4">
+                    <HelpCircle className="w-4 h-4 text-brand-sea-green" />
                     Questions to Ask Them
                   </h2>
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {questionsToAsk.map((q, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
-                        <span className="text-brand-primary mt-0.5">•</span>
+                      <li key={i} className="flex items-start gap-2 text-sm text-ink-soft leading-snug">
+                        <span className="text-brand-sea-green mt-1">•</span>
                         {q}
                       </li>
                     ))}

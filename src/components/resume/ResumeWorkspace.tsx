@@ -29,9 +29,7 @@ interface ResumeWorkspaceProps {
     updatedAt: string;
     achievementCount: number;
   } | null;
-  /** When editing a specific existing profile, its id — saves update this resume in place. */
   resumeId?: string;
-  /** Where to navigate after a successful save. Omit to stay and refresh in place. */
   redirectOnSaveTo?: string;
 }
 
@@ -120,29 +118,21 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
 
   if (mode === 'view' && existingResume) {
     return (
-      <div className="animate-fade-up glass rounded-2xl p-8 border border-black/[0.06] relative overflow-hidden">
-        <div className="flex items-center gap-4 mb-6 relative">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
-            <CheckCircle2 className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">{existingResume.name}</h2>
-            <p className="text-gray-500 text-sm">
-              {existingResume.achievementCount} achievements in your Evidence Library · Updated{' '}
-              {new Date(existingResume.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
+      <div className="border border-ink/10 bg-white rounded p-8 flex flex-col items-center text-center">
+        <div className="w-12 h-12 rounded bg-brand-sea-green/10 text-brand-sea-green flex items-center justify-center mb-4">
+          <CheckCircle2 className="w-6 h-6" />
         </div>
-        <p className="text-gray-700 mb-6 relative">
-          This resume is set up. Re-upload or re-paste to replace it — the Evidence Library will be rebuilt from
-          the new content.
+        <h2 className="text-xl font-semibold text-ink">{existingResume.name}</h2>
+        <p className="text-sm text-ink-soft mt-2 mb-6 max-w-sm">
+          {existingResume.achievementCount} achievements extracted. 
+          Upload a new file to rebuild your library.
         </p>
         <button
           onClick={() => setMode('input')}
-          className="relative flex items-center gap-2 glass glass-hover px-5 py-2.5 rounded-xl text-sm font-medium"
+          className="flex items-center gap-2 border border-ink/10 hover:bg-ink/5 px-4 py-2 rounded text-sm font-medium transition-colors text-ink"
         >
           <Pencil className="w-4 h-4" />
-          Replace this resume
+          Replace resume content
         </button>
       </div>
     );
@@ -152,47 +142,46 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
     return (
       <div className="space-y-6">
         {parsing ? (
-          <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] flex flex-col items-center justify-center text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent pointer-events-none" />
-            <div className="relative w-16 h-16 rounded-2xl bg-brand-primary flex items-center justify-center mb-5 shadow-lg">
-              <Loader2 className="w-7 h-7 text-white animate-spin" />
+          <div className="border border-ink/10 bg-white rounded p-16 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 rounded bg-brand-sea-green flex items-center justify-center mb-4 text-white">
+              <Loader2 className="w-6 h-6 animate-spin" />
             </div>
-            <p className="font-medium relative">Extracting your achievements…</p>
-            <p className="text-sm text-gray-500 mt-1 relative">This usually takes 10–20 seconds</p>
+            <p className="font-medium text-ink">Extracting your achievements…</p>
+            <p className="text-sm text-ink-soft mt-1">This usually takes 10–20 seconds</p>
           </div>
         ) : (
           <>
             <div
               {...getRootProps()}
-              className={`animate-fade-up glass rounded-2xl p-12 border-2 border-dashed transition-all cursor-pointer text-center ${
-                isDragActive ? 'border-brand-primary bg-brand-primary/5 scale-[1.01]' : 'border-black/[0.1] hover:border-brand-primary/40 hover:bg-black/[0.02]'
+              className={`border-2 border-dashed rounded p-12 transition-all cursor-pointer text-center ${
+                isDragActive ? 'border-brand-sea-green bg-brand-sea-green/5' : 'border-ink/20 hover:border-brand-sea-green/40 hover:bg-ink/5 bg-white'
               }`}
             >
               <input {...getInputProps()} />
-              <div className="w-16 h-16 rounded-2xl bg-brand-primary/20 border border-brand-primary/20 flex items-center justify-center mx-auto mb-4">
-                <UploadCloud className="w-7 h-7 text-brand-primary" />
+              <div className="w-12 h-12 rounded bg-brand-sea-green/10 flex items-center justify-center mx-auto mb-4">
+                <UploadCloud className="w-6 h-6 text-brand-sea-green" />
               </div>
-              <p className="font-medium mb-1">Drop your resume here, or click to browse</p>
-              <p className="text-sm text-gray-500">PDF or DOCX</p>
+              <p className="font-medium text-ink mb-1">Drop your resume here, or click to browse</p>
+              <p className="text-sm text-ink-soft">PDF or DOCX</p>
             </div>
 
-            <div className="flex items-center gap-4 text-gray-400 text-sm animate-fade-up" style={{ animationDelay: '0.08s' }}>
-              <div className="flex-1 h-px bg-black/[0.08]" />
+            <div className="flex items-center gap-4 text-ink-muted text-sm uppercase tracking-wider">
+              <div className="flex-1 h-px bg-ink/10" />
               or paste text
-              <div className="flex-1 h-px bg-black/[0.08]" />
+              <div className="flex-1 h-px bg-ink/10" />
             </div>
 
-            <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.14s' }}>
+            <div className="border border-ink/10 bg-white rounded p-6">
               <textarea
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="Paste your full resume text here…"
-                rows={10}
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-4 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors resize-none"
+                rows={8}
+                className="w-full bg-white border border-ink/20 rounded p-4 text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-brand-sea-green transition-colors resize-none"
               />
               <button
                 onClick={handleParseText}
-                className="mt-4 flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
+                className="mt-4 flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 transition-colors text-white px-5 py-2 rounded text-sm font-medium"
               >
                 <Sparkles className="w-4 h-4" />
                 Parse with AI
@@ -200,7 +189,7 @@ export default function ResumeWorkspace({ existingResume, resumeId, redirectOnSa
             </div>
 
             {existingResume && (
-              <button onClick={() => setMode('view')} className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+              <button onClick={() => setMode('view')} className="text-sm text-ink-soft hover:text-ink transition-colors">
                 ← Cancel
               </button>
             )}
@@ -265,7 +254,6 @@ function ReviewEditor({
       .then((data) => setSuggestedSkills(data.suggestions ?? []))
       .catch(() => setSuggestedSkills([]))
       .finally(() => setLoadingSuggestions(false));
-    // Only fetch once when the reviewer first loads, based on the initially-parsed titles
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -289,199 +277,192 @@ function ReviewEditor({
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]['id']>('contact');
 
   return (
-    <div className="space-y-6">
-      <div className="glass rounded-2xl p-4 border border-brand-primary/20 bg-brand-primary/5 flex items-center gap-3">
-        <Sparkles className="w-5 h-5 text-brand-primary shrink-0" />
-        <p className="text-sm text-gray-700">
-          Review what the AI extracted before saving. Fix anything that&apos;s wrong — this becomes your Evidence Library.
-        </p>
-      </div>
-
-      {/* Section tabs */}
-      <div className="glass rounded-2xl p-1.5 border border-black/[0.06] flex flex-wrap gap-1 sticky top-4 z-10">
+    <div className="flex flex-col md:flex-row gap-8 items-start">
+      {/* Left Navigation */}
+      <div className="w-full md:w-48 shrink-0 flex flex-col gap-1 sticky top-8">
+        <div className="mb-4 text-xs font-semibold uppercase tracking-wider text-ink-muted px-2">Sections</div>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-colors ${
-                isActive ? 'bg-brand-primary text-white shadow-md' : 'text-gray-600 hover:bg-black/[0.04]'
+              className={`flex items-center justify-between px-3 py-2 rounded text-sm font-medium transition-colors ${
+                isActive ? 'bg-brand-sea-green text-white' : 'text-ink-soft hover:bg-ink/5'
               }`}
             >
-              <tab.icon className="w-3.5 h-3.5" />
-              {tab.label}
+              <div className="flex items-center gap-2">
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </div>
               {'count' in tab && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-black/[0.06] text-gray-500'}`}>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded ${isActive ? 'bg-white/20' : 'bg-ink/10 text-ink-muted'}`}>
                   {tab.count}
                 </span>
               )}
             </button>
           );
         })}
+        
+        <div className="mt-8 px-2 space-y-3">
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-2 bg-brand-sea-green hover:bg-opacity-90 disabled:opacity-60 transition-colors text-white px-4 py-2 rounded text-sm font-medium"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+            Save Resume
+          </button>
+          <button onClick={onBack} className="w-full text-center text-sm text-ink-soft hover:text-ink transition-colors">
+            Start over
+          </button>
+        </div>
       </div>
 
-      {/* Candidate info */}
-      {activeTab === 'contact' && (
-        <Section title="Contact Information">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Name" value={parsed.candidate.name} onChange={(v) => update('candidate', { ...parsed.candidate, name: v })} />
-            <Field label="Email" value={parsed.candidate.email} onChange={(v) => update('candidate', { ...parsed.candidate, email: v })} />
-            <Field label="Phone" value={parsed.candidate.phone ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, phone: v })} />
-            <Field label="Location" value={parsed.candidate.location ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, location: v })} />
-            <Field label="LinkedIn" value={parsed.candidate.linkedin ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, linkedin: v })} />
-            <Field label="Website" value={parsed.candidate.website ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, website: v })} />
-          </div>
-        </Section>
-      )}
-
-      {/* Summary */}
-      {activeTab === 'summary' && (
-        <Section title="Professional Summary">
-          <textarea
-            value={parsed.summary ?? ''}
-            onChange={(e) => update('summary', e.target.value)}
-            rows={3}
-            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 resize-none"
-          />
-        </Section>
-      )}
-
-      {/* Experience */}
-      {activeTab === 'experience' && (
-        <Section
-          title="Experience & Achievements"
-          action={
-            <button
-              onClick={() => update('experience', [...parsed.experience, emptyExperience()])}
-              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add role
-            </button>
-          }
-        >
-          <div className="space-y-4">
-            {parsed.experience.map((exp, i) => (
-              <ExperienceEditor
-                key={i}
-                exp={exp}
-                onChange={(next) => updateExperience(i, next)}
-                onRemove={() => update('experience', parsed.experience.filter((_, j) => j !== i))}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Skills */}
-      {activeTab === 'skills' && (
-        <Section title="Skills">
-          <textarea
-            value={parsed.skills.join(', ')}
-            onChange={(e) => update('skills', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
-            rows={2}
-            placeholder="Comma-separated skills"
-            className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-3 text-sm focus:outline-none focus:border-brand-primary/60 resize-none"
-          />
-          {loadingSuggestions && (
-            <p className="text-xs text-gray-400 mt-3 flex items-center gap-1.5">
-              <Loader2 className="w-3 h-3 animate-spin" /> Looking up common skills for your role…
-            </p>
-          )}
-          {!loadingSuggestions && visibleSuggestions.length > 0 && (
-            <div className="mt-3">
-              <p className="text-xs text-gray-500 mb-2">
-                Common for your role — click any you <span className="font-medium">genuinely</span> have to add it:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {visibleSuggestions.map((skill) => (
-                  <button
-                    key={skill}
-                    type="button"
-                    onClick={() => addSuggestedSkill(skill)}
-                    className="flex items-center gap-1 text-xs border border-dashed border-brand-primary/40 text-brand-primary-dark bg-brand-primary/5 hover:bg-brand-primary/10 px-2.5 py-1 rounded-full transition-colors"
-                  >
-                    <Plus className="w-3 h-3" /> {skill}
-                  </button>
-                ))}
-              </div>
+      {/* Editor Main Content Area */}
+      <div className="flex-1 bg-white border border-ink/10 rounded p-8 min-h-[500px]">
+        {activeTab === 'contact' && (
+          <Section title="Contact Information">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Name" value={parsed.candidate.name} onChange={(v) => update('candidate', { ...parsed.candidate, name: v })} />
+              <Field label="Email" value={parsed.candidate.email} onChange={(v) => update('candidate', { ...parsed.candidate, email: v })} />
+              <Field label="Phone" value={parsed.candidate.phone ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, phone: v })} />
+              <Field label="Location" value={parsed.candidate.location ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, location: v })} />
+              <Field label="LinkedIn" value={parsed.candidate.linkedin ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, linkedin: v })} />
+              <Field label="Website" value={parsed.candidate.website ?? ''} onChange={(v) => update('candidate', { ...parsed.candidate, website: v })} />
             </div>
-          )}
-        </Section>
-      )}
+          </Section>
+        )}
 
-      {/* Education */}
-      {activeTab === 'education' && (
-        <Section
-          title="Education"
-          action={
-            <button
-              onClick={() => update('education', [...parsed.education, { institution: '', degree: '' }])}
-              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add
-            </button>
-          }
-        >
-          <div className="space-y-3">
-            {parsed.education.map((edu, i) => (
-              <EducationEditor
-                key={i}
-                edu={edu}
-                onChange={(next) => {
-                  const list = [...parsed.education];
-                  list[i] = next;
-                  update('education', list);
-                }}
-                onRemove={() => update('education', parsed.education.filter((_, j) => j !== i))}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
+        {activeTab === 'summary' && (
+          <Section title="Professional Summary">
+            <textarea
+              value={parsed.summary ?? ''}
+              onChange={(e) => update('summary', e.target.value)}
+              rows={5}
+              className="w-full bg-white border border-ink/20 rounded p-3 text-sm text-ink focus:outline-none focus:border-brand-sea-green resize-none"
+            />
+          </Section>
+        )}
 
-      {/* Certifications */}
-      {activeTab === 'certifications' && (
-        <Section
-          title="Certifications"
-          action={
-            <button
-              onClick={() => update('certifications', [...parsed.certifications, { name: '' }])}
-              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add
-            </button>
-          }
-        >
-          <div className="space-y-3">
-            {parsed.certifications.map((cert, i) => (
-              <CertificationEditor
-                key={i}
-                cert={cert}
-                onChange={(next) => {
-                  const list = [...parsed.certifications];
-                  list[i] = next;
-                  update('certifications', list);
-                }}
-                onRemove={() => update('certifications', parsed.certifications.filter((_, j) => j !== i))}
-              />
-            ))}
-          </div>
-        </Section>
-      )}
+        {activeTab === 'experience' && (
+          <Section
+            title="Experience & Achievements"
+            action={
+              <button
+                onClick={() => update('experience', [...parsed.experience, emptyExperience()])}
+                className="flex items-center gap-1 text-xs text-brand-aqua hover:underline font-medium"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add role
+              </button>
+            }
+          >
+            <div className="space-y-6">
+              {parsed.experience.map((exp, i) => (
+                <ExperienceEditor
+                  key={i}
+                  exp={exp}
+                  onChange={(next) => updateExperience(i, next)}
+                  onRemove={() => update('experience', parsed.experience.filter((_, j) => j !== i))}
+                />
+              ))}
+            </div>
+          </Section>
+        )}
 
-      <div className="flex items-center gap-3 sticky bottom-4 glass rounded-2xl p-3 border border-black/[0.08] shadow-2xl shadow-black/40 w-fit">
-        <button
-          onClick={onSave}
-          disabled={saving}
-          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-          Save master resume
-        </button>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-gray-700 transition-colors px-4">
-          Start over
-        </button>
+        {activeTab === 'skills' && (
+          <Section title="Skills">
+            <textarea
+              value={parsed.skills.join(', ')}
+              onChange={(e) => update('skills', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))}
+              rows={4}
+              placeholder="Comma-separated skills"
+              className="w-full bg-white border border-ink/20 rounded p-3 text-sm text-ink focus:outline-none focus:border-brand-sea-green resize-none"
+            />
+            {loadingSuggestions && (
+              <p className="text-xs text-ink-muted mt-3 flex items-center gap-1.5">
+                <Loader2 className="w-3 h-3 animate-spin" /> Looking up common skills for your role…
+              </p>
+            )}
+            {!loadingSuggestions && visibleSuggestions.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs text-ink-soft mb-2">
+                  Common for your role — click any you <span className="font-medium text-ink">genuinely</span> have:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {visibleSuggestions.map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => addSuggestedSkill(skill)}
+                      className="flex items-center gap-1 text-xs border border-brand-sea-green/20 text-brand-sea-green bg-brand-sea-green/5 hover:bg-brand-sea-green/10 px-2.5 py-1 rounded transition-colors"
+                    >
+                      <Plus className="w-3 h-3" /> {skill}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Section>
+        )}
+
+        {activeTab === 'education' && (
+          <Section
+            title="Education"
+            action={
+              <button
+                onClick={() => update('education', [...parsed.education, { institution: '', degree: '' }])}
+                className="flex items-center gap-1 text-xs text-brand-aqua hover:underline font-medium"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add
+              </button>
+            }
+          >
+            <div className="space-y-4">
+              {parsed.education.map((edu, i) => (
+                <EducationEditor
+                  key={i}
+                  edu={edu}
+                  onChange={(next) => {
+                    const list = [...parsed.education];
+                    list[i] = next;
+                    update('education', list);
+                  }}
+                  onRemove={() => update('education', parsed.education.filter((_, j) => j !== i))}
+                />
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {activeTab === 'certifications' && (
+          <Section
+            title="Certifications"
+            action={
+              <button
+                onClick={() => update('certifications', [...parsed.certifications, { name: '' }])}
+                className="flex items-center gap-1 text-xs text-brand-aqua hover:underline font-medium"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add
+              </button>
+            }
+          >
+            <div className="space-y-4">
+              {parsed.certifications.map((cert, i) => (
+                <CertificationEditor
+                  key={i}
+                  cert={cert}
+                  onChange={(next) => {
+                    const list = [...parsed.certifications];
+                    list[i] = next;
+                    update('certifications', list);
+                  }}
+                  onRemove={() => update('certifications', parsed.certifications.filter((_, j) => j !== i))}
+                />
+              ))}
+            </div>
+          </Section>
+        )}
       </div>
     </div>
   );
@@ -489,12 +470,9 @@ function ReviewEditor({
 
 function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="glass rounded-2xl p-6 border border-black/[0.06] hover:border-black/[0.1] transition-colors">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide flex items-center gap-2">
-          <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
-          {title}
-        </h3>
+    <div>
+      <div className="flex items-center justify-between mb-6 pb-2 border-b border-ink/10">
+        <h3 className="font-semibold text-lg text-ink">{title}</h3>
         {action}
       </div>
       {children}
@@ -505,11 +483,11 @@ function Section({ title, action, children }: { title: string; action?: React.Re
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs text-ink-soft mb-1">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
+        className="w-full bg-white border border-ink/20 rounded px-3 py-2 text-sm text-ink focus:outline-none focus:border-brand-sea-green transition-colors"
       />
     </div>
   );
@@ -525,8 +503,8 @@ function ExperienceEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="bg-black/[0.02] border border-black/[0.06] rounded-xl p-4">
-      <div className="grid grid-cols-2 gap-3 mb-3">
+    <div className="bg-brand-bg/50 border border-ink/10 rounded p-4">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         <Field label="Job title" value={exp.job_title} onChange={(v) => onChange({ ...exp, job_title: v })} />
         <Field label="Company" value={exp.company} onChange={(v) => onChange({ ...exp, company: v })} />
         <Field label="Start date" value={exp.start_date} onChange={(v) => onChange({ ...exp, start_date: v })} />
@@ -536,12 +514,12 @@ function ExperienceEditor({
           onChange={(v) => onChange({ ...exp, end_date: v })}
         />
       </div>
-      <label className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+      <label className="flex items-center gap-2 text-xs text-ink-soft mb-4">
         <input type="checkbox" checked={exp.is_current} onChange={(e) => onChange({ ...exp, is_current: e.target.checked })} />
         Current role
       </label>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {exp.achievements.map((a, i) => (
           <div key={i} className="flex items-start gap-2">
             <textarea
@@ -552,11 +530,11 @@ function ExperienceEditor({
                 onChange({ ...exp, achievements: list });
               }}
               rows={2}
-              className="flex-1 bg-black/[0.03] border border-black/[0.08] rounded-lg p-2 text-sm resize-none focus:outline-none focus:border-brand-primary/60"
+              className="flex-1 bg-white border border-ink/20 rounded p-2 text-sm text-ink resize-none focus:outline-none focus:border-brand-sea-green"
             />
             <button
               onClick={() => onChange({ ...exp, achievements: exp.achievements.filter((_, j) => j !== i) })}
-              className="text-gray-400 hover:text-red-600 transition-colors mt-2"
+              className="text-ink-muted hover:text-red-500 transition-colors mt-2"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -564,15 +542,17 @@ function ExperienceEditor({
         ))}
         <button
           onClick={() => onChange({ ...exp, achievements: [...exp.achievements, { text: '', skills: [], metrics: [] }] })}
-          className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
+          className="flex items-center gap-1 text-xs text-brand-aqua hover:underline font-medium"
         >
           <Plus className="w-3.5 h-3.5" /> Add achievement
         </button>
       </div>
 
-      <button onClick={onRemove} className="mt-3 flex items-center gap-1 text-xs text-red-500 hover:text-red-600">
-        <Trash2 className="w-3.5 h-3.5" /> Remove role
-      </button>
+      <div className="mt-4 pt-4 border-t border-ink/10 flex justify-end">
+        <button onClick={onRemove} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 font-medium">
+          <Trash2 className="w-3.5 h-3.5" /> Remove role
+        </button>
+      </div>
     </div>
   );
 }
@@ -587,14 +567,16 @@ function EducationEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="bg-black/[0.02] border border-black/[0.06] rounded-xl p-4 grid grid-cols-2 gap-3">
+    <div className="bg-brand-bg/50 border border-ink/10 rounded p-4 grid grid-cols-2 gap-4">
       <Field label="Institution" value={edu.institution} onChange={(v) => onChange({ ...edu, institution: v })} />
       <Field label="Degree" value={edu.degree} onChange={(v) => onChange({ ...edu, degree: v })} />
       <Field label="Field" value={edu.field ?? ''} onChange={(v) => onChange({ ...edu, field: v })} />
       <Field label="Graduation" value={edu.graduation_date ?? ''} onChange={(v) => onChange({ ...edu, graduation_date: v })} />
-      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 justify-end">
-        <Trash2 className="w-3.5 h-3.5" /> Remove
-      </button>
+      <div className="col-span-2 pt-2 flex justify-end">
+        <button onClick={onRemove} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 font-medium">
+          <Trash2 className="w-3.5 h-3.5" /> Remove
+        </button>
+      </div>
     </div>
   );
 }
@@ -609,12 +591,14 @@ function CertificationEditor({
   onRemove: () => void;
 }) {
   return (
-    <div className="bg-black/[0.02] border border-black/[0.06] rounded-xl p-4 grid grid-cols-2 gap-3">
+    <div className="bg-brand-bg/50 border border-ink/10 rounded p-4 grid grid-cols-2 gap-4">
       <Field label="Name" value={cert.name} onChange={(v) => onChange({ ...cert, name: v })} />
       <Field label="Issuer" value={cert.issuer ?? ''} onChange={(v) => onChange({ ...cert, issuer: v })} />
-      <button onClick={onRemove} className="col-span-2 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 justify-end">
-        <Trash2 className="w-3.5 h-3.5" /> Remove
-      </button>
+      <div className="col-span-2 pt-2 flex justify-end">
+        <button onClick={onRemove} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-600 font-medium">
+          <Trash2 className="w-3.5 h-3.5" /> Remove
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,60 +1,59 @@
 @import "tailwindcss";
 
 /*
-  "Editorial Rigor" design system (from Stitch, v7). Mint canvas, white raised
-  cards, mint-green primary, teal secondary, amber tertiary, hairline borders
-  and soft shadows. No blur, glows or gradients.
-
-  - brand-primary (#006d42) is the accessible action green (white text 6.7:1);
-    brand-primary-bright (#73dfa2) is the exact v7 seed, for decoration only.
-  - brand-secondary is the new teal accent (readiness advisories, evidence
-    highlights, "Strong match" badge borders).
-  - brand-tertiary is the amber accent (partial/attention/locked/paid states)
-    — this was called brand-secondary in v5; renamed to match v7's own naming
-    now that Stitch introduced a real second accent (teal) alongside it.
-  - green is also the "success" colour; danger is a true red (red-*).
+  GetJobFit.in Redesign
+  Locked 5-color palette: Periwinkle, Sea Green, Cream, Aqua, Brandy
 */
 @theme {
   --font-sans: var(--font-hanken), 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
 
-  --color-brand-primary: #CA2E55;
-  --color-brand-primary-dark: #A32342;
-  --color-brand-primary-light: #EBB6C3;
-  --color-brand-primary-bright: #D94D70;
+  /* NEW BRAND PALETTE */
+  --color-brand-periwinkle: #C2CDFF;
+  --color-brand-sea-green: #48845A;
+  --color-brand-cream: #EDFAC7;
+  --color-brand-aqua: #07BEB8;
+  --color-brand-brandy: #80240F;
+  --color-brand-bg: #EEF8F6; /* Derived light tint */
+
+  /* MAPPED LEGACY TOKENS (Preserved to prevent breaking existing components) */
+  --color-brand-primary: var(--color-brand-sea-green);
+  --color-brand-primary-dark: #3a6b48;
+  --color-brand-primary-light: var(--color-brand-periwinkle);
+  --color-brand-primary-bright: var(--color-brand-aqua);
   
-  --color-brand-secondary: #FFE0B5;
-  --color-brand-secondary-dark: #E6C18E;
-  --color-brand-secondary-light: #FFF0DB;
+  --color-brand-secondary: var(--color-brand-aqua);
+  --color-brand-secondary-dark: #059b95;
+  --color-brand-secondary-light: #e0f8f7;
   
-  --color-brand-tertiary: #BDB246;
-  --color-brand-tertiary-dark: #968D37;
-  --color-brand-tertiary-light: #E0DAA1;
+  --color-brand-tertiary: var(--color-brand-cream);
+  --color-brand-tertiary-dark: #d5e5a3;
+  --color-brand-tertiary-light: #f7fde8;
   
-  --color-brand-ivory: #FAFAF9;
-  --color-canvas-band: #F5F5F4;
-  --color-canvas-chip: #E7E5E4;
+  --color-brand-ivory: var(--color-brand-bg);
+  --color-canvas-band: #e4f2ef;
+  --color-canvas-chip: #dcece8;
   
-  --color-success: #006d42;
-  --color-success-dark: #00502f;
+  --color-success: var(--color-brand-sea-green);
+  --color-success-dark: #3a6b48;
   
-  --color-ink: #462521;
-  --color-ink-soft: #63433F;
-  --color-ink-muted: #8A6552;
+  --color-ink: #1a2724;
+  --color-ink-soft: #384f49;
+  --color-ink-muted: #5e7a73;
 }
 
 @layer base {
   :root {
-    --background: 250 250 249;
-    --foreground: 70 37 33;
+    --background: 238 248 246; /* #EEF8F6 */
+    --foreground: 26 39 36; /* #1a2724 */
     --card: 255 255 255;
-    --card-border: 70 37 33 / 0.08;
-    --primary: 202 46 85;
-    --primary-light: 235 182 195;
-    --accent: 189 178 70;
-    --muted: 138 101 82;
-    --success: 0 109 66;
-    --warning: 189 178 70;
-    --danger: 202 46 85;
+    --card-border: 72 132 90 / 0.15;
+    --primary: 72 132 90;
+    --primary-light: 194 205 255;
+    --accent: 7 190 184;
+    --muted: 94 122 115;
+    --success: 72 132 90;
+    --warning: 128 36 15;
+    --danger: 128 36 15;
   }
 }
 

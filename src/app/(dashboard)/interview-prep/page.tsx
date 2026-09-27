@@ -12,20 +12,19 @@ export default async function InterviewPrepHubPage() {
 
   if (!paid) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-brand-tertiary/40 text-center relative overflow-hidden">
-          <div className="w-14 h-14 rounded-2xl bg-brand-tertiary-dark flex items-center justify-center mx-auto mb-5 shadow-lg relative">
-            <Lock className="w-7 h-7 text-white" />
+      <div className="max-w-2xl mx-auto py-8">
+        <div className="border border-ink/10 bg-white rounded p-8 text-center">
+          <div className="w-12 h-12 rounded bg-brand-cream flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-5 h-5 text-ink" />
           </div>
-          <h2 className="text-xl font-bold mb-2 relative">Interview Prep is a paid feature</h2>
-          <p className="text-gray-600 mb-6 max-w-md mx-auto relative">
-            Upgrade to unlock likely interview questions, a full skill-gap learning journey with quizzes, and smart
-            questions to ask the interviewer — for every job you&apos;re tracking.
+          <h2 className="text-xl font-semibold mb-2 text-ink">Interview Prep is a paid feature</h2>
+          <p className="text-sm text-ink-soft mb-6 max-w-md mx-auto">
+            Upgrade to unlock likely interview questions, a full skill-gap learning journey with quizzes, and smart questions to ask the interviewer.
           </p>
-          <div className="relative flex justify-center">
+          <div className="flex justify-center">
             <Link
               href="/account/upgrade"
-              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
+              className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-6 py-2.5 rounded text-sm font-medium"
             >
               <Sparkles className="w-4 h-4" />
               Upgrade to Paid

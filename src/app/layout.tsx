@@ -3,6 +3,8 @@ import { Hanken_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import CookieConsentBanner from '@/components/layout/CookieConsentBanner';
+import HelpChatBubble from '@/components/HelpChatBubble';
+import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 import { SITE_URL, SITE_NAME } from '@/lib/seo';
 
 const hanken = Hanken_Grotesk({
@@ -118,7 +120,9 @@ export default function RootLayout({
           }}
         />
         {children}
+        <HelpChatBubble />
         <CookieConsentBanner />
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

@@ -48,15 +48,15 @@ export default function InterviewQuestionCarousel({ questions }: InterviewQuesti
 
   if (finished) {
     return (
-      <div className="glass rounded-2xl p-8 border border-black/[0.06] text-center relative overflow-hidden">
-        <div className="w-14 h-14 rounded-2xl bg-brand-primary flex items-center justify-center mx-auto mb-5 shadow-lg">
-          <PartyPopper className="w-7 h-7 text-white" />
+      <div className="bg-white border border-ink/10 rounded p-12 text-center">
+        <div className="w-12 h-12 rounded bg-brand-sea-green text-white flex items-center justify-center mx-auto mb-6">
+          <PartyPopper className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-bold mb-2">Round complete!</h2>
-        <p className="text-gray-600 mb-1">You&apos;ve reviewed all {total} questions for this role.</p>
+        <h2 className="text-xl font-semibold text-ink mb-2">Round complete!</h2>
+        <p className="text-sm text-ink-soft mb-1">You&apos;ve reviewed all {total} questions for this role.</p>
         {gapCount > 0 && (
-          <p className="text-sm text-brand-tertiary-dark mb-6">
-            {gapCount} of them were gap areas — work through the skill plan on the right to close them.
+          <p className="text-sm text-brand-brandy mb-8">
+            {gapCount} of them were gap areas — work through the skill plan to close them.
           </p>
         )}
         <button
@@ -64,7 +64,7 @@ export default function InterviewQuestionCarousel({ questions }: InterviewQuesti
             setIndex(0);
             setFinished(false);
           }}
-          className="inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
+          className="inline-flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-6 py-2.5 rounded text-sm font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           Review again from the start
@@ -76,70 +76,72 @@ export default function InterviewQuestionCarousel({ questions }: InterviewQuesti
   if (!q) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Progress bar + streak */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <div className="flex-1 flex gap-1">
           {questions.map((_, i) => (
             <span
               key={i}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i === index ? 'bg-brand-primary' : reviewed.has(i) ? 'bg-brand-primary/40' : 'bg-black/[0.08]'
+                i === index ? 'bg-brand-sea-green' : reviewed.has(i) ? 'bg-brand-sea-green/30' : 'bg-ink/10'
               }`}
             />
           ))}
         </div>
         {streak > 1 && (
-          <span className="flex items-center gap-1 text-xs font-semibold text-brand-tertiary-dark shrink-0">
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-brand-brandy shrink-0">
             <Flame className="w-3.5 h-3.5" /> {streak} in a row
           </span>
         )}
       </div>
-      <p className="text-sm text-gray-500">
-        Question {index + 1} of {total}
-      </p>
 
-      {enteringNewCategory && (
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-primary">
-          New round: {CATEGORY_META[q.category].label} Questions
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-ink-soft">
+          Question {index + 1} of {total}
         </p>
-      )}
+        {enteringNewCategory && (
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-sea-green">
+            New round: {CATEGORY_META[q.category].label}
+          </p>
+        )}
+      </div>
 
       <div
         key={index}
-        className={`animate-fade-up glass rounded-2xl p-6 border ${q.is_gap ? 'border-brand-tertiary/40' : 'border-black/[0.06]'}`}
+        className={`bg-white border rounded p-8 ${q.is_gap ? 'border-brand-brandy/30' : 'border-ink/10'}`}
       >
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-primary bg-brand-primary/10 px-2.5 py-1 rounded-full mb-3">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-sea-green bg-brand-sea-green/10 px-2.5 py-1 rounded mb-4">
           {CATEGORY_META[q.category].icon}
           {CATEGORY_META[q.category].label}
         </span>
-        <p className="font-medium text-gray-900 mb-2 text-lg leading-snug">{q.question}</p>
-        {q.related_requirement && <p className="text-xs text-gray-400 mb-3">Targets: {q.related_requirement}</p>}
+        <p className="font-semibold text-ink mb-3 text-lg leading-snug">{q.question}</p>
+        {q.related_requirement && <p className="text-xs text-ink-muted mb-4">Targets: {q.related_requirement}</p>}
         {q.is_gap && (
-          <div className="flex items-start gap-2 bg-brand-tertiary-light text-amber-800 rounded-lg p-3 mb-3 text-sm">
+          <div className="flex items-start gap-2 bg-brand-brandy/10 text-brand-brandy rounded p-4 mb-4 text-sm">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium mb-1">No direct evidence for this — here&apos;s an honest way to answer:</p>
-              <p>{q.gap_strategy}</p>
+              <p className="font-semibold mb-1">No direct evidence for this — here&apos;s an honest way to answer:</p>
+              <p className="opacity-90">{q.gap_strategy}</p>
             </div>
           </div>
         )}
-        <div className="bg-black/[0.02] border border-black/[0.04] rounded-lg p-3 text-sm text-gray-700 leading-relaxed">
+        <div className="bg-brand-bg/50 border border-ink/10 rounded p-4 text-sm text-ink-soft leading-relaxed">
           {q.talking_points}
         </div>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <button
           onClick={goBack}
           disabled={index === 0}
-          className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-3 py-2"
+          className="flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-ink disabled:opacity-30 transition-colors px-3 py-2"
         >
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button
           onClick={advance}
-          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
+          className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-6 py-2.5 rounded font-medium text-sm"
         >
           {isLast ? 'Finish — see your recap' : 'Got it — next question'}
           <ArrowRight className="w-4 h-4" />

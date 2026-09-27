@@ -20,13 +20,6 @@ const CATEGORIES: RequirementCategory[] = [
 ];
 const IMPORTANCE: RequirementImportance[] = ['critical', 'high', 'medium', 'low'];
 
-const IMPORTANCE_COLORS: Record<RequirementImportance, string> = {
-  critical: 'bg-red-400',
-  high: 'bg-orange-400',
-  medium: 'bg-yellow-400',
-  low: 'bg-gray-500',
-};
-
 export default function JobIntakeWorkspace() {
   const router = useRouter();
   const [mode, setMode] = useState<'input' | 'review'>('input');
@@ -72,6 +65,38 @@ export default function JobIntakeWorkspace() {
     },
   });
 
+  const [fetchingUrl, setFetchingUrl] = useState(false);
+
+  const handleFetchUrl = async () => {
+    if (!sourceUrl.trim()) {
+      toast.error('Paste a job URL first');
+      return;
+    }
+    setFetchingUrl(true);
+    try {
+      const formData = new FormData();
+      formData.append('url', sourceUrl.trim());
+      const res = await fetch('/api/jobs/parse', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to fetch job from URL'));
+      // If we got a rawText back, pre-fill the textarea; if fully parsed go to review
+      if (data.rawText) {
+        setPastedText(data.rawText);
+        toast.success('Job description fetched! Review and parse.');
+      }
+      if (data.parsed && data.requirements) {
+        setParsed(data.parsed);
+        setRequirements(data.requirements);
+        setRawText(data.rawText);
+        setMode('review');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not fetch from URL');
+    } finally {
+      setFetchingUrl(false);
+    }
+  };
+
   const handleParseText = () => {
     if (pastedText.trim().length < 50) {
       toast.error('Paste the full job description first');
@@ -79,8 +104,10 @@ export default function JobIntakeWorkspace() {
     }
     const formData = new FormData();
     formData.append('text', pastedText);
+    if (sourceUrl) formData.append('url', sourceUrl);
     runParse(formData);
   };
+
 
   const handleSave = async () => {
     if (!parsed) return;
@@ -105,53 +132,66 @@ export default function JobIntakeWorkspace() {
     return (
       <div className="space-y-6">
         {parsing ? (
-          <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] flex flex-col items-center justify-center text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.04] to-transparent pointer-events-none" />
-            <div className="relative w-16 h-16 rounded-2xl bg-brand-primary flex items-center justify-center mb-5 shadow-lg">
-              <Loader2 className="w-7 h-7 text-white animate-spin" />
+          <div className="border border-ink/10 bg-white rounded p-16 flex flex-col items-center justify-center text-center">
+            <div className="w-12 h-12 rounded bg-brand-sea-green flex items-center justify-center mb-4 text-white">
+              <Loader2 className="w-6 h-6 animate-spin" />
             </div>
-            <p className="font-medium relative">Extracting requirements…</p>
-            <p className="text-sm text-gray-500 mt-1 relative">This usually takes 10–20 seconds</p>
+            <p className="font-medium text-ink">Extracting requirements…</p>
+            <p className="text-sm text-ink-soft mt-1">This usually takes 10–20 seconds</p>
           </div>
         ) : (
           <>
             <div
               {...getRootProps()}
-              className={`animate-fade-up glass rounded-2xl p-12 border-2 border-dashed transition-all cursor-pointer text-center ${
-                isDragActive ? 'border-brand-primary bg-brand-primary/5 scale-[1.01]' : 'border-black/[0.1] hover:border-brand-primary/40 hover:bg-black/[0.02]'
+              className={`border-2 border-dashed rounded p-12 transition-all cursor-pointer text-center ${
+                isDragActive ? 'border-brand-sea-green bg-brand-sea-green/5' : 'border-ink/20 hover:border-brand-sea-green/40 hover:bg-ink/5 bg-white'
               }`}
             >
               <input {...getInputProps()} />
-              <div className="w-16 h-16 rounded-2xl bg-brand-primary/20 border border-brand-primary/20 flex items-center justify-center mx-auto mb-4">
-                <UploadCloud className="w-7 h-7 text-brand-primary" />
+              <div className="w-12 h-12 rounded bg-brand-sea-green/10 flex items-center justify-center mx-auto mb-4">
+                <UploadCloud className="w-6 h-6 text-brand-sea-green" />
               </div>
-              <p className="font-medium mb-1">Drop a job description file here, or click to browse</p>
-              <p className="text-sm text-gray-500">PDF or DOCX</p>
+              <p className="font-medium text-ink mb-1">Drop a job description file here, or click to browse</p>
+              <p className="text-sm text-ink-soft">PDF or DOCX</p>
             </div>
 
-            <div className="flex items-center gap-4 text-gray-400 text-sm animate-fade-up" style={{ animationDelay: '0.08s' }}>
-              <div className="flex-1 h-px bg-black/[0.08]" />
+            <div className="flex items-center gap-4 text-ink-muted text-sm uppercase tracking-wider">
+              <div className="flex-1 h-px bg-ink/10" />
               or paste text
-              <div className="flex-1 h-px bg-black/[0.08]" />
+              <div className="flex-1 h-px bg-ink/10" />
             </div>
 
-            <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06] space-y-4" style={{ animationDelay: '0.14s' }}>
-              <input
-                value={sourceUrl}
-                onChange={(e) => setSourceUrl(e.target.value)}
-                placeholder="Job posting URL (optional)"
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors"
-              />
+            <div className="border border-ink/10 bg-white rounded p-6 space-y-4">
+              {/* URL fetch row */}
+              <div className="flex gap-2">
+                <input
+                  value={sourceUrl}
+                  onChange={(e) => setSourceUrl(e.target.value)}
+                  placeholder="Paste job URL (LinkedIn, Naukri, Indeed…) to auto-fetch"
+                  className="flex-1 bg-white border border-ink/20 rounded px-4 py-2.5 text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-brand-sea-green transition-colors"
+                />
+                <button
+                  onClick={handleFetchUrl}
+                  disabled={fetchingUrl || !sourceUrl.trim()}
+                  className="flex items-center gap-2 bg-brand-aqua hover:bg-opacity-90 disabled:opacity-40 text-white px-4 py-2.5 rounded text-sm font-medium whitespace-nowrap transition-colors"
+                >
+                  {fetchingUrl ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                  {fetchingUrl ? 'Fetching…' : 'Fetch JD'}
+                </button>
+              </div>
+              <div className="flex items-center gap-3 text-ink-muted text-xs uppercase tracking-wider">
+                <div className="flex-1 h-px bg-ink/10" /> or paste manually <div className="flex-1 h-px bg-ink/10" />
+              </div>
               <textarea
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="Paste the full job description here…"
                 rows={10}
-                className="w-full bg-black/[0.03] border border-black/[0.08] rounded-xl p-4 text-sm placeholder-gray-400 focus:outline-none focus:border-brand-primary/60 focus:bg-white transition-colors resize-none"
+                className="w-full bg-white border border-ink/20 rounded p-4 text-sm text-ink placeholder-ink-muted focus:outline-none focus:border-brand-sea-green transition-colors resize-none"
               />
               <button
                 onClick={handleParseText}
-                className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
+                className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 transition-colors text-white px-5 py-2.5 rounded text-sm font-medium"
               >
                 <Sparkles className="w-4 h-4" />
                 Parse with AI
@@ -166,17 +206,14 @@ export default function JobIntakeWorkspace() {
   if (mode === 'review' && parsed) {
     return (
       <div className="space-y-6">
-        <div className="animate-fade-up glass rounded-2xl p-4 border border-brand-primary/20 bg-brand-primary/5 flex items-center gap-3">
-          <Sparkles className="w-5 h-5 text-brand-primary shrink-0" />
-          <p className="text-sm text-gray-700">Review the extracted requirements before saving and running the match.</p>
+        <div className="border border-brand-sea-green/20 bg-brand-sea-green/5 rounded p-4 flex items-center gap-3">
+          <Sparkles className="w-5 h-5 text-brand-sea-green shrink-0" />
+          <p className="text-sm text-ink">Review the extracted requirements before saving and running the match.</p>
         </div>
 
-        <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.06s' }}>
-          <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
-            Job Details
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="border border-ink/10 bg-white rounded p-6">
+          <h3 className="font-semibold text-lg text-ink mb-4 pb-2 border-b border-ink/10">Job Details</h3>
+          <div className="grid grid-cols-2 gap-4">
             <TextField label="Title" value={parsed.job_title} onChange={(v) => setParsed({ ...parsed, job_title: v })} />
             <TextField label="Company" value={parsed.company ?? ''} onChange={(v) => setParsed({ ...parsed, company: v })} />
             <TextField label="Location" value={parsed.location ?? ''} onChange={(v) => setParsed({ ...parsed, location: v })} />
@@ -184,23 +221,21 @@ export default function JobIntakeWorkspace() {
           </div>
         </div>
 
-        <div className="animate-fade-up glass rounded-2xl p-6 border border-black/[0.06]" style={{ animationDelay: '0.12s' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-sm text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              <span className="w-1 h-3.5 rounded-full bg-brand-primary" />
+        <div className="border border-ink/10 bg-white rounded p-6">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-ink/10">
+            <h3 className="font-semibold text-lg text-ink">
               Requirements ({requirements.length})
             </h3>
             <button
               onClick={() => setRequirements([...requirements, { requirement_text: '', category: 'hard_skill', importance: 'medium' }])}
-              className="flex items-center gap-1 text-xs text-brand-primary hover:text-brand-primary-dark"
+              className="flex items-center gap-1 text-sm text-brand-aqua hover:underline font-medium"
             >
-              <Plus className="w-3.5 h-3.5" /> Add
+              <Plus className="w-4 h-4" /> Add requirement
             </button>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {requirements.map((req, i) => (
-              <div key={i} className="group flex items-center gap-2 bg-black/[0.02] border border-black/[0.06] hover:border-black/[0.1] hover:bg-black/[0.02] transition-colors rounded-xl p-3 relative overflow-hidden">
-                <span className={`absolute left-0 top-0 bottom-0 w-0.5 ${IMPORTANCE_COLORS[req.importance]}`} />
+              <div key={i} className="flex flex-wrap md:flex-nowrap items-center gap-3 bg-brand-bg/50 border border-ink/10 rounded p-3">
                 <input
                   value={req.requirement_text}
                   onChange={(e) => {
@@ -208,16 +243,9 @@ export default function JobIntakeWorkspace() {
                     list[i] = { ...req, requirement_text: e.target.value };
                     setRequirements(list);
                   }}
-                  className="flex-1 bg-transparent text-sm focus:outline-none"
+                  className="flex-1 min-w-[200px] bg-white border border-ink/20 rounded px-2 py-1 text-sm text-ink focus:outline-none focus:border-brand-sea-green"
                 />
-                {req.is_implied && (
-                  <span
-                    title="Not explicitly stated in the JD — commonly expected for this role, so ATS systems often scan for it anyway"
-                    className="shrink-0 text-[10px] uppercase tracking-wide bg-brand-tertiary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium"
-                  >
-                    Commonly expected
-                  </span>
-                )}
+                
                 <select
                   value={req.category}
                   onChange={(e) => {
@@ -225,12 +253,13 @@ export default function JobIntakeWorkspace() {
                     list[i] = { ...req, category: e.target.value as RequirementCategory };
                     setRequirements(list);
                   }}
-                  className="bg-black/[0.03] border border-black/[0.08] rounded-lg px-2 py-1 text-xs"
+                  className="w-32 bg-white border border-ink/20 rounded px-2 py-1 text-sm text-ink focus:outline-none"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>{c.replace('_', ' ')}</option>
                   ))}
                 </select>
+                
                 <select
                   value={req.importance}
                   onChange={(e) => {
@@ -238,15 +267,16 @@ export default function JobIntakeWorkspace() {
                     list[i] = { ...req, importance: e.target.value as RequirementImportance };
                     setRequirements(list);
                   }}
-                  className="bg-black/[0.03] border border-black/[0.08] rounded-lg px-2 py-1 text-xs"
+                  className="w-24 bg-white border border-ink/20 rounded px-2 py-1 text-sm text-ink focus:outline-none"
                 >
                   {IMPORTANCE.map((imp) => (
                     <option key={imp} value={imp}>{imp}</option>
                   ))}
                 </select>
+                
                 <button
                   onClick={() => setRequirements(requirements.filter((_, j) => j !== i))}
-                  className="text-gray-400 hover:text-red-600 transition-colors"
+                  className="w-8 flex justify-center text-ink-muted hover:text-red-500 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -255,16 +285,16 @@ export default function JobIntakeWorkspace() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
+            className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 disabled:opacity-60 transition-colors text-white px-6 py-2.5 rounded text-sm font-medium"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             Save & run match
           </button>
-          <button onClick={() => setMode('input')} className="text-sm text-gray-500 hover:text-gray-700 transition-colors px-4">
+          <button onClick={() => setMode('input')} className="text-sm text-ink-soft hover:text-ink transition-colors">
             Start over
           </button>
         </div>
@@ -278,11 +308,11 @@ export default function JobIntakeWorkspace() {
 function TextField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs text-ink-soft mb-1">{label}</label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-black/[0.03] border border-black/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-primary/60"
+        className="w-full bg-white border border-ink/20 rounded px-3 py-2 text-sm text-ink focus:outline-none focus:border-brand-sea-green transition-colors"
       />
     </div>
   );

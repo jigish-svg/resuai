@@ -124,16 +124,16 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 1: no plan started yet
   if (!plan) {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
-        <p className="font-semibold text-gray-900 mb-1">{skill}</p>
-        <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
+      <div className="bg-white border border-brand-brandy/20 rounded p-5">
+        <p className="font-semibold text-ink mb-1">{skill}</p>
+        <p className="text-sm text-ink-soft mb-5">{whatItInvolves}</p>
         <button
           onClick={handleStart}
           disabled={starting}
-          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
+          className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white disabled:opacity-60 transition-colors px-4 py-2 rounded text-sm font-medium"
         >
           {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-          {starting ? 'Building your plan…' : 'Build my learning plan for this skill'}
+          {starting ? 'Building your plan…' : 'Build my learning plan'}
         </button>
       </div>
     );
@@ -142,15 +142,14 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 2: studying — show materials
   if (plan.status === 'studying') {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
-        <p className="font-semibold text-gray-900 mb-1">{skill}</p>
-        <p className="text-sm text-gray-600 mb-4">{whatItInvolves}</p>
+      <div className="bg-white border border-brand-brandy/20 rounded p-5">
+        <p className="font-semibold text-ink mb-1">{skill}</p>
+        <p className="text-sm text-ink-soft mb-4">{whatItInvolves}</p>
 
-        <p className="text-xs text-gray-500 mb-3">
-          A short, real-world-checked shortlist — not a reading list. Enough to speak about this credibly by your
-          next interview.
+        <p className="text-xs text-ink-muted mb-3">
+          A short, real-world-checked shortlist — not a reading list.
         </p>
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-5">
           {plan.study_materials.map((m, i) => {
             const Icon = MATERIAL_ICONS[m.type];
             return (
@@ -159,19 +158,19 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
                 href={m.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 bg-black/[0.02] hover:bg-black/[0.04] border border-black/[0.04] rounded-lg p-3 transition-colors group"
+                className="flex items-start gap-3 bg-brand-bg/50 hover:bg-ink/5 border border-ink/10 rounded p-3 transition-colors group"
               >
-                <span className="w-8 h-8 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center shrink-0">
+                <span className="w-8 h-8 rounded bg-brand-sea-green/10 text-brand-sea-green flex items-center justify-center shrink-0">
                   <Icon className="w-4 h-4" />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5">
+                  <p className="text-sm font-medium text-ink flex items-center gap-1.5">
                     {m.title}
-                    <ExternalLink className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ExternalLink className="w-3 h-3 text-ink-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                   </p>
-                  <p className="text-xs text-gray-500">{m.description}</p>
+                  <p className="text-xs text-ink-soft mt-0.5">{m.description}</p>
                   {m.estimated_time && (
-                    <span className="inline-block mt-1 text-[10px] font-medium text-brand-tertiary-dark bg-brand-tertiary-light px-1.5 py-0.5 rounded-md">
+                    <span className="inline-block mt-1.5 text-[10px] font-medium text-brand-brandy bg-brand-brandy/10 px-1.5 py-0.5 rounded">
                       {m.estimated_time}
                     </span>
                   )}
@@ -184,10 +183,10 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         <button
           onClick={handleGenerateQuiz}
           disabled={generatingQuiz}
-          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
+          className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white disabled:opacity-60 transition-colors px-4 py-2 rounded text-sm font-medium"
         >
           {generatingQuiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-          {generatingQuiz ? 'Preparing quiz…' : "I've completed this — test my knowledge"}
+          {generatingQuiz ? 'Preparing quiz…' : "I've completed this — test me"}
         </button>
       </div>
     );
@@ -197,26 +196,26 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   if (plan.status === 'quiz') {
     const allAnswered = answers.length > 0 && answers.every((a) => a !== -1);
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
-        <p className="font-semibold text-gray-900 mb-1">{skill} — Knowledge Check</p>
-        <p className="text-sm text-gray-600 mb-4">
-          Answer all {plan.quiz_questions.length} questions honestly — this is to confirm you&apos;ve actually learned it, not to trick you.
+      <div className="bg-white border border-brand-brandy/20 rounded p-5">
+        <p className="font-semibold text-ink mb-1">{skill} — Knowledge Check</p>
+        <p className="text-sm text-ink-soft mb-5">
+          Answer all {plan.quiz_questions.length} questions honestly.
         </p>
         <div className="space-y-4">
           {plan.quiz_questions.map((q, qi) => (
-            <div key={qi} className="bg-black/[0.02] border border-black/[0.04] rounded-lg p-3">
-              <p className="text-sm font-medium text-gray-800 mb-2">
+            <div key={qi} className="bg-brand-bg/50 border border-ink/10 rounded p-4">
+              <p className="text-sm font-medium text-ink mb-3">
                 {qi + 1}. {q.question}
               </p>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {q.options.map((opt, oi) => (
-                  <label key={oi} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <label key={oi} className="flex items-center gap-3 text-sm text-ink-soft cursor-pointer hover:text-ink">
                     <input
                       type="radio"
                       name={`q-${qi}`}
                       checked={answers[qi] === oi}
                       onChange={() => setAnswer(qi, oi)}
-                      className="accent-[#006d42]"
+                      className="accent-brand-sea-green"
                     />
                     {opt}
                   </label>
@@ -228,7 +227,7 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
         <button
           onClick={handleSubmitQuiz}
           disabled={submitting || !allAnswered}
-          className="mt-4 flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
+          className="mt-5 flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white disabled:opacity-60 transition-colors px-4 py-2 rounded text-sm font-medium"
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Submit Quiz
@@ -240,39 +239,39 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
   // Step 4a: failed
   if (plan.status === 'failed') {
     return (
-      <div className="glass rounded-2xl p-5 border border-brand-tertiary/40">
-        <p className="font-semibold text-gray-900 mb-1">{skill}</p>
-        <p className="text-sm text-gray-600 mb-4">
-          Scored {plan.quiz_score}% — not quite there yet. Review what you missed, study a bit more, then try again.
+      <div className="bg-white border border-brand-brandy/20 rounded p-5">
+        <p className="font-semibold text-ink mb-1">{skill}</p>
+        <p className="text-sm text-ink-soft mb-5">
+          Scored {plan.quiz_score}% — not quite there yet. Review what you missed and try again.
         </p>
         {quizResult && (
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-5">
             {quizResult.results
               .filter((r) => r.selected_index !== r.correct_index)
               .map((r, i) => (
-                <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm">
-                  <p className="font-medium text-gray-800 mb-1 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-red-500 shrink-0" /> {r.question}
+                <div key={i} className="bg-brand-brandy/5 border border-brand-brandy/20 rounded p-4 text-sm">
+                  <p className="font-medium text-ink mb-2 flex items-center gap-1.5">
+                    <XCircle className="w-4 h-4 text-brand-brandy shrink-0" /> {r.question}
                   </p>
-                  <p className="text-gray-600">
-                    Correct answer: <span className="font-medium">{r.options[r.correct_index]}</span>
+                  <p className="text-ink-soft">
+                    Correct answer: <span className="font-medium text-ink">{r.options[r.correct_index]}</span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{r.explanation}</p>
+                  <p className="text-xs text-ink-muted mt-2">{r.explanation}</p>
                 </div>
               ))}
           </div>
         )}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setPlan({ ...plan, status: 'studying' })}
-            className="flex items-center gap-2 glass glass-hover px-4 py-2.5 rounded-xl font-medium text-sm text-gray-700"
+            className="flex items-center gap-2 border border-ink/10 hover:bg-ink/5 transition-colors px-4 py-2 rounded text-sm font-medium text-ink"
           >
             <BookOpen className="w-4 h-4" /> Review materials
           </button>
           <button
             onClick={handleGenerateQuiz}
             disabled={generatingQuiz}
-            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-4 py-2.5 rounded-full font-medium text-sm shadow-lg"
+            className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white disabled:opacity-60 transition-colors px-4 py-2 rounded text-sm font-medium"
           >
             {generatingQuiz ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
             Retry Quiz
@@ -282,15 +281,13 @@ export default function SkillPrepJourney({ jobId, skill, whatItInvolves, initial
     );
   }
 
-  // Step 4b: passed. A quiz is practice only: it never reaches the resume or the fit score.
-  // Legacy "added_to_resume" plans land here too.
+  // Step 4b: passed
   return (
-    <div className="glass rounded-2xl p-6 border border-success/30 text-center relative overflow-hidden">
-      <PartyPopper className="w-9 h-9 text-success mx-auto mb-3 relative" />
-      <p className="font-bold text-lg text-gray-900 relative">Practice complete</p>
-      <p className="text-sm text-gray-600 relative">
-        You scored {plan.quiz_score}% on the {skill} practice quiz. This is practice only. It isn&apos;t added to
-        your resume and doesn&apos;t change your fit score.
+    <div className="bg-brand-sea-green/5 border border-brand-sea-green/20 rounded p-6 text-center">
+      <PartyPopper className="w-8 h-8 text-brand-sea-green mx-auto mb-3" />
+      <p className="font-semibold text-ink mb-1">Practice complete</p>
+      <p className="text-sm text-ink-soft">
+        You scored {plan.quiz_score}% on the {skill} practice quiz. This is practice only and does not change your fit score.
       </p>
     </div>
   );

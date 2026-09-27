@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { Plus, Briefcase, ArrowRight } from 'lucide-react';
+import { Plus, ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import JobsKanbanBoard, { KanbanJob } from '@/components/jobs/JobsKanbanBoard';
+import JobsListBoard from '@/components/jobs/JobsListBoard';
 
 export default async function JobsPage() {
   const supabase = await createClient();
@@ -13,7 +13,7 @@ export default async function JobsPage() {
     .eq('user_id', user!.id)
     .order('created_at', { ascending: false });
 
-  const kanbanJobs: KanbanJob[] = (jobs ?? []).map((job) => ({
+  const listJobs = (jobs ?? []).map((job) => ({
     id: job.id,
     title: job.title,
     company: job.company,
@@ -24,35 +24,30 @@ export default async function JobsPage() {
   }));
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between animate-fade-up">
+    <div className="max-w-5xl mx-auto py-8">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Saved <span className="gradient-text">Jobs</span></h1>
-          <p className="text-gray-500">Drag cards between stages to track your pipeline.</p>
+          <h1 className="text-2xl font-semibold text-ink mb-1">Applications</h1>
+          <p className="text-sm text-ink-soft">Track your active applications</p>
         </div>
         <Link
           href="/jobs/new"
-          className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark transition-all px-5 py-2.5 rounded-full font-medium text-sm shadow-lg"
+          className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-4 py-2 rounded text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
-          Add Job
+          New Application
         </Link>
       </div>
 
-      {kanbanJobs.length === 0 ? (
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <div className="w-14 h-14 rounded-2xl bg-brand-primary/20 border border-brand-primary/20 flex items-center justify-center mx-auto mb-5 relative">
-            <Briefcase className="w-6 h-6 text-brand-primary" />
-          </div>
-          <p className="text-gray-700 mb-4 relative">No jobs yet. Add your first job to get a match analysis.</p>
-          <Link href="/jobs/new" className="relative inline-flex items-center gap-1 text-brand-primary hover:text-brand-primary-dark font-medium transition-colors">
-            Add a job <ArrowRight className="w-3.5 h-3.5" />
+      {listJobs.length === 0 ? (
+        <div className="text-sm text-ink-soft border-t border-ink/10 py-6">
+          No applications yet.{' '}
+          <Link href="/jobs/new" className="text-brand-aqua hover:underline font-medium">
+            Start a new application <ArrowRight className="w-3.5 h-3.5 inline" />
           </Link>
         </div>
       ) : (
-        <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <JobsKanbanBoard initialJobs={kanbanJobs} />
-        </div>
+        <JobsListBoard initialJobs={listJobs} />
       )}
     </div>
   );

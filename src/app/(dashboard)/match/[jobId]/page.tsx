@@ -2,9 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CheckCircle2, AlertTriangle, XCircle, ArrowRight, Pencil, MessageCircleQuestion, Target, Mail, Lock, Mic } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import ScoreRing from '@/components/match/ScoreRing';
 import RunMatchButton from '@/components/match/RunMatchButton';
-import { getScoreColor } from '@/lib/utils';
 import { MatchItemWithDetails } from '@/types/match';
 import { isPaidUser } from '@/lib/plan';
 import { computeFitScore } from '@/lib/score/fit-score';
@@ -44,11 +42,8 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
   const partialMatches = items.filter((i) => i.status === 'partial').sort(sortByImportance);
   const missingItems = items.filter((i) => i.status === 'no_evidence').sort(sortByImportance);
 
-  // Rows from before fit score v1 hold a number from the old formula; ask for a re-run instead of showing it.
   const isCurrentScore = match?.score_config_version != null;
 
-  // Dimension scores are recomputed from the saved results. The score is a pure
-  // function of them, so this always agrees with the stored number.
   const fit = match && isCurrentScore
     ? computeFitScore(
         items.map((i) =>
@@ -68,61 +63,62 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
   }));
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex items-start justify-between animate-fade-up">
+    <div className="max-w-5xl mx-auto space-y-12 pb-16">
+      {/* Header */}
+      <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500 mb-1">{job.company || 'Job'}</p>
-          <h1 className="text-3xl font-bold">{job.title}</h1>
+          <p className="text-sm font-semibold uppercase tracking-wider text-ink-muted mb-1">{job.company || 'Unknown Company'}</p>
+          <h1 className="text-2xl font-bold text-ink">{job.title}</h1>
         </div>
       </div>
 
       {!match ? (
-        <div className="animate-fade-up glass rounded-2xl p-16 border border-black/[0.06] text-center relative overflow-hidden" style={{ animationDelay: '0.1s' }}>
-          <p className="text-gray-700 mb-6 max-w-md mx-auto relative">
+        <div className="border border-ink/10 bg-white rounded p-16 text-center">
+          <p className="text-sm text-ink-soft mb-6 max-w-md mx-auto">
             Run an evidence-based match analysis to see exactly how your master resume stacks up against this job.
           </p>
-          <div className="relative flex justify-center">
+          <div className="flex justify-center">
             <RunMatchButton jobId={jobId} />
           </div>
         </div>
       ) : (
         <>
-          <div className="animate-fade-up glass rounded-2xl p-8 border border-black/[0.06] flex flex-col md:flex-row items-center gap-10 relative overflow-hidden" style={{ animationDelay: '0.06s' }}>
-            <div className="relative text-center">
+          {/* Fit Score Area */}
+          <div className="border border-ink/10 bg-white rounded p-8 flex flex-col md:flex-row items-center gap-12">
+            <div className="text-center min-w-[200px]">
               {!isCurrentScore ? (
-                <p className="text-sm text-gray-700 max-w-[200px]">
-                  This score was worked out with an older method. Re-run the analysis to update it.
+                <p className="text-sm text-ink-soft max-w-[200px]">
+                  This score was calculated with an older method. Re-run analysis.
                 </p>
               ) : match.overall_score === null || match.label === null ? (
-                <p className="text-lg font-semibold text-gray-700 max-w-[200px]">Not enough to score yet.</p>
+                <p className="text-lg font-semibold text-ink-soft max-w-[200px]">Not enough to score.</p>
               ) : (
-                <ScoreRing score={match.overall_score} label={match.label} size={160} />
+                <div>
+                  <div className="text-6xl font-bold text-ink mb-1">{match.overall_score}<span className="text-3xl text-ink-muted">%</span></div>
+                  <div className="text-sm font-medium text-brand-sea-green">{match.label}</div>
+                </div>
               )}
               {isCurrentScore && match.scored_total !== null && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-ink-muted mt-3">
                   {match.evaluated_count} of {match.scored_total} requirements checked
                 </p>
               )}
-              {match.range_low !== null && match.range_high !== null && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Could be {match.range_low} to {match.range_high} once the open items are checked.
-                </p>
-              )}
             </div>
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4 w-full relative">
+            
+            <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {breakdown.map((b) => (
-                <div key={b.label} className="bg-black/[0.02] hover:bg-black/[0.03] transition-colors rounded-xl p-3 border border-black/[0.04]">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-700">{b.label}</span>
-                    <span className={getScoreColor(b.score)}>{b.score}%</span>
+                <div key={b.label} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium text-ink">{b.label}</span>
+                    <span className="text-ink-soft">{b.score}%</span>
                   </div>
-                  <div className="h-1.5 bg-black/[0.04] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-ink/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-brand-primary transition-all duration-700"
+                      className="h-full rounded-full bg-brand-sea-green"
                       style={{ width: `${b.score}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-1">{b.weight} of overall score</p>
+                  <p className="text-xs text-ink-muted">{b.weight} weight</p>
                 </div>
               ))}
             </div>
@@ -132,90 +128,71 @@ export default async function MatchPage({ params }: { params: Promise<{ jobId: s
             <RunMatchButton jobId={jobId} label="Re-run analysis" />
           </div>
 
+          {/* Evidence Columns */}
           <div className="grid md:grid-cols-3 gap-6">
             <EvidenceColumn
               title="Strong Matches"
               icon={<CheckCircle2 className="w-4 h-4" />}
-              color="text-success"
-              accent="from-success to-emerald-600"
+              color="text-brand-sea-green"
+              bg="bg-brand-sea-green/5"
+              borderColor="border-brand-sea-green/20"
               items={strongMatches}
-              delay={0.12}
             />
             <EvidenceColumn
               title="Partial Matches"
               icon={<AlertTriangle className="w-4 h-4" />}
-              color="text-amber-600"
-              accent="from-brand-tertiary to-amber-500"
+              color="text-brand-aqua"
+              bg="bg-brand-aqua/5"
+              borderColor="border-brand-aqua/20"
               items={partialMatches}
-              delay={0.18}
             />
             <EvidenceColumn
               title="Missing Evidence"
               icon={<XCircle className="w-4 h-4" />}
-              color="text-red-600"
-              accent="from-red-500 to-red-500"
+              color="text-brand-brandy"
+              bg="bg-brand-brandy/5"
+              borderColor="border-brand-brandy/20"
               items={missingItems}
-              delay={0.24}
             />
           </div>
 
-          <div className="animate-fade-up space-y-4" style={{ animationDelay: '0.36s' }}>
-            <h2 className="font-semibold text-gray-800">What do you want to do next?</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Next Steps */}
+          <div className="space-y-6 pt-8 border-t border-ink/10">
+            <h2 className="text-lg font-semibold text-ink">What do you want to do next?</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               <FeatureCard
                 href={paid ? `/jd-tailoring/${jobId}` : '/account/upgrade'}
-                icon={paid ? <Target className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-                title="JD-Specific Tailoring"
-                highlight={paid}
+                icon={paid ? <Target className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                title="JD Tailoring"
                 locked={!paid}
-                points={[
-                  'Proposes specific, approve-or-reject changes for this job',
-                  "Rewords bullets to match the JD's exact terminology — only where you already have the evidence",
-                  paid ? 'Trims your skills list to just what this job actually cares about' : 'Paid feature — upgrade to unlock',
-                ]}
+                points={['Approve/reject changes', 'Keyword matching']}
               />
               <FeatureCard
                 href={`/tailor/${jobId}`}
-                icon={<Pencil className="w-5 h-5" />}
+                icon={<Pencil className="w-4 h-4" />}
                 title="Tailor Resume"
-                points={[
-                  'Full manual editor for this job\'s resume version',
-                  'Rewrite any bullet on demand, edit every section freely',
-                  'One-click "Optimize for ATS," then export to PDF or DOCX',
-                ]}
+                points={['Full manual editor', 'Optimize for ATS', 'Export PDF/DOCX']}
               />
               <FeatureCard
                 href={paid ? `/interview-prep/${jobId}` : '/account/upgrade'}
-                icon={paid ? <MessageCircleQuestion className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                icon={paid ? <MessageCircleQuestion className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                 title="Interview Prep"
                 locked={!paid}
-                points={[
-                  "Likely interview questions built from this job's requirements",
-                  'A full study plan + 10-question practice quiz for any skill gaps',
-                  paid ? 'Smart questions to ask the interviewer' : 'Paid feature — upgrade to unlock',
-                ]}
+                points={['Practice questions', 'Study plan']}
               />
               <FeatureCard
                 href={paid ? `/cover-letter/${jobId}` : '/account/upgrade'}
-                icon={paid ? <Mail className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                icon={paid ? <Mail className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                 title="Cover Letter"
                 locked={!paid}
-                points={[
-                  'AI-written, evidence-based cover letter for this exact job',
-                  'Built around your 2-3 strongest, most relevant real achievements',
-                  paid ? 'Editable, with DOCX export' : 'Paid feature — upgrade to unlock',
-                ]}
+                points={['AI-written', 'Evidence-based']}
               />
               <FeatureCard
                 href={paid ? `/mock-interview/${jobId}` : '/account/upgrade'}
-                icon={paid ? <Mic className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                icon={paid ? <Mic className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                 title="Mock Interview"
                 locked={!paid}
-                points={[
-                  'A live, real-time voice interview grounded in this job and your evidence',
-                  'Practice anytime — no minimum match score required',
-                  paid ? 'Ends in an AI-generated readiness report' : 'Paid feature — upgrade to unlock',
-                ]}
+                points={['Live voice interview', 'Readiness report']}
               />
             </div>
           </div>
@@ -229,41 +206,42 @@ function EvidenceColumn({
   title,
   icon,
   color,
-  accent,
+  bg,
+  borderColor,
   items,
-  delay,
 }: {
   title: string;
   icon: React.ReactNode;
   color: string;
-  accent: string;
+  bg: string;
+  borderColor: string;
   items: MatchItemWithDetails[];
-  delay: number;
 }) {
   return (
-    <div className="animate-fade-up glass rounded-2xl p-5 border border-black/[0.06] relative overflow-hidden" style={{ animationDelay: `${delay}s` }}>
-      <span className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${accent} opacity-60`} />
-      <h3 className={`flex items-center gap-2 font-semibold mb-4 ${color}`}>
-        {icon} {title} ({items.length})
+    <div className={`rounded p-5 border ${borderColor} ${bg}`}>
+      <h3 className={`flex items-center gap-2 font-semibold mb-6 ${color}`}>
+        {icon} {title} <span className="text-xs px-2 py-0.5 rounded-full bg-white/50">{items.length}</span>
       </h3>
-      <div className="space-y-3">
-        {items.length === 0 && <p className="text-sm text-gray-400">Nothing here.</p>}
+      <div className="space-y-4">
+        {items.length === 0 && <p className="text-sm text-ink-muted">Nothing here.</p>}
         {items.map((item) => (
-          <div key={item.id} className="bg-black/[0.02] border border-black/[0.06] hover:border-black/[0.1] hover:bg-black/[0.02] transition-colors rounded-xl p-3">
-            <p className="text-sm font-medium mb-1">{item.requirement.requirement_text}</p>
-            <span className="inline-block text-[10px] uppercase tracking-wide text-gray-500 bg-black/[0.03] px-1.5 py-0.5 rounded-md">
-              {item.requirement.importance}
-            </span>
+          <div key={item.id} className="bg-white border border-ink/10 rounded p-4 shadow-sm">
+            <p className="text-sm font-medium text-ink leading-snug">{item.requirement.requirement_text}</p>
+            <div className="mt-2 mb-3">
+              <span className="inline-block text-[10px] uppercase tracking-wider text-ink-soft bg-brand-bg px-2 py-1 rounded">
+                {item.requirement.importance}
+              </span>
+            </div>
             {item.achievement && (
-              <p className="text-xs text-gray-500 mt-2 border-l-2 border-black/10 pl-2">
-                &ldquo;{item.achievement.achievement_text}&rdquo;
-                <span className="block text-gray-400 mt-0.5">
+              <div className="text-xs text-ink-soft mt-3 pt-3 border-t border-ink/5">
+                <p className="italic">&ldquo;{item.achievement.achievement_text}&rdquo;</p>
+                <p className="mt-1 text-ink-muted">
                   — {item.achievement.job_title}, {item.achievement.company}
-                </span>
-              </p>
+                </p>
+              </div>
             )}
             {!item.achievement && item.explanation && (
-              <p className="text-xs text-gray-400 mt-2">{item.explanation}</p>
+              <p className="text-xs text-ink-muted mt-3 pt-3 border-t border-ink/5">{item.explanation}</p>
             )}
           </div>
         ))}
@@ -277,45 +255,41 @@ function FeatureCard({
   icon,
   title,
   points,
-  highlight,
   locked,
 }: {
   href: string;
   icon: React.ReactNode;
   title: string;
   points: string[];
-  highlight?: boolean;
   locked?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className={`group flex flex-col rounded-2xl p-5 border transition-all card-hover hover:shadow-xl hover:shadow-black/10 ${
+      className={`group flex flex-col rounded p-4 border transition-colors ${
         locked
-          ? 'bg-black/[0.02] border-dashed border-black/[0.12]'
-          : highlight
-          ? 'bg-brand-primary/10 border-brand-primary/25'
-          : 'glass border-black/[0.06]'
+          ? 'bg-ink/5 border-ink/10 text-ink-muted'
+          : 'bg-white border-ink/10 hover:border-brand-sea-green hover:bg-brand-sea-green/5'
       }`}
     >
       <div className="flex items-center justify-between mb-3">
         <span
-          className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-            locked ? 'bg-brand-tertiary/20 text-amber-700' : highlight ? 'bg-brand-primary text-white' : 'bg-black/[0.04] text-brand-primary'
+          className={`w-8 h-8 rounded flex items-center justify-center ${
+            locked ? 'bg-ink/10 text-ink-soft' : 'bg-brand-sea-green/10 text-brand-sea-green'
           }`}
         >
           {icon}
         </span>
-        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 group-hover:translate-x-0.5 transition-all" />
+        <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-ink-soft transition-colors" />
       </div>
-      <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+      <h3 className="font-semibold text-sm text-ink mb-2 flex items-center gap-2">
         {title}
-        {locked && <span className="text-[10px] uppercase tracking-wide bg-brand-tertiary-light text-amber-700 px-1.5 py-0.5 rounded-md font-medium">Paid</span>}
+        {locked && <span className="text-[10px] uppercase tracking-wider bg-brand-brandy/10 text-brand-brandy px-1.5 py-0.5 rounded font-medium">Paid</span>}
       </h3>
-      <ul className="space-y-1.5">
+      <ul className="space-y-1.5 mt-auto">
         {points.map((point, i) => (
-          <li key={i} className="flex items-start gap-1.5 text-xs text-gray-500 leading-relaxed">
-            <span className="text-brand-primary mt-0.5">•</span>
+          <li key={i} className="flex items-start gap-1.5 text-xs text-ink-soft">
+            <span className="text-ink-muted mt-0.5">•</span>
             {point}
           </li>
         ))}
