@@ -13,7 +13,7 @@ import { MatchStatus, MatchConfidence } from '@/types/match';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 import { loadConceptDictionary } from '@/lib/concepts/dictionary';
-import { areEquivalent, areIncompatible } from '@/lib/concepts/normalize';
+import { areEquivalent, areIncompatible, normalizeConcepts } from '@/lib/concepts/normalize';
 
 export const runtime = 'nodejs';
 
@@ -66,6 +66,17 @@ export async function POST(request: NextRequest) {
       return apiError('conflict', 'Your master resume has no achievements yet. Add some and try again.');
     }
 
+    const { data: resumeSections } = await supabase
+      .from('resume_sections')
+      .select('section_type, content')
+      .eq('resume_id', resume.id);
+
+    const skillsSection = resumeSections?.find((s) => s.section_type === 'skills');
+    const skills = (skillsSection?.content as { skills?: string[] } | undefined)?.skills ?? [];
+
+    const certificationsSection = resumeSections?.find((s) => s.section_type === 'certifications');
+    const certifications = (certificationsSection?.content as { items?: { name: string; issuer?: string; date?: string }[] } | undefined)?.items ?? [];
+
     // Concept dictionary + retrieval hints: one dictionary load for the whole
     // match, deterministic concept lookups done in-process, and one pgvector
     // top-K RPC call per requirement (DB-side, not a JS comparison loop).
@@ -73,6 +84,17 @@ export async function POST(request: NextRequest) {
     const conceptMatches = new Map<string, Set<string>>();
     const neverMergeExcluded = new Map<string, Set<string>>();
     const similarityHints = new Map<string, Map<string, number>>();
+    const skillsCertsNeverMergeBlocked = new Set<string>();
+
+    // Never-merge must cover every evidence path, not only achievements: the
+    // skills-list and certifications-list are normalized to concepts here too,
+    // in one batch pass each (not one lookup per requirement).
+    const skillCertConceptIds = [
+      ...normalizeConcepts(dictionary, skills),
+      ...normalizeConcepts(dictionary, certifications.map((c) => c.name)),
+    ]
+      .filter((c): c is NonNullable<typeof c> => c !== null)
+      .map((c) => c.conceptId);
 
     for (const requirement of requirements) {
       const reqConceptId: string | null = requirement.normalized_concept_id;
@@ -89,6 +111,12 @@ export async function POST(request: NextRequest) {
             set.add(achievement.id);
             neverMergeExcluded.set(requirement.id, set);
           }
+        }
+
+        const hasEquivalentSkillOrCert = skillCertConceptIds.some((cid) => areEquivalent(dictionary, reqConceptId, cid));
+        const hasIncompatibleSkillOrCert = skillCertConceptIds.some((cid) => areIncompatible(dictionary, reqConceptId, cid));
+        if (hasIncompatibleSkillOrCert && !hasEquivalentSkillOrCert) {
+          skillsCertsNeverMergeBlocked.add(requirement.id);
         }
       }
 
@@ -107,18 +135,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const hints: MatchHints = { conceptMatches, neverMergeExcluded, similarityHints };
-
-    const { data: resumeSections } = await supabase
-      .from('resume_sections')
-      .select('section_type, content')
-      .eq('resume_id', resume.id);
-
-    const skillsSection = resumeSections?.find((s) => s.section_type === 'skills');
-    const skills = (skillsSection?.content as { skills?: string[] } | undefined)?.skills ?? [];
-
-    const certificationsSection = resumeSections?.find((s) => s.section_type === 'certifications');
-    const certifications = (certificationsSection?.content as { items?: { name: string; issuer?: string; date?: string }[] } | undefined)?.items ?? [];
+    const hints: MatchHints = { conceptMatches, neverMergeExcluded, similarityHints, skillsCertsNeverMergeBlocked };
 
     // Evidence matching (AI), given the deterministic concept/embedding hints above.
     const { matches: aiMatches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(

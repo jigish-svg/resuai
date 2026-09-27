@@ -49,12 +49,27 @@ export interface MatchHints {
   neverMergeExcluded?: Map<string, Set<string>>;
   /** requirement_id -> achievement_id -> cosine similarity (0-1), from pgvector top-K retrieval */
   similarityHints?: Map<string, Map<string, number>>;
+  /**
+   * requirement_ids where the candidate's skills-list/certifications-list concepts are
+   * ONLY concept-incompatible with this requirement (no genuinely equivalent skill or
+   * certification exists) — an achievement, if one exists independently, is unaffected.
+   * Skills/certifications evidence has no citation id to validate post-hoc the way
+   * achievement_id does, so this is enforced both as a prompt exclusion AND as a
+   * deterministic downgrade of any skills/certifications-only MATCHED/PARTIAL result.
+   */
+  skillsCertsNeverMergeBlocked?: Set<string>;
+}
+
+export interface NeverMergeViolation {
+  requirement_id: string;
+  achievement_id?: string;
+  source: 'achievement' | 'skills_or_certifications';
 }
 
 export interface BatchMatchResult {
   matches: z.infer<typeof BatchMatchSchema>['matches'];
-  /** requirement/achievement_id pairs the model returned that violated a hard never-merge exclusion and were stripped server-side */
-  neverMergeViolationsStripped: { requirement_id: string; achievement_id: string }[];
+  /** citations/claims the model returned that violated a hard never-merge exclusion and were stripped server-side */
+  neverMergeViolationsStripped: NeverMergeViolation[];
 }
 
 export async function matchRequirementsToAchievements(
@@ -68,11 +83,13 @@ export async function matchRequirementsToAchievements(
   const neverMergeExcluded = hints.neverMergeExcluded ?? new Map<string, Set<string>>();
   const conceptMatches = hints.conceptMatches ?? new Map<string, Set<string>>();
   const similarityHints = hints.similarityHints ?? new Map<string, Map<string, number>>();
+  const skillsCertsNeverMergeBlocked = hints.skillsCertsNeverMergeBlocked ?? new Set<string>();
 
   const requirementsList = requirements.map((r) => {
     const excluded = neverMergeExcluded.get(r.id);
     const conceptHit = conceptMatches.get(r.id);
     const similar = similarityHints.get(r.id);
+    const skillsCertsBlocked = skillsCertsNeverMergeBlocked.has(r.id);
 
     const annotations: string[] = [];
     if (conceptHit?.size) annotations.push(`concept-equivalent achievement(s): ${[...conceptHit].join(', ')}`);
@@ -82,6 +99,9 @@ export async function matchRequirementsToAchievements(
     }
     if (excluded?.size) {
       annotations.push(`EXCLUDED achievement(s), do not cite even if they seem related: ${[...excluded].join(', ')} (concept-incompatible with this requirement)`);
+    }
+    if (skillsCertsBlocked) {
+      annotations.push('candidate skills/certifications list contains ONLY concept-incompatible entries for this requirement — never mark MATCHED or PARTIAL based on the skills or certifications list for this requirement (an independently-supporting achievement, if any, is unaffected)');
     }
 
     return `ID: ${r.id} | [${r.importance.toUpperCase()}] ${r.requirement_text}${annotations.length ? ` | ${annotations.join(' | ')}` : ''}`;
@@ -119,7 +139,7 @@ CRITICAL RULES:
 5. SKILLS LIST: if a requirement is satisfied by a skill in the candidate's skills list but no achievement bullet demonstrates it being used, mark it PARTIAL (not NO_EVIDENCE) — being listed as a skill is real but weaker evidence than a demonstrated achievement. Only upgrade to MATCHED when an achievement also shows that skill in use.
 6. CERTIFICATIONS LIST: for a requirement with category "certification", check the candidate's certifications list — mark MATCHED if a listed certification clearly satisfies it (by name or a close, well-known synonym/equivalent), PARTIAL if a related-but-not-exact certification exists (e.g. an adjacent vendor cert), and NO_EVIDENCE only if nothing relevant is listed there or in achievements.
 7. When status is MATCHED or PARTIAL and an achievement supports it, set achievement_id to the exact ID (shown before the "|") of the single best supporting achievement. Never invent an ID that isn't listed. Leave achievement_id unset when the evidence comes only from the skills or certifications list, or for NO_EVIDENCE.
-8. Some requirement lines carry annotations after a "|": a concept-equivalent achievement hint (a deterministic alias match — strong signal), an embedding-similarity hint (topically related, but similarity by itself proves nothing about hands-on experience level — e.g. "AWS course completed" or "familiar with FastAPI" must never be upgraded to MATCHED for a requirement asking for years of production experience just because it's semantically close), and an EXCLUDED list you must never cite as achievement_id for that requirement under any circumstance, no matter how related it looks.
+8. Some requirement lines carry annotations after a "|": a concept-equivalent achievement hint (a deterministic alias match — strong signal), an embedding-similarity hint (topically related, but similarity by itself proves nothing about hands-on experience level — e.g. "AWS course completed" or "familiar with FastAPI" must never be upgraded to MATCHED for a requirement asking for years of production experience just because it's semantically close), an EXCLUDED list you must never cite as achievement_id for that requirement under any circumstance, no matter how related it looks, and a "skills/certifications list contains ONLY concept-incompatible entries" warning meaning you must not use the skills or certifications list as the basis for MATCHED or PARTIAL on that requirement (a genuinely supporting achievement, if one exists, is still fine to use).
 
 Be strict. The candidate's reputation depends on accurate matching.
 
@@ -153,13 +173,15 @@ Match each requirement to the best available evidence from the achievements, ski
   }
 
   // Never-merge is a hard server-side constraint: even if the model ignores the
-  // EXCLUDED annotation above, a citation of an excluded achievement is stripped
-  // here and the match is downgraded, never left standing.
-  const neverMergeViolationsStripped: { requirement_id: string; achievement_id: string }[] = [];
+  // annotations above, a citation of an excluded achievement — or a MATCHED/PARTIAL
+  // verdict resting only on the skills/certifications list when that list has no
+  // genuinely equivalent concept for this requirement — is stripped here and the
+  // match is downgraded, never left standing.
+  const neverMergeViolationsStripped: NeverMergeViolation[] = [];
   const matches = result.matches.map((m) => {
     const excluded = neverMergeExcluded.get(m.requirement_id);
     if (m.achievement_id && excluded?.has(m.achievement_id)) {
-      neverMergeViolationsStripped.push({ requirement_id: m.requirement_id, achievement_id: m.achievement_id });
+      neverMergeViolationsStripped.push({ requirement_id: m.requirement_id, achievement_id: m.achievement_id, source: 'achievement' });
       return {
         ...m,
         achievement_id: undefined,
@@ -168,6 +190,21 @@ Match each requirement to the best available evidence from the achievements, ski
         explanation: 'The only cited evidence used an incompatible/never-merge concept and was rejected server-side.',
       };
     }
+
+    // No achievement_id means (per rule 7) the model's evidence, if any, came only
+    // from the skills/certifications list. If that list has no concept genuinely
+    // equivalent to this requirement — only an incompatible one — a MATCHED/PARTIAL
+    // verdict here cannot be trusted, regardless of what the model wrote.
+    if (!m.achievement_id && (m.status === 'matched' || m.status === 'partial') && skillsCertsNeverMergeBlocked.has(m.requirement_id)) {
+      neverMergeViolationsStripped.push({ requirement_id: m.requirement_id, source: 'skills_or_certifications' });
+      return {
+        ...m,
+        status: 'no_evidence' as const,
+        evidence_text: undefined,
+        explanation: 'The only cited evidence relied on a skill/certification with an incompatible/never-merge concept and was rejected server-side.',
+      };
+    }
+
     return m;
   });
 

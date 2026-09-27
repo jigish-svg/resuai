@@ -76,7 +76,7 @@ describe('matchRequirementsToAchievements', () => {
     );
     expect(matches[0].status).toBe('no_evidence');
     expect(matches[0].achievement_id).toBeUndefined();
-    expect(neverMergeViolationsStripped).toEqual([{ requirement_id: 'req-1', achievement_id: 'ach-1' }]);
+    expect(neverMergeViolationsStripped).toEqual([{ requirement_id: 'req-1', achievement_id: 'ach-1', source: 'achievement' }]);
   });
 
   it('passes concept-match and similarity hints into the prompt without excluding the achievement', async () => {
@@ -114,6 +114,94 @@ describe('matchRequirementsToAchievements', () => {
     const req2Match = matches.find((m) => m.requirement_id === 'req-2');
     expect(req2Match?.status).toBe('matched');
     expect(req2Match?.achievement_id).toBe('ach-1');
+  });
+
+  it('strips a certification-only MATCHED verdict when the certifications list has only an incompatible concept for this requirement (e.g. PostgreSQL requirement vs a MySQL certification)', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'Candidate holds a MySQL certification, treating it as equivalent.' },
+    ]);
+    const hints: MatchHints = { skillsCertsNeverMergeBlocked: new Set(['req-1']) };
+    const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'PostgreSQL certification', category: 'certification' })],
+      [], // no achievements at all — this can only be a skills/certifications-list-based claim
+      'Jane Doe',
+      [],
+      [{ name: 'MySQL Certified Associate' }],
+      hints
+    );
+    expect(matches[0].status).toBe('no_evidence');
+    expect(neverMergeViolationsStripped).toEqual([{ requirement_id: 'req-1', source: 'skills_or_certifications' }]);
+  });
+
+  it.each([
+    ['AWS requirement vs an Azure certification', 'AWS'],
+    ['React requirement vs an Angular certification', 'React'],
+    ['Java requirement vs a JavaScript certification', 'Java'],
+    ['Python requirement vs a PyTorch certification', 'Python'],
+  ])('never produces MATCHED for %s once flagged as skills/certs-blocked', async (_label, requirementConcept) => {
+    mockLlmResponse([{ requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'Model ignored the exclusion annotation.' }]);
+    const hints: MatchHints = { skillsCertsNeverMergeBlocked: new Set(['req-1']) };
+    const { matches } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: `${requirementConcept} certification`, category: 'certification' })],
+      [],
+      'Jane Doe',
+      [],
+      [{ name: 'Some incompatible certification' }],
+      hints
+    );
+    expect(matches[0].status).not.toBe('matched');
+  });
+
+  it('does not downgrade a valid alias match (e.g. Postgres cert satisfying a PostgreSQL requirement) — never-merge only blocks true incompatibilities', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'Postgres certification satisfies PostgreSQL requirement.' },
+    ]);
+    // No skillsCertsNeverMergeBlocked entry for req-1: the route only sets this flag when
+    // there is an incompatible-and-no-equivalent concept, which is not the case here.
+    const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'PostgreSQL certification', category: 'certification' })],
+      [],
+      'Jane Doe',
+      [],
+      [{ name: 'Postgres Certified Professional' }]
+    );
+    expect(matches[0].status).toBe('matched');
+    expect(neverMergeViolationsStripped).toEqual([]);
+  });
+
+  it('does not downgrade an achievement-backed MATCHED just because the skills/certifications list is separately blocked for that requirement', async () => {
+    // The skills/certs block only concerns claims resting on the skills/certifications list
+    // (no achievement_id). A genuinely independent achievement citation is unaffected.
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', achievement_id: 'ach-1', explanation: 'Real PostgreSQL project achievement.' },
+    ]);
+    const hints: MatchHints = { skillsCertsNeverMergeBlocked: new Set(['req-1']) };
+    const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'PostgreSQL experience', category: 'hard_skill' })],
+      [achievement({ achievement_text: 'Built a production PostgreSQL database', skills: ['PostgreSQL'] })],
+      'Jane Doe',
+      [],
+      [{ name: 'MySQL Certified Associate' }],
+      hints
+    );
+    expect(matches[0].status).toBe('matched');
+    expect(matches[0].achievement_id).toBe('ach-1');
+    expect(neverMergeViolationsStripped).toEqual([]);
+  });
+
+  it('leaves ordinary skills-list PARTIAL behavior unchanged when nothing is never-merge-blocked', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'partial', confidence: 'medium', explanation: 'Listed as a skill but no achievement demonstrates it.' },
+    ]);
+    const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'Docker experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      ['Docker']
+    );
+    expect(matches[0].status).toBe('partial');
+    expect(matches[0].achievement_id).toBeUndefined();
+    expect(neverMergeViolationsStripped).toEqual([]);
   });
 
   it('delimits untrusted resume/job content in the constructed prompt', async () => {
