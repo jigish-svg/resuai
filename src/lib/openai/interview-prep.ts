@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
@@ -83,7 +83,9 @@ SKILL GAP ACTION PLAN: For each CRITICAL or HIGH importance requirement where th
 - what_it_involves: a plain-language explanation of what this skill/requirement actually means in practice, so the candidate understands what they're walking into.
 - how_to_prepare: 2-4 concrete, specific, doable-before-an-interview actions — e.g. a specific free course/doc/tutorial to complete, core concepts to read up on and be able to explain, a small practice exercise, or a way to practice articulating adjacent experience. Be specific (name real, well-known resources like official docs, freeCodeCamp, official framework tutorials) rather than vague advice like "learn more about X."
 - honest_talking_point: how to answer honestly if asked directly — acknowledging the gap, showing the genuine understanding gained from the prep above, connecting to real transferable experience if any exists, and expressing genuine interest in growing into it. This must never claim hands-on experience the candidate doesn't have.
-Skip requirements that are already MATCHED — only include genuine gaps here. Only produce a skill_gaps entry for requirements in the "hard_skill", "technology", or "certification" categories — never for "education", "experience", "responsibility", or "soft_skill" categories, even when their evidence is PARTIAL or NO_EVIDENCE. Those aren't gaps a certification or short prep can close (an in-progress degree, for instance, should never be presented as something wrong with the candidate).`,
+Skip requirements that are already MATCHED — only include genuine gaps here. Only produce a skill_gaps entry for requirements in the "hard_skill", "technology", or "certification" categories — never for "education", "experience", "responsibility", or "soft_skill" categories, even when their evidence is PARTIAL or NO_EVIDENCE. Those aren't gaps a certification or short prep can close (an in-progress degree, for instance, should never be presented as something wrong with the candidate).
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
@@ -91,13 +93,13 @@ Skip requirements that are already MATCHED — only include genuine gaps here. O
 Job: ${jobTitle}${company ? ` at ${company}` : ''}
 
 JOB REQUIREMENTS:
-${requirementsList}
+${delimitUntrusted('job_requirements', requirementsList)}
 
 EVIDENCE MATCH RESULTS (from prior analysis):
-${matchSummary || 'No match analysis available yet.'}
+${delimitUntrusted('match_results', matchSummary || 'No match analysis available yet.')}
 
 CANDIDATE'S REAL ACHIEVEMENTS (only source of truth for talking points):
-${achievementsList}
+${delimitUntrusted('candidate_achievements', achievementsList)}
 
 Generate the interview prep now.`,
       },

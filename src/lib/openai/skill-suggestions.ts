@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
@@ -19,13 +19,15 @@ This is a SELF-ATTESTATION checklist — the candidate will manually confirm whi
 Rules:
 - Only suggest skills genuinely common for the given role(s) — no generic buzzwords like "hard worker" or "team player."
 - Do not repeat anything already in the current skills list (case-insensitive, including close synonyms).
-- Return 8-15 specific, concrete skills (tools, technologies, methodologies).`,
+- Return 8-15 specific, concrete skills (tools, technologies, methodologies).
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Job title(s): ${jobTitles.join(', ') || 'Unknown'}
+        content: `Job title(s): ${delimitUntrusted('job_titles', jobTitles.join(', ') || 'Unknown')}
 
-Current skills already listed: ${currentSkills.join(', ') || 'none'}
+Current skills already listed: ${delimitUntrusted('current_skills', currentSkills.join(', ') || 'none')}
 
 Suggest additional skills to consider.`,
       },

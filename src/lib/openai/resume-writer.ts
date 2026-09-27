@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
@@ -31,11 +31,13 @@ export async function rewriteResumeText(
 
 ${fieldGuidance}
 
-ABSOLUTE RULE — TRUTH GUARD: never add any new fact, employer, project, responsibility, skill, or metric (number, percentage, dollar amount) that is not already present in the original text. You may only reword, clarify, and sharpen what the candidate already wrote — never invent specifics they didn't provide, even if the original is vague or short.`,
+ABSOLUTE RULE — TRUTH GUARD: never add any new fact, employer, project, responsibility, skill, or metric (number, percentage, dollar amount) that is not already present in the original text. You may only reword, clarify, and sharpen what the candidate already wrote — never invent specifics they didn't provide, even if the original is vague or short.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Original text: "${text}"${roleContext}\n\nRewrite this now.`,
+        content: `Original text: ${delimitUntrusted('original_text', text)}${roleContext}\n\nRewrite this now.`,
       },
     ],
     response_format: zodResponseFormat(RewriteTextSchema, 'rewrite_text'),

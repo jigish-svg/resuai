@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
@@ -44,7 +44,9 @@ ABSOLUTE RULES — TRUTH GUARD:
 3. Do not use generic filler like "I am a hard worker" or "I am passionate about this opportunity" without tying it to something concrete and real.
 4. 3-4 paragraphs: an opening that names the role and a genuine hook, 1-2 body paragraphs with specific evidenced accomplishments mapped to what the job needs, and a closing paragraph.
 5. Professional but personable tone. No placeholder text like "[Company Name]" — use the actual company name if given, otherwise refer to "your team" naturally.
-6. Do not fabricate a hiring manager's name or a specific date. Do not invent contact information.`,
+6. Do not fabricate a hiring manager's name or a specific date. Do not invent contact information.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
@@ -52,10 +54,10 @@ ABSOLUTE RULES — TRUTH GUARD:
 Job: ${jobTitle}${company ? ` at ${company}` : ''}
 
 JOB REQUIREMENTS:
-${requirementsList}
+${delimitUntrusted('job_requirements', requirementsList)}
 
 CANDIDATE'S REAL ACHIEVEMENTS (only source of truth):
-${achievementsList}
+${delimitUntrusted('candidate_achievements', achievementsList)}
 
 Write the cover letter now.`,
       },

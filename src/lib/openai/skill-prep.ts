@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { StudyMaterial } from '@/types/skill-prep';
@@ -45,7 +45,7 @@ export async function generateStudyMaterials(skill: string, whatItInvolves: stri
       input: [
         {
           role: 'user',
-          content: `Skill: ${skill}\nWhat it involves: ${whatItInvolves}\n\nSearch for and shortlist the best real study resources now.`,
+          content: `Skill: ${delimitUntrusted('skill', skill)}\nWhat it involves: ${delimitUntrusted('what_it_involves', whatItInvolves)}\n\nSearch for and shortlist the best real study resources now. ${UNTRUSTED_DATA_NOTICE}`,
         },
       ],
     });
@@ -66,9 +66,11 @@ export async function generateStudyMaterials(skill: string, whatItInvolves: stri
         role: 'system',
         content: `You are a learning-path designer. Given a skill someone needs to genuinely learn before a job interview, suggest 3-4 concrete study resources covering it from fundamentals to being able to speak about it credibly.
 
-For each resource, give a "search_query" — a precise search phrase someone would type to find a great real resource (e.g. "Kubernetes basics tutorial for beginners official"), NOT a URL. Never invent a specific URL. Mix resource types.`,
+For each resource, give a "search_query" — a precise search phrase someone would type to find a great real resource (e.g. "Kubernetes basics tutorial for beginners official"), NOT a URL. Never invent a specific URL. Mix resource types.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
-      { role: 'user', content: `Skill: ${skill}\nWhat it involves: ${whatItInvolves}\n\nSuggest study resources.` },
+      { role: 'user', content: `Skill: ${delimitUntrusted('skill', skill)}\nWhat it involves: ${delimitUntrusted('what_it_involves', whatItInvolves)}\n\nSuggest study resources.` },
     ],
     response_format: zodResponseFormat(
       z.object({
@@ -115,12 +117,14 @@ export async function generateSkillQuiz(
         role: 'system',
         content: `You are writing a knowledge-check quiz for someone who just studied a skill in order to be able to discuss it credibly in a job interview.
 
-Write exactly 10 multiple-choice questions that test real conceptual understanding of the skill — not trivia, not memorization of exact syntax, but "would someone who actually learned this fundamentals-level topic know this." Cover a good spread of the skill's core concepts. Each question has exactly 4 options with exactly one correct answer. Include a short explanation of why the correct answer is right (shown after they answer, for learning).`,
+Write exactly 10 multiple-choice questions that test real conceptual understanding of the skill — not trivia, not memorization of exact syntax, but "would someone who actually learned this fundamentals-level topic know this." Cover a good spread of the skill's core concepts. Each question has exactly 4 options with exactly one correct answer. Include a short explanation of why the correct answer is right (shown after they answer, for learning).
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Skill: ${skill}
-What it involves: ${whatItInvolves}${avoidList}
+        content: `Skill: ${delimitUntrusted('skill', skill)}
+What it involves: ${delimitUntrusted('what_it_involves', whatItInvolves)}${avoidList}
 
 Write the 10-question quiz now.`,
       },

@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { ParsedJobDescription } from '@/types/job';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
@@ -27,6 +27,11 @@ const RequirementSchema = z.object({
   category: z.enum(['hard_skill', 'soft_skill', 'responsibility', 'experience', 'education', 'certification', 'technology']),
   importance: z.enum(['critical', 'high', 'medium', 'low']),
   is_implied: z.boolean(),
+  // The model's best-guess phrase for the single core skill/technology this requirement
+  // is about (e.g. "FastAPI"), or null when the requirement isn't concept-like (e.g. a
+  // responsibility or soft skill). This is never trusted as a canonical form directly —
+  // callers must resolve it through the concept dictionary before persisting it.
+  concept_text: z.string().nullable(),
 });
 
 const RequirementsListSchema = z.object({
@@ -50,11 +55,13 @@ Be thorough in identifying:
 - Education requirements
 - Important keywords for ATS matching
 
-Be precise - only extract what is explicitly stated.`,
+Be precise - only extract what is explicitly stated.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Parse this job description:\n\n${jdText}`,
+        content: `Parse this job description:\n\n${delimitUntrusted('job_description', jdText)}`,
       },
     ],
     response_format: zodResponseFormat(ParsedJDSchema, 'parsed_jd'),
@@ -87,17 +94,21 @@ For each requirement explicitly stated or clearly implied by the JD text:
   * medium: preferred but not essential
   * low: nice-to-have
 - Set is_implied to false.
+- Set concept_text to the single core skill/technology name the requirement is about (e.g. "FastAPI", "PostgreSQL"), or null if the requirement is a responsibility, soft skill, or otherwise not about one specific named technology/skill.
 
 THEN, separately, add a small number of additional requirements for skills/tools that are conventionally expected for this exact role and seniority (based on the job title and responsibilities) even though the posting itself never mentions them — real ATS systems and interviewers often probe for these "obvious for the role" basics even when the JD is silent on them. Real example: a "Data Scientist" posting that never says "Python" or "SQL" almost certainly still expects them. For these:
 - Set is_implied to true
 - Set importance to "low" (they are inferred, not stated — never mark an inferred item as critical or high)
 - Only add ones genuinely standard for this specific role/seniority — do not pad with generic buzzwords, and add at most 5-6 of these.
+- Set concept_text the same way as above.
 
-Do not duplicate requirements. Aim for 8-20 explicitly-stated requirements plus up to 5-6 implied ones.`,
+Do not duplicate requirements. Aim for 8-20 explicitly-stated requirements plus up to 5-6 implied ones.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Extract individual requirements from this parsed job description:\n\n${jdSummary}`,
+        content: `Extract individual requirements from this parsed job description:\n\n${delimitUntrusted('parsed_job_description', jdSummary)}`,
       },
     ],
     response_format: zodResponseFormat(RequirementsListSchema, 'requirements_list'),

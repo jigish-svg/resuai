@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { TruthGuardFlag } from '@/types/match';
@@ -104,29 +104,31 @@ ABSOLUTE RULES — TRUTH GUARD (never break these):
 5. skills_to_add must contain skills genuinely evidenced by the achievements — directly, via synonym, or via a clearly related transferable skill — that are missing from the current skills list and are emphasized by this job.
 6. skills_to_remove: a tailored resume's skills section should only show what's relevant to THIS job, not everything the candidate has ever done. Propose removing any current skill that has no meaningful relevance to this job's requirements/keywords (e.g. an unrelated tool from a totally different domain). Never propose removing a skill that is relevant, even loosely, to this job — when in doubt, keep it.
 7. Propose ONE tailored professional summary rewrite (summary_change) specifically emphasizing the strongest matches for THIS job — grounded only in real evidence, generously interpreted as above. Set summary_change to null only if the current summary is already excellent for this job.
-8. Only after genuinely searching for a transferable-skill angle and finding none, list the keyword in gaps with a short honest reason.`,
+8. Only after genuinely searching for a transferable-skill angle and finding none, list the keyword in gaps with a short honest reason.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
         content: `Job: ${jobTitle}${company ? ` at ${company}` : ''}
 
 JOB REQUIREMENTS:
-${requirementsList}
+${delimitUntrusted('job_requirements', requirementsList)}
 
 JOB KEYWORDS:
-${jobKeywords.join(', ')}
+${delimitUntrusted('job_keywords', jobKeywords.join(', '))}
 
 CANDIDATE'S REAL ACHIEVEMENTS (only source of truth):
-${achievementsList}
+${delimitUntrusted('candidate_achievements', achievementsList)}
 
 CURRENT SUMMARY:
-${summary}
+${delimitUntrusted('current_summary', summary)}
 
 CURRENT EXPERIENCE BULLETS (reference by [exp N] [bullet N] index):
-${experienceList}
+${delimitUntrusted('current_experience_bullets', experienceList)}
 
 CURRENT SKILLS:
-${skills.join(', ')}
+${delimitUntrusted('current_skills', skills.join(', '))}
 
 Propose the tailoring plan now.`,
       },
@@ -177,27 +179,29 @@ ABSOLUTE RULES — TRUTH GUARD (never break these):
 7. The returned skills list should contain ONLY skills relevant to this specific job — reorder it, add genuinely-evidenced skills relevant to this job (pulled from the achievements' skills/metrics), and drop any current skill that has no meaningful relevance to this job's requirements/keywords. Never add an unevidenced skill, and never drop a skill that is relevant, even loosely — when in doubt, keep it.
 8. Report every keyword you successfully wove in (verbatim as it now appears) in keywords_added.
 
-Your goal: the strongest possible truthful match to this job — never a fabricated one.`,
+Your goal: the strongest possible truthful match to this job — never a fabricated one.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
         content: `JOB REQUIREMENTS:
-${requirementsList}
+${delimitUntrusted('job_requirements', requirementsList)}
 
 JOB KEYWORDS (from the job description, for ATS matching):
-${jobKeywords.join(', ')}
+${delimitUntrusted('job_keywords', jobKeywords.join(', '))}
 
 CANDIDATE'S REAL ACHIEVEMENTS (only source of truth):
-${achievementsList}
+${delimitUntrusted('candidate_achievements', achievementsList)}
 
 CURRENT RESUME SUMMARY:
-${summary}
+${delimitUntrusted('current_summary', summary)}
 
 CURRENT EXPERIENCE BULLETS (rewrite in place, same count of entries and bullets):
-${experienceList}
+${delimitUntrusted('current_experience_bullets', experienceList)}
 
 CURRENT SKILLS LIST:
-${skills.join(', ')}
+${delimitUntrusted('current_skills', skills.join(', '))}
 
 Optimize this resume now for maximum truthful ATS keyword match.`,
       },
@@ -246,13 +250,15 @@ ABSOLUTE RULES - TRUTH GUARD:
 7. Start with a strong action verb
 8. Make it ATS-friendly and keyword-rich using natural language
 
-Your goal: make the candidate look as strong as possible using ONLY their real accomplishments.`,
+Your goal: make the candidate look as strong as possible using ONLY their real accomplishments.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Job requirement: "${requirementText}"
+        content: `Job requirement: ${delimitUntrusted('job_requirement', requirementText)}
 
-Original achievement: "${originalText}"${factsContext}${metricsContext}
+Original achievement: ${delimitUntrusted('original_achievement', originalText)}${factsContext}${metricsContext}
 
 Rewrite this achievement to better align with the requirement. Use only verified facts and metrics.`,
       },
@@ -285,15 +291,17 @@ Flag any text in the tailored resume that:
 3. Describes responsibilities broader than what's documented
 4. Uses superlatives (e.g., "led company-wide") without supporting evidence
 
-Only flag genuine discrepancies. Minor rewordings and synonyms are acceptable.`,
+Only flag genuine discrepancies. Minor rewordings and synonyms are acceptable.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
         content: `MASTER RESUME (source of truth):
-${masterResumeText}
+${delimitUntrusted('master_resume', masterResumeText)}
 
 TAILORED RESUME (to fact-check):
-${tailoredText}
+${delimitUntrusted('tailored_resume', tailoredText)}
 
 Identify any unsupported claims or fabricated information.`,
       },

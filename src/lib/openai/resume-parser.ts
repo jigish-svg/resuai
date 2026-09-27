@@ -1,4 +1,4 @@
-import { openai, MODEL } from './client';
+import { openai, MODEL, delimitUntrusted, UNTRUSTED_DATA_NOTICE } from './client';
 import { ParsedResume } from '@/types/resume';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
@@ -65,11 +65,13 @@ For achievements, extract:
 - Skills demonstrated in the achievement
 - Any metrics/numbers mentioned (percentages, dollar amounts, counts, time savings, etc.)
 
-Be precise and accurate. Do not invent or embellish any information. Only extract what is explicitly stated.`,
+Be precise and accurate. Do not invent or embellish any information. Only extract what is explicitly stated.
+
+${UNTRUSTED_DATA_NOTICE}`,
       },
       {
         role: 'user',
-        content: `Parse this resume:\n\n${resumeText}`,
+        content: `Parse this resume:\n\n${delimitUntrusted('resume_text', resumeText)}`,
       },
     ],
     response_format: zodResponseFormat(ParsedResumeSchema, 'parsed_resume'),

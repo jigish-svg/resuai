@@ -5,9 +5,12 @@ import { rpcError } from '@/lib/api/rpc-error';
 import { SaveResumeBody } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { getEmbedding } from '@/lib/openai/evidence-matcher';
+import { EMBEDDING_MODEL } from '@/lib/openai/client';
 import { isPaidUser, FREE_TIER_LIMITS } from '@/lib/plan';
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 import { buildResumeSavePayload } from '@/lib/resume/save-payload';
+import { loadConceptDictionary } from '@/lib/concepts/dictionary';
+import { normalizeConcepts } from '@/lib/concepts/normalize';
 
 export const runtime = 'nodejs';
 
@@ -45,11 +48,25 @@ export async function POST(request: NextRequest) {
       )
     );
 
+    // One dictionary load for the whole save, not one query per skill: every
+    // achievement's skills[] is normalized in a single batch pass against it.
+    const dictionary = await loadConceptDictionary(supabase);
+    const conceptIdsByAchievement = payload.achievements.map((a) =>
+      normalizeConcepts(dictionary, a.skills)
+        .filter((c): c is NonNullable<typeof c> => c !== null)
+        .map((c) => c.conceptId)
+    );
+
     const { data: savedId, error } = await supabase.rpc('save_resume', {
       p_resume_id: resumeId ?? null,
       p_resume: payload.resume,
       p_sections: payload.sections,
-      p_achievements: payload.achievements.map((a, i) => ({ ...a, embedding: embeddings[i] })),
+      p_achievements: payload.achievements.map((a, i) => ({
+        ...a,
+        embedding: embeddings[i],
+        embedding_model: embeddings[i] ? EMBEDDING_MODEL : null,
+        concept_ids: conceptIdsByAchievement[i],
+      })),
     });
     if (error) return rpcError(error, { notFound: 'Resume not found.', fallback: SAVE_FAILED });
 

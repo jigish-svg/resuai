@@ -39,6 +39,9 @@ export const RequirementInputSchema = z
     category: RequirementCategorySchema,
     importance: RequirementImportanceSchema,
     is_implied: optional(z.boolean()),
+    // The model's best-guess core concept phrase (e.g. "FastAPI"); resolved against
+    // the concept dictionary server-side before being trusted as a canonical id.
+    concept_text: optional(z.string().max(200).nullable()),
   })
   .strict();
 
