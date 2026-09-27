@@ -82,6 +82,17 @@ export async function POST(request: NextRequest) {
     });
     if (error) return rpcError(error, { notFound: 'Job not found.', fallback: 'Failed to save tailored resume. Please try again.' });
 
+    // A version against the base resume: tailoring acceptance is a meaningful
+    // saved state (Step 8), same as an upload or a manual save. Logged, not
+    // fatal — the tailored resume itself already saved successfully.
+    const { error: versionError } = await supabase.from('resume_versions').insert({
+      resume_id: resume.id,
+      label: `Tailored for job ${jobId}`,
+      snapshot: { jobId, sections },
+      created_by_action: 'tailor_accept',
+    });
+    if (versionError) console.error('Failed to record tailoring version:', versionError);
+
     return NextResponse.json({ tailoredResumeId, truthGuardStatus, source, provenance });
   } catch (error) {
     console.error('Tailored resume save error:', error);

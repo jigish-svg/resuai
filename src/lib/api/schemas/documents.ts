@@ -13,9 +13,13 @@ export const ExportCoverLetterBody = z
   .object({ content: letterContent.min(1), fileName: optional(fileName) })
   .strict();
 
-// jobId is sent by the tailor editor; export does not need it but accepts it.
+// jobId is required: the server derives the exported document from its own
+// stored state (the job's tailored resume, or the master resume's own saved
+// sections) rather than trusting client-submitted content. `sections` stays
+// in the request shape for backward compatibility with the existing client
+// call, but the route no longer reads it.
 export const ExportDocxBody = z
-  .object({ sections: TailoredSectionsSchema, fileName: optional(fileName), jobId: optional(id) })
+  .object({ sections: TailoredSectionsSchema, fileName: optional(fileName), jobId: id })
   .strict();
 
 /** The name goes into a Content-Disposition header, so only plain characters survive. */

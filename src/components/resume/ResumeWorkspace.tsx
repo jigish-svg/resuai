@@ -250,9 +250,15 @@ function ReviewEditor({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobTitles, currentSkills: parsed.skills }),
     })
-      .then((res) => res.json())
-      .then((data) => setSuggestedSkills(data.suggestions ?? []))
-      .catch(() => setSuggestedSkills([]))
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to load skill suggestions'));
+        setSuggestedSkills(data.suggestions ?? []);
+      })
+      .catch((err) => {
+        setSuggestedSkills([]);
+        toast.error(err instanceof Error ? err.message : 'Failed to load skill suggestions');
+      })
       .finally(() => setLoadingSuggestions(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -91,11 +91,12 @@ describe('no neutral fill and renormalisation', () => {
     expect(d3.score).toBeCloseTo(0.85, 12);
   });
 
-  it('a dimension with only To verify items is inactive and never lowers the score', () => {
+  it('a dimension with only To verify items stays active (Phase C rule 2): the job asked, so it counts', () => {
     const base = [verified('hard_skill'), verified('hard_skill'), verified('hard_skill')];
     const withIdleDimension = [...base, toVerify('education', 'by_design')];
-    expect(score(withIdleDimension).score).toBe(100);
-    expect(score(withIdleDimension).dimensions.map((d) => d.id)).toEqual(['D1']);
+    // D1 = 1 x 0.35/0.45; D4 (to_verify -> 0 credit) x 0.1/0.45 -> 77.78 -> 78.
+    expect(score(withIdleDimension).score).toBe(78);
+    expect(score(withIdleDimension).dimensions.map((d) => d.id)).toEqual(['D1', 'D4']);
   });
 
   it('necessity weights apply within a dimension', () => {
@@ -119,8 +120,13 @@ describe('no neutral fill and renormalisation', () => {
 describe('exclusions', () => {
   const base = [verified('hard_skill'), evidenced('hard_skill'), unsupported('responsibility')];
 
-  it('To verify items are excluded from the score', () => {
-    expect(score([...base, toVerify('hard_skill', 'engine_gap')]).score).toBe(score(base).score);
+  it('To verify carries a zero point-estimate credit within its own dimension (Phase C rule 4), unlike being dropped entirely', () => {
+    // base D1 dimScore = (1 + 0.85) / 2 = 0.925; adding a 0-credit To verify
+    // item pulls it to (1 + 0.85 + 0) / 3 = 0.61667, so this is deliberately
+    // lower than score(base), not equal to it.
+    const withToVerify = score([...base, toVerify('hard_skill', 'engine_gap')]);
+    expect(withToVerify.score).toBe(36);
+    expect(withToVerify.score).not.toBe(score(base).score);
   });
 
   it('inferred requirements are never scored, never counted and never cap the label', () => {
@@ -185,7 +191,9 @@ describe('range', () => {
       toVerify('hard_skill', 'engine_gap'),
       toVerify('hard_skill', 'low_confidence_extraction'),
     ]);
-    expect(result.score).toBe(100);
+    // The point estimate now equals the low bound (Phase C rule 4): To verify
+    // is never optimistically treated as a match, only the range shows the upside.
+    expect(result.score).toBe(60);
     expect(result.range).toEqual({ low: 60, high: 100 });
   });
 
@@ -327,6 +335,32 @@ describe('monotonic in evidence', () => {
   it.todo(
     'years_short above 0.85 (e.g. 11 of 12 years) outranks Backed up evidenced (0.85); PRD 10B conflicts with the 10E monotonic rule, pending a decision',
   );
+
+  it('creditFor gives To verify the same zero point-estimate credit as Unsupported', () => {
+    expect(creditFor(toVerify('hard_skill', 'engine_gap'), SCORE_CONFIG_V1)).toBe(0);
+    expect(creditFor(unsupported('hard_skill'), SCORE_CONFIG_V1)).toBe(0);
+  });
+
+  for (const [name, fixture] of Object.entries(mixedFixtures())) {
+    it(`resolving a To verify item to Backed up never decreases the score (${name})`, () => {
+      fixture.forEach((original, i) => {
+        if (original.state !== 'to_verify') return;
+        const common = { requirement_id: original.requirement_id, kind: original.kind, necessity: original.necessity, origin: original.origin };
+        const resolved: RequirementResult = { ...common, state: 'backed_up', reason: 'judge_supported', strength: 'verified' };
+        const before = score(fixture).score;
+        const after = score(fixture.map((r, j) => (j === i ? resolved : r))).score;
+        if (before === null || after === null) return;
+        expect(after).toBeGreaterThanOrEqual(before);
+      });
+    });
+
+    it(`adding a brand-new genuinely accepted requirement never decreases the score (${name})`, () => {
+      const before = score(fixture).score;
+      const withNewEvidence = score([...fixture, verified('hard_skill', { id: 'new-genuine-evidence' })]).score;
+      if (before === null || withNewEvidence === null) return;
+      expect(withNewEvidence).toBeGreaterThanOrEqual(before);
+    });
+  }
 });
 
 describe('order invariance and determinism', () => {

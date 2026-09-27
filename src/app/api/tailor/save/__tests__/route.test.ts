@@ -5,6 +5,7 @@ const getUserMock = vi.fn();
 const rpcMock = vi.fn();
 const runTruthGuardMock = vi.fn();
 const getResumeForJobMock = vi.fn();
+const versionInsertMock = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
@@ -17,6 +18,14 @@ vi.mock('@/lib/supabase/server', () => ({
       });
       if (table === 'jobs') return chain({ resume_id: 'resume-1' });
       if (table === 'matches') return chain(null);
+      if (table === 'resume_versions') {
+        return {
+          insert: (row: unknown) => {
+            versionInsertMock(row);
+            return Promise.resolve({ error: null });
+          },
+        };
+      }
       throw new Error(`Unexpected table in test: ${table}`);
     },
     rpc: (name: string, args: unknown) => rpcMock(name, args),
@@ -54,6 +63,7 @@ describe('POST /api/tailor/save — Truth Guard gate', () => {
     rpcMock.mockReset().mockResolvedValue({ data: 'tailored-resume-1', error: null });
     runTruthGuardMock.mockReset();
     getResumeForJobMock.mockReset().mockResolvedValue({ id: 'resume-1', raw_text: 'Jane Doe, Backend engineer.' });
+    versionInsertMock.mockReset();
   });
 
   it('1. supported result saves and calls the RPC', async () => {
@@ -172,6 +182,7 @@ describe('POST /api/tailor/save — provenance (Step 2)', () => {
     rpcMock.mockReset().mockResolvedValue({ data: 'tailored-resume-1', error: null });
     runTruthGuardMock.mockReset();
     getResumeForJobMock.mockReset().mockResolvedValue({ id: 'resume-1', raw_text: 'Jane Doe, Backend engineer.' });
+    versionInsertMock.mockReset();
   });
 
   it('a supported save is always user_stated with no provenance — the user is the one who saved it', async () => {
@@ -197,5 +208,38 @@ describe('POST /api/tailor/save — provenance (Step 2)', () => {
     // If the route ever queried `achievements` or called `save_match`, the shared
     // supabase mock's `from()` throws or this call count would differ — proving
     // AI-generated tailoring content structurally cannot reach evidence/score.
+  });
+});
+
+describe('POST /api/tailor/save — versioning (Step 8)', () => {
+  beforeEach(() => {
+    getUserMock.mockReset().mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    rpcMock.mockReset().mockResolvedValue({ data: 'tailored-resume-1', error: null });
+    runTruthGuardMock.mockReset();
+    getResumeForJobMock.mockReset().mockResolvedValue({ id: 'resume-1', raw_text: 'Jane Doe, Backend engineer.' });
+    versionInsertMock.mockReset();
+  });
+
+  it('a successful (supported) save records a resume_versions row tagged tailor_accept', async () => {
+    runTruthGuardMock.mockResolvedValue({ flags: [], passed: true });
+    await POST(makeRequest({ jobId: VALID_JOB_ID, sections: VALID_SECTIONS }));
+
+    expect(versionInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ resume_id: 'resume-1', created_by_action: 'tailor_accept' })
+    );
+  });
+
+  it('a confirmed-override save also records a version (it did genuinely get accepted)', async () => {
+    runTruthGuardMock.mockResolvedValue({ flags: [{ text: 'x', reason: 'r', source: 'not_in_resume' }], passed: false });
+    await POST(makeRequest({ jobId: VALID_JOB_ID, sections: VALID_SECTIONS, confirmUnsupported: true }));
+
+    expect(versionInsertMock).toHaveBeenCalledWith(expect.objectContaining({ created_by_action: 'tailor_accept' }));
+  });
+
+  it('a blocked (unconfirmed) save records no version at all — nothing was accepted', async () => {
+    runTruthGuardMock.mockResolvedValue({ flags: [{ text: 'x', reason: 'r', source: 'not_in_resume' }], passed: false });
+    await POST(makeRequest({ jobId: VALID_JOB_ID, sections: VALID_SECTIONS }));
+
+    expect(versionInsertMock).not.toHaveBeenCalled();
   });
 });

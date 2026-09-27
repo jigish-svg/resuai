@@ -63,6 +63,8 @@ export const RATE_LIMITS = {
   jobParse: { bucket: 'job_parse', maxRequests: 20, windowSeconds: HOUR, onError: 'deny' },
   // Resume save computes embeddings, so it is a model call too.
   resumeSave: { bucket: 'resume_save', maxRequests: 20, windowSeconds: HOUR, onError: 'deny' },
+  // Restore replays a save (embeddings included), so it's the same cost class.
+  resumeRestore: { bucket: 'resume_restore', maxRequests: 20, windowSeconds: HOUR, onError: 'deny' },
   match: { bucket: 'match', maxRequests: 30, windowSeconds: HOUR, onError: 'deny' },
   tailorPlan: { bucket: 'tailor_plan', maxRequests: 20, windowSeconds: HOUR, onError: 'deny' },
   tailorRewrite: { bucket: 'tailor_rewrite', maxRequests: 60, windowSeconds: HOUR, onError: 'deny' },

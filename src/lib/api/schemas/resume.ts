@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { docText, id, line, list, longText, optional, shortText } from './common';
+import { sourceUrl } from './jobs';
 
 // Mirrors ParsedResume in src/types/resume.ts.
 export const ParsedAchievementSchema = z
@@ -82,6 +83,10 @@ export const SaveResumeBody = z
     name: optional(shortText),
     resumeId: optional(id),
     template: optional(ResumeTemplateSchema),
+    // Set only after the server already returned a needs_review/unsupported
+    // Truth Guard verdict for this exact save and the user chose to save
+    // anyway. Truth Guard runs fresh on every save regardless of this flag.
+    confirmUnsupported: optional(z.boolean()),
   })
   .strict();
 
@@ -105,9 +110,28 @@ export const SuggestSkillsBody = z
   .strict();
 
 // Multipart text fields. Pasted text length is checked by assertTextWithinLimit,
-// which gives the user a specific "too long" message.
-export const ParseUploadFields = z.object({ text: optional(z.string()) }).strict();
+// which gives the user a specific "too long" message. `url` is only used by
+// /api/jobs/parse (fetch a job posting server-side); it's harmless to declare
+// here too rather than fork a near-identical schema.
+export const ParseUploadFields = z.object({ text: optional(z.string()), url: optional(sourceUrl) }).strict();
 
 export const EvidenceUploadFields = z
   .object({ resumeId: id, description: optional(z.string().max(500)) })
+  .strict();
+
+export const RestoreVersionBody = z
+  .object({ resumeId: id, versionId: id, confirmUnsupported: optional(z.boolean()) })
+  .strict();
+
+// A draft is deliberately not validated against ParsedResumeSchema — it's
+// expected to be mid-edit and may be incomplete or momentarily invalid-shaped.
+// That's exactly why autosave state is a separate table from real candidate
+// data (Step 8). The size cap mirrors MAX_DOC_TEXT's intent for a JSON blob.
+export const AutosaveBody = z
+  .object({
+    resumeId: id,
+    draft: z.record(z.string(), z.unknown()).refine((d) => JSON.stringify(d).length <= 100_000, {
+      message: 'Draft is too large.',
+    }),
+  })
   .strict();

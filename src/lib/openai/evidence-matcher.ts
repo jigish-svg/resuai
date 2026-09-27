@@ -9,6 +9,7 @@ const BatchMatchSchema = z.object({
     confidence: z.enum(['high', 'medium', 'low']),
     evidence_text: z.string().optional(),
     achievement_id: z.string().optional(),
+    project_id: z.string().optional(),
     explanation: z.string(),
   })),
 });
@@ -66,6 +67,16 @@ export interface MatchHints {
    * deterministic downgrade of any skills/certifications-only MATCHED/PARTIAL result.
    */
   skillsCertsNeverMergeBlocked?: Set<string>;
+  /**
+   * requirement_id -> which of the candidate's skills/certifications/projects lists
+   * already contain a deterministic (alias/equivalent) concept match for this
+   * requirement — e.g. "Postgres" for a "PostgreSQL" requirement. Purely a positive
+   * annotation for the model: it never sets a status by itself, is independent of
+   * (and does not override) skillsCertsNeverMergeBlocked, and every existing
+   * post-filter (the skills-only PARTIAL cap, never-merge stripping) still applies
+   * to whatever status the model returns.
+   */
+  positiveConceptHints?: Map<string, { skills?: boolean; certifications?: boolean; projects?: boolean }>;
 }
 
 export interface NeverMergeViolation {
@@ -93,15 +104,20 @@ export async function matchRequirementsToAchievements(
   const conceptMatches = hints.conceptMatches ?? new Map<string, Set<string>>();
   const similarityHints = hints.similarityHints ?? new Map<string, Map<string, number>>();
   const skillsCertsNeverMergeBlocked = hints.skillsCertsNeverMergeBlocked ?? new Set<string>();
+  const positiveConceptHints = hints.positiveConceptHints ?? new Map<string, { skills?: boolean; certifications?: boolean; projects?: boolean }>();
 
   const requirementsList = requirements.map((r) => {
     const excluded = neverMergeExcluded.get(r.id);
     const conceptHit = conceptMatches.get(r.id);
     const similar = similarityHints.get(r.id);
     const skillsCertsBlocked = skillsCertsNeverMergeBlocked.has(r.id);
+    const positiveHit = positiveConceptHints.get(r.id);
 
     const annotations: string[] = [];
     if (conceptHit?.size) annotations.push(`concept-equivalent achievement(s): ${[...conceptHit].join(', ')}`);
+    if (positiveHit?.skills) annotations.push('concept-equivalent entry in the skills list (deterministic alias/equivalence match, e.g. "Postgres" for "PostgreSQL")');
+    if (positiveHit?.certifications) annotations.push('concept-equivalent entry in the certifications list (deterministic alias/equivalence match)');
+    if (positiveHit?.projects) annotations.push('concept-equivalent technology in a project (deterministic alias/equivalence match)');
     if (similar?.size) {
       const ranked = [...similar.entries()].sort((a, b) => b[1] - a[1]);
       annotations.push(`embedding-similar achievement(s): ${ranked.map(([id, sim]) => `${id}=${sim.toFixed(2)}`).join(', ')} (similarity alone never proves hands-on experience — it only tells you where to look)`);
@@ -152,8 +168,8 @@ CRITICAL RULES:
 5. SKILLS LIST: if a requirement is satisfied by a skill in the candidate's skills list but no achievement bullet demonstrates it being used, mark it PARTIAL (not NO_EVIDENCE) — being listed as a skill is real but weaker evidence than a demonstrated achievement. Only upgrade to MATCHED when an achievement also shows that skill in use.
 6. CERTIFICATIONS LIST: for a requirement with category "certification", check the candidate's certifications list — mark MATCHED if a listed certification clearly satisfies it (by name or a close, well-known synonym/equivalent), PARTIAL if a related-but-not-exact certification exists (e.g. an adjacent vendor cert), and NO_EVIDENCE only if nothing relevant is listed there or in achievements.
 7. PROJECTS LIST: the candidate's own projects are real evidence, exactly like achievements — a project whose description or technologies clearly demonstrate a requirement can be MATCHED, and a related-but-not-exact project can be PARTIAL. Do not treat a project as weaker evidence than an achievement bullet just because it's listed separately.
-8. When status is MATCHED or PARTIAL and an achievement supports it, set achievement_id to the exact ID (shown before the "|") of the single best supporting achievement. Never invent an ID that isn't listed. Leave achievement_id unset when the evidence comes only from the skills list, certifications list, or projects list, or for NO_EVIDENCE.
-9. Some requirement lines carry annotations after a "|": a concept-equivalent achievement hint (a deterministic alias match — strong signal), an embedding-similarity hint (topically related, but similarity by itself proves nothing about hands-on experience level — e.g. "AWS course completed" or "familiar with FastAPI" must never be upgraded to MATCHED for a requirement asking for years of production experience just because it's semantically close), an EXCLUDED list you must never cite as achievement_id for that requirement under any circumstance, no matter how related it looks, and a "skills/certifications/projects list contains ONLY concept-incompatible entries" warning meaning you must not use the skills list, certifications list, or projects list as the basis for MATCHED or PARTIAL on that requirement (a genuinely supporting achievement, if one exists, is still fine to use).
+8. When status is MATCHED or PARTIAL and an achievement or project supports it, set achievement_id or project_id (never both) to the exact ID (shown before the "|") of the single best supporting achievement or project. Never invent an ID that isn't listed. Leave both achievement_id and project_id unset when the evidence comes only from the skills list, certifications list, or for NO_EVIDENCE.
+9. Some requirement lines carry annotations after a "|": a concept-equivalent achievement hint (a deterministic alias match — strong signal), a concept-equivalent skills/certifications/projects-list hint (the candidate's own list already contains a deterministic alias or equivalent term for this requirement, e.g. "Postgres" for "PostgreSQL" or "React.js" for "React" — treat that entry as if it were worded exactly like the requirement, but this hint alone does not create MATCHED: you still decide the status using rules 5-7 as normal, and an unrelated or absent achievement/skill is still NO_EVIDENCE regardless of any hint), an embedding-similarity hint (topically related, but similarity by itself proves nothing about hands-on experience level — e.g. "AWS course completed" or "familiar with FastAPI" must never be upgraded to MATCHED for a requirement asking for years of production experience just because it's semantically close), an EXCLUDED list you must never cite as achievement_id for that requirement under any circumstance, no matter how related it looks, and a "skills/certifications/projects list contains ONLY concept-incompatible entries" warning meaning you must not use the skills list, certifications list, or projects list as the basis for MATCHED or PARTIAL on that requirement (a genuinely supporting achievement, if one exists, is still fine to use).
 
 Be strict. The candidate's reputation depends on accurate matching.
 
@@ -182,6 +198,11 @@ Match each requirement to the best available evidence from the achievements, ski
       },
     ],
     response_format: zodResponseFormat(BatchMatchSchema, 'batch_match'),
+    // Same saved inputs must give the same score (CLAUDE.md rule 2): fixed
+    // temperature/seed so re-running a match on unchanged data reproduces the
+    // same evidence judgment rather than drifting between calls.
+    temperature: 0,
+    seed: 0,
   });
 
   const result = response.choices[0].message.parsed;
@@ -194,6 +215,8 @@ Match each requirement to the best available evidence from the achievements, ski
   // verdict resting only on the skills/certifications list when that list has no
   // genuinely equivalent concept for this requirement — is stripped here and the
   // match is downgraded, never left standing.
+  const requirementById = new Map(requirements.map((r) => [r.id, r]));
+
   const neverMergeViolationsStripped: NeverMergeViolation[] = [];
   const matches = result.matches.map((m) => {
     const excluded = neverMergeExcluded.get(m.requirement_id);
@@ -220,6 +243,21 @@ Match each requirement to the best available evidence from the achievements, ski
         evidence_text: undefined,
         explanation: 'The only cited evidence relied on a skill/certification with an incompatible/never-merge concept and was rejected server-side.',
       };
+    }
+
+    // Rule 5, code-enforced: a MATCHED verdict resting on neither achievement_id
+    // nor project_id can only rest on the skills list (certifications may
+    // legitimately reach MATCHED on their own per rule 6, so they're exempt).
+    // Being listed as a skill is real but weaker evidence than a demonstrated
+    // achievement or project, so it's deterministically capped at PARTIAL
+    // rather than trusting the model to self-cap it every time.
+    if (
+      m.status === 'matched' &&
+      !m.achievement_id &&
+      !m.project_id &&
+      requirementById.get(m.requirement_id)?.category !== 'certification'
+    ) {
+      return { ...m, status: 'partial' as const };
     }
 
     return m;

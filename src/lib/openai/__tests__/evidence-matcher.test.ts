@@ -15,7 +15,7 @@ vi.mock('../client', () => ({
 
 import { matchRequirementsToAchievements, MatchHints, RequirementToMatch, AchievementToSearch } from '../evidence-matcher';
 
-function mockLlmResponse(matches: { requirement_id: string; status: 'matched' | 'partial' | 'no_evidence'; confidence: 'high' | 'medium' | 'low'; achievement_id?: string; evidence_text?: string; explanation: string }[]) {
+function mockLlmResponse(matches: { requirement_id: string; status: 'matched' | 'partial' | 'no_evidence'; confidence: 'high' | 'medium' | 'low'; achievement_id?: string; project_id?: string; evidence_text?: string; explanation: string }[]) {
   parseMock.mockResolvedValueOnce({ choices: [{ message: { parsed: { matches } } }] });
 }
 
@@ -211,7 +211,7 @@ describe('matchRequirementsToAchievements', () => {
 
   it('5. project evidence can support an existing requirement (MATCHED with no achievement_id, like skills/certs)', async () => {
     mockLlmResponse([
-      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'The URL Shortener project demonstrates FastAPI usage.' },
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', project_id: 'proj-1', explanation: 'The URL Shortener project demonstrates FastAPI usage.' },
     ]);
     const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
       [requirement({ requirement_text: 'FastAPI experience', category: 'hard_skill' })],
@@ -223,6 +223,7 @@ describe('matchRequirementsToAchievements', () => {
     );
     expect(matches[0].status).toBe('matched');
     expect(matches[0].achievement_id).toBeUndefined();
+    expect(matches[0].project_id).toBe('proj-1');
     expect(neverMergeViolationsStripped).toEqual([]);
 
     const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
@@ -246,6 +247,166 @@ describe('matchRequirementsToAchievements', () => {
     );
     expect(matches[0].status).toBe('no_evidence');
     expect(neverMergeViolationsStripped).toEqual([{ requirement_id: 'req-1', source: 'skills_or_certifications' }]);
+  });
+
+  it('Phase C step 1: calls the model with temperature 0 and a fixed seed for reproducible matching', async () => {
+    mockLlmResponse([{ requirement_id: 'req-1', status: 'no_evidence', confidence: 'low', explanation: 'No evidence.' }]);
+    await matchRequirementsToAchievements([requirement()], [achievement()], 'Jane Doe');
+    const callArgs = parseMock.mock.calls[0][0];
+    expect(callArgs.temperature).toBe(0);
+    expect(callArgs.seed).toBe(0);
+  });
+
+  it('Phase C step 2: downgrades a skills-list-only MATCHED verdict (no achievement_id, no project_id) to PARTIAL', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'medium', explanation: 'Listed as a skill.' },
+    ]);
+    const { matches } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'Docker experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      ['Docker']
+    );
+    expect(matches[0].status).toBe('partial');
+  });
+
+  it('Phase C step 2: does not downgrade a certification-category MATCHED verdict resting only on the certifications list', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'Certification listed.' },
+    ]);
+    const { matches } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'AWS certification', category: 'certification' })],
+      [],
+      'Jane Doe',
+      [],
+      [{ name: 'AWS Certified Solutions Architect' }]
+    );
+    expect(matches[0].status).toBe('matched');
+  });
+
+  it('Phase C step 2: does not downgrade a project-backed MATCHED verdict (project_id set)', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', project_id: 'proj-1', explanation: 'Project demonstrates it.' },
+    ]);
+    const { matches } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'FastAPI experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      [],
+      [],
+      [{ id: 'proj-1', name: 'URL Shortener', description: 'Built with FastAPI.', technologies: ['FastAPI'], metrics: [] }]
+    );
+    expect(matches[0].status).toBe('matched');
+  });
+
+  it('Phase C step 2: does not downgrade an achievement-backed MATCHED verdict', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', achievement_id: 'ach-1', explanation: 'Achievement demonstrates it.' },
+    ]);
+    const { matches } = await matchRequirementsToAchievements([requirement()], [achievement()], 'Jane Doe');
+    expect(matches[0].status).toBe('matched');
+  });
+
+  it('Phase C positive hints: annotates a concept-equivalent skills-list entry in the prompt', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'partial', confidence: 'medium', explanation: 'Postgres listed as a skill.' },
+    ]);
+    const hints: MatchHints = { positiveConceptHints: new Map([['req-1', { skills: true }]]) };
+    await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'PostgreSQL experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      ['Postgres'],
+      [],
+      [],
+      hints
+    );
+    const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
+    expect(promptContent).toContain('concept-equivalent entry in the skills list');
+  });
+
+  it('Phase C positive hints: annotates a concept-equivalent certifications-list entry in the prompt', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'React.js cert satisfies React requirement.' },
+    ]);
+    const hints: MatchHints = { positiveConceptHints: new Map([['req-1', { certifications: true }]]) };
+    await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'React certification', category: 'certification' })],
+      [],
+      'Jane Doe',
+      [],
+      [{ name: 'React.js Developer Certification' }],
+      [],
+      hints
+    );
+    const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
+    expect(promptContent).toContain('concept-equivalent entry in the certifications list');
+  });
+
+  it('Phase C positive hints: annotates a concept-equivalent project technology in the prompt', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', project_id: 'proj-1', explanation: 'Project uses React.js.' },
+    ]);
+    const hints: MatchHints = { positiveConceptHints: new Map([['req-1', { projects: true }]]) };
+    await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'React experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      [],
+      [],
+      [{ id: 'proj-1', name: 'Dashboard', description: 'Built with React.js.', technologies: ['React.js'], metrics: [] }],
+      hints
+    );
+    const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
+    expect(promptContent).toContain('concept-equivalent technology in a project');
+  });
+
+  it('Phase C positive hints: incompatible concepts (e.g. Java vs JavaScript) never produce a positive hint annotation', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'no_evidence', confidence: 'low', explanation: 'No Java evidence.' },
+    ]);
+    // No positiveConceptHints entry at all — this is what the route computes for an
+    // incompatible-only pair (Java requirement, JavaScript-only skills list).
+    await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'Java experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      ['JavaScript']
+    );
+    const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
+    expect(promptContent).not.toContain('concept-equivalent entry in the skills list');
+  });
+
+  it('Phase C positive hints: a hint alone does not create MATCHED — the model can still return NO_EVIDENCE', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'no_evidence', confidence: 'low', explanation: 'Hint present but no real evidence judged sufficient.' },
+    ]);
+    const hints: MatchHints = { positiveConceptHints: new Map([['req-1', { skills: true }]]) };
+    const { matches } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'PostgreSQL experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      ['Postgres'],
+      [],
+      [],
+      hints
+    );
+    expect(matches[0].status).toBe('no_evidence');
+  });
+
+  it('Phase C positive hints: existing achievement concept-match annotation is unchanged when a positive hint is also present', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', achievement_id: 'ach-1', explanation: 'Direct concept match.' },
+    ]);
+    const hints: MatchHints = {
+      conceptMatches: new Map([['req-1', new Set(['ach-1'])]]),
+      positiveConceptHints: new Map([['req-1', { skills: true }]]),
+    };
+    await matchRequirementsToAchievements([requirement({ requirement_text: 'PostgreSQL experience' })], [achievement({ skills: ['PostgreSQL'] })], 'Jane Doe', ['Postgres'], [], [], hints);
+
+    const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
+    expect(promptContent).toContain('concept-equivalent achievement');
+    expect(promptContent).toContain('concept-equivalent entry in the skills list');
   });
 
   it('delimits untrusted resume/job content in the constructed prompt', async () => {

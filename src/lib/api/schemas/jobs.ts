@@ -46,7 +46,7 @@ export const RequirementInputSchema = z
   .strict();
 
 // Users paste links with or without a scheme; anything that is not http(s) is rejected.
-const sourceUrl = z.preprocess(
+export const sourceUrl = z.preprocess(
   (v) => (typeof v === 'string' && v.trim() && !/^[a-z][a-z0-9+.-]*:/i.test(v.trim()) ? `https://${v.trim()}` : v),
   z
     .string()

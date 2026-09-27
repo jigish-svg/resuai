@@ -90,41 +90,80 @@ export async function POST(request: NextRequest) {
     const neverMergeExcluded = new Map<string, Set<string>>();
     const similarityHints = new Map<string, Map<string, number>>();
     const skillsCertsNeverMergeBlocked = new Set<string>();
+    const positiveConceptHints = new Map<string, { skills?: boolean; certifications?: boolean; projects?: boolean }>();
+
+    // Implied (inferred) requirements are never scored or shown in gap
+    // analysis (fit-score.ts filters to origin === 'stated'), so running
+    // concept matching or the LLM evidence match for them is pure cost with
+    // no effect on the result (Phase C rule 5).
+    const matchableRequirements = requirements.filter((r) => !r.is_implied);
 
     // Never-merge must cover every evidence path, not only achievements: the
     // skills-list, certifications-list, and project technologies are all
     // normalized to concepts here too, in one batch pass each (not one lookup
     // per requirement). Projects already have their concept_ids precomputed at
     // save time, so they're concatenated directly rather than re-normalized.
-    const skillCertConceptIds = [
-      ...normalizeConcepts(dictionary, skills),
-      ...normalizeConcepts(dictionary, certifications.map((c) => c.name)),
-    ]
+    //
+    // Each source is kept separate (not pooled into one array): an equivalent
+    // concept from one source (e.g. a listed skill) must never mask an
+    // incompatible concept from a different source (e.g. a project using only
+    // an incompatible technology) — see Phase 8.5 finding B.
+    const skillConceptIds = normalizeConcepts(dictionary, skills)
       .filter((c): c is NonNullable<typeof c> => c !== null)
-      .map((c) => c.conceptId)
-      .concat((projects ?? []).flatMap((p) => p.concept_ids ?? []));
+      .map((c) => c.conceptId);
+    const certConceptIds = normalizeConcepts(dictionary, certifications.map((c) => c.name))
+      .filter((c): c is NonNullable<typeof c> => c !== null)
+      .map((c) => c.conceptId);
+    const projectConceptIds = (projects ?? []).flatMap((p) => p.concept_ids ?? []);
+    const nonAchievementConceptSources = [skillConceptIds, certConceptIds, projectConceptIds];
 
-    for (const requirement of requirements) {
+    for (const requirement of matchableRequirements) {
       const reqConceptId: string | null = requirement.normalized_concept_id;
       if (reqConceptId) {
         for (const achievement of achievements) {
           const achievementConceptIds: string[] = achievement.concept_ids ?? [];
-          if (achievementConceptIds.some((cid) => areEquivalent(dictionary, reqConceptId, cid))) {
+          const hasEquivalent = achievementConceptIds.some((cid) => areEquivalent(dictionary, reqConceptId, cid));
+          const hasIncompatible = achievementConceptIds.some((cid) => areIncompatible(dictionary, reqConceptId, cid));
+          if (hasEquivalent) {
             const set = conceptMatches.get(requirement.id) ?? new Set<string>();
             set.add(achievement.id);
             conceptMatches.set(requirement.id, set);
           }
-          if (achievementConceptIds.some((cid) => areIncompatible(dictionary, reqConceptId, cid))) {
+          // Exclude only when an incompatible concept is present AND no
+          // equivalent one is also present — an achievement that genuinely
+          // demonstrates the requirement (e.g. mentions both PostgreSQL and
+          // MySQL) must not be excluded just because it also mentions an
+          // incompatible technology (Phase C finding 4).
+          if (hasIncompatible && !hasEquivalent) {
             const set = neverMergeExcluded.get(requirement.id) ?? new Set<string>();
             set.add(achievement.id);
             neverMergeExcluded.set(requirement.id, set);
           }
         }
 
-        const hasEquivalentSkillOrCert = skillCertConceptIds.some((cid) => areEquivalent(dictionary, reqConceptId, cid));
-        const hasIncompatibleSkillOrCert = skillCertConceptIds.some((cid) => areIncompatible(dictionary, reqConceptId, cid));
-        if (hasIncompatibleSkillOrCert && !hasEquivalentSkillOrCert) {
+        // Blocked if ANY single source is incompatible-only on its own — an
+        // equivalent concept from a different source never suppresses this.
+        const isSourceBlocked = (conceptIds: string[]) =>
+          conceptIds.some((cid) => areIncompatible(dictionary, reqConceptId, cid)) &&
+          !conceptIds.some((cid) => areEquivalent(dictionary, reqConceptId, cid));
+        if (nonAchievementConceptSources.some(isSourceBlocked)) {
           skillsCertsNeverMergeBlocked.add(requirement.id);
+        }
+
+        // Positive hints: tell the model when the skills/certifications/projects
+        // list already contains a deterministic alias/equivalent concept for this
+        // requirement (e.g. "Postgres" for a "PostgreSQL" requirement, "React.js"
+        // for "React"), so wording differences don't get mistaken for missing
+        // evidence. This is annotation only — it never sets a status itself, never
+        // overrides the never-merge exclusion above, and the model still decides
+        // MATCHED/PARTIAL/NO_EVIDENCE (subject to the existing post-filters).
+        const hasEquivalent = (conceptIds: string[]) => conceptIds.some((cid) => areEquivalent(dictionary, reqConceptId, cid));
+        const positive: { skills?: boolean; certifications?: boolean; projects?: boolean } = {};
+        if (hasEquivalent(skillConceptIds)) positive.skills = true;
+        if (hasEquivalent(certConceptIds)) positive.certifications = true;
+        if (hasEquivalent(projectConceptIds)) positive.projects = true;
+        if (Object.keys(positive).length > 0) {
+          positiveConceptHints.set(requirement.id, positive);
         }
       }
 
@@ -143,11 +182,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const hints: MatchHints = { conceptMatches, neverMergeExcluded, similarityHints, skillsCertsNeverMergeBlocked };
+    const hints: MatchHints = { conceptMatches, neverMergeExcluded, similarityHints, skillsCertsNeverMergeBlocked, positiveConceptHints };
 
     // Evidence matching (AI), given the deterministic concept/embedding hints above.
     const { matches: aiMatches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
-      requirements.map((r) => ({ id: r.id, requirement_text: r.requirement_text, category: r.category, importance: r.importance })),
+      matchableRequirements.map((r) => ({ id: r.id, requirement_text: r.requirement_text, category: r.category, importance: r.importance })),
       achievements,
       resume.candidate_name || 'Candidate',
       skills,

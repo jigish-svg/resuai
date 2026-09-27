@@ -11,8 +11,11 @@ import type {
 // The fit score, PRD section 10C. A pure function of validated requirement
 // results and a versioned configuration: same inputs, same output, on any machine.
 
-// Returns null for To verify, which is excluded from the score.
-export function creditFor(result: RequirementResult, config: ScoreConfig): number | null {
+// To verify gets the same point-estimate credit as no evidence yet (0): it is
+// never treated as a match, but it must still count so its dimension cannot
+// vanish from the denominator (Phase C rule 2). The `range` computed below
+// shows the upside if it resolves in the candidate's favour (Phase C rule 4).
+export function creditFor(result: RequirementResult, config: ScoreConfig): number {
   switch (result.state) {
     case 'backed_up':
       return result.strength === 'verified' ? config.credits.verified : config.credits.evidenced;
@@ -23,9 +26,8 @@ export function creditFor(result: RequirementResult, config: ScoreConfig): numbe
       }
       return config.credits[result.reason];
     case 'unsupported':
-      return 0;
     case 'to_verify':
-      return null;
+      return 0;
   }
 }
 
@@ -54,14 +56,21 @@ function evaluate(scored: RequirementResult[], dimensionOf: Map<string, Dimensio
   let evaluatedCount = 0;
   for (const r of scored) {
     const credit = creditFor(r, config);
-    if (credit === null) continue;
-    evaluatedCount += 1;
     const dim = dimensionOf.get(r.kind)!;
     const list = byDimension.get(dim) ?? [];
     list.push({ weight: config.necessityWeights[r.necessity], credit, id: r.requirement_id });
     byDimension.set(dim, list);
+    // To verify carries a real credit above, but is not "evaluated" for the
+    // minimum-coverage gate below: it is still unresolved, not a scored fact.
+    if (r.state !== 'to_verify') evaluatedCount += 1;
   }
 
+  // A dimension is active because the job has a stated requirement of that
+  // kind, never because a result happens to be resolved yet (Phase C rule 2):
+  // every scored item now carries a credit, so presence in `byDimension` means
+  // exactly "the job has a requirement here" and can't flip mid-flight as
+  // evidence resolves, which would otherwise reweight every other dimension
+  // and break monotonicity (Phase C rule 1).
   const active = config.dimensions.filter((d) => byDimension.has(d));
   if (active.length === 0 || evaluatedCount < config.minEvaluated) {
     return { raw: null, dimensions: [], contributions: [] };

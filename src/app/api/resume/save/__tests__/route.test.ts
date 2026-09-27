@@ -11,13 +11,24 @@ let existingAchievements: { company: string; job_title: string; achievement_text
 let existingProjects: { name: string; description: string; source: string }[] = [];
 let pendingSkillSuggestions: { id: string; content: { skill: string } }[] = [];
 const suggestionUpdateMock = vi.fn();
+const versionInsertMock = vi.fn();
+const runTruthGuardMock = vi.fn();
+let priorRawText: string | null = 'Jane Doe resume text';
+let priorSummary = 'Backend engineer.';
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: { getUser: () => getUserMock() },
     from: (table: string) => {
       if (table === 'resumes') {
-        return { select: () => ({ eq: () => Promise.resolve({ count: resumesCount }) }) };
+        return {
+          select: (_cols: string, opts?: { count?: string; head?: boolean }) => {
+            if (opts?.count) {
+              return { eq: () => Promise.resolve({ count: resumesCount }) };
+            }
+            return { eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { raw_text: priorRawText } }) }) }) };
+          },
+        };
       }
       if (table === 'achievements') {
         return { select: () => ({ eq: () => Promise.resolve({ data: existingAchievements }) }) };
@@ -25,10 +36,21 @@ vi.mock('@/lib/supabase/server', () => ({
       if (table === 'projects') {
         return { select: () => ({ eq: () => Promise.resolve({ data: existingProjects }) }) };
       }
+      if (table === 'resume_sections') {
+        return { select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { content: { text: priorSummary } } }) }) }) }) };
+      }
       if (table === 'ai_suggestions') {
         return {
           select: () => ({ eq: () => ({ eq: () => ({ eq: () => Promise.resolve({ data: pendingSkillSuggestions }) }) }) }),
           update: (patch: unknown) => ({ in: (...args: unknown[]) => suggestionUpdateMock(patch, ...args) }),
+        };
+      }
+      if (table === 'resume_versions') {
+        return {
+          insert: (row: unknown) => {
+            versionInsertMock(row);
+            return Promise.resolve({ error: null });
+          },
         };
       }
       throw new Error(`Unexpected table in test: ${table}`);
@@ -39,6 +61,10 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('@/lib/openai/evidence-matcher', () => ({
   getEmbedding: (...args: unknown[]) => getEmbeddingMock(...args),
+}));
+
+vi.mock('@/lib/openai/tailoring-engine', () => ({
+  runTruthGuard: (...args: unknown[]) => runTruthGuardMock(...args),
 }));
 
 vi.mock('@/lib/concepts/dictionary', () => ({
@@ -102,6 +128,10 @@ describe('POST /api/resume/save — per-achievement provenance', () => {
     existingProjects = [];
     pendingSkillSuggestions = [];
     suggestionUpdateMock.mockReset().mockResolvedValue({ data: null, error: null });
+    versionInsertMock.mockReset();
+    runTruthGuardMock.mockReset().mockResolvedValue({ flags: [], passed: true });
+    priorRawText = 'Jane Doe resume text';
+    priorSummary = 'Backend engineer.';
   });
 
   it('a fresh save (no resumeId) marks every achievement ai_parsed', async () => {
@@ -166,6 +196,10 @@ describe('POST /api/resume/save — projects (Step 3)', () => {
     existingProjects = [];
     pendingSkillSuggestions = [];
     suggestionUpdateMock.mockReset().mockResolvedValue({ data: null, error: null });
+    versionInsertMock.mockReset();
+    runTruthGuardMock.mockReset().mockResolvedValue({ flags: [], passed: true });
+    priorRawText = 'Jane Doe resume text';
+    priorSummary = 'Backend engineer.';
   });
 
   it('1. project creation: a fresh save (no resumeId) marks a project ai_parsed', async () => {
@@ -234,6 +268,10 @@ describe('POST /api/resume/save — matched_by_later_fact (Step 4)', () => {
     existingProjects = [];
     pendingSkillSuggestions = [];
     suggestionUpdateMock.mockReset().mockResolvedValue({ data: null, error: null });
+    versionInsertMock.mockReset();
+    runTruthGuardMock.mockReset().mockResolvedValue({ flags: [], passed: true });
+    priorRawText = 'Jane Doe resume text';
+    priorSummary = 'Backend engineer.';
   });
 
   it('a pending suggestion whose skill now appears in the saved resume is marked matched_by_later_fact', async () => {
@@ -284,5 +322,146 @@ describe('POST /api/resume/save — matched_by_later_fact (Step 4)', () => {
   it('a fresh save (no resumeId) never queries ai_suggestions at all — there is nothing prior to match against', async () => {
     await POST(makeRequest({ parsed: parsedResumeWithAchievement('Built APIs with Python'), rawText: 'Jane Doe resume text' }));
     expect(suggestionUpdateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/resume/save — versioning (Step 8)', () => {
+  beforeEach(() => {
+    getUserMock.mockReset().mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    checkRateLimitMock.mockReset().mockResolvedValue('allowed');
+    getEmbeddingMock.mockReset().mockResolvedValue([0.1, 0.2]);
+    loadConceptDictionaryMock.mockReset().mockResolvedValue({
+      aliasToConceptId: new Map(),
+      conceptIdToName: new Map(),
+      incompatible: new Map(),
+      equivalent: new Map(),
+    });
+    rpcMock.mockReset().mockResolvedValue({ data: 'resume-1', error: null });
+    resumesCount = 0;
+    existingAchievements = [];
+    existingProjects = [];
+    pendingSkillSuggestions = [];
+    suggestionUpdateMock.mockReset().mockResolvedValue({ data: null, error: null });
+    versionInsertMock.mockReset();
+    runTruthGuardMock.mockReset().mockResolvedValue({ flags: [], passed: true });
+    priorRawText = 'Jane Doe resume text';
+    priorSummary = 'Backend engineer.';
+  });
+
+  it('a fresh save records a resume_versions row tagged "upload"', async () => {
+    await POST(makeRequest({ parsed: parsedResumeWithAchievement('Built APIs with Python'), rawText: 'Jane Doe resume text' }));
+
+    expect(versionInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ resume_id: 'resume-1', created_by_action: 'upload', label: 'Original upload' })
+    );
+  });
+
+  it('an update records a resume_versions row tagged "manual_save"', async () => {
+    await POST(makeRequest({ parsed: parsedResumeWithAchievement('Built APIs with Python'), rawText: 'Jane Doe resume text', resumeId: RESUME_ID }));
+
+    expect(versionInsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ resume_id: 'resume-1', created_by_action: 'manual_save', label: 'Manual update' })
+    );
+  });
+
+  it('the version snapshot carries enough to restore from later', async () => {
+    await POST(makeRequest({ parsed: parsedResumeWithAchievement('Built APIs with Python'), rawText: 'Jane Doe resume text' }));
+
+    const call = versionInsertMock.mock.calls[0][0];
+    expect(call.snapshot.parsed.skills).toEqual(['Python']);
+    expect(call.snapshot.rawText).toBe('Jane Doe resume text');
+  });
+});
+
+describe('POST /api/resume/save — Phase 8.5 remediation: Truth Guard gate (A) + provenance keying (C)', () => {
+  beforeEach(() => {
+    getUserMock.mockReset().mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    checkRateLimitMock.mockReset().mockResolvedValue('allowed');
+    getEmbeddingMock.mockReset().mockResolvedValue([0.1, 0.2]);
+    loadConceptDictionaryMock.mockReset().mockResolvedValue({
+      aliasToConceptId: new Map(),
+      conceptIdToName: new Map(),
+      incompatible: new Map(),
+      equivalent: new Map(),
+    });
+    rpcMock.mockReset().mockResolvedValue({ data: 'resume-1', error: null });
+    resumesCount = 0;
+    existingAchievements = [];
+    existingProjects = [];
+    pendingSkillSuggestions = [];
+    suggestionUpdateMock.mockReset().mockResolvedValue({ data: null, error: null });
+    versionInsertMock.mockReset();
+    runTruthGuardMock.mockReset().mockResolvedValue({ flags: [], passed: true });
+    priorRawText = 'Jane Doe resume text';
+    priorSummary = 'Backend engineer.';
+  });
+
+  it('1. a save whose achievement/summary text is unchanged (only phone edited) never calls Truth Guard', async () => {
+    existingAchievements = [{ company: 'Acme', job_title: 'Engineer', achievement_text: 'Built APIs with Python', source: 'ai_parsed' }];
+
+    const res = await POST(
+      makeRequest({ parsed: parsedResumeWithAchievement('Built APIs with Python', { phone: '555-1234' }), rawText: 'Jane Doe resume text', resumeId: RESUME_ID })
+    );
+
+    expect(res.status).toBe(200);
+    expect(runTruthGuardMock).not.toHaveBeenCalled();
+    expect(rpcMock).toHaveBeenCalled();
+  });
+
+  it('2. new/changed achievement text that Truth Guard flags is blocked without confirmUnsupported, and succeeds with it', async () => {
+    existingAchievements = [{ company: 'Acme', job_title: 'Engineer', achievement_text: 'Built APIs with Python', source: 'ai_parsed' }];
+    runTruthGuardMock.mockResolvedValue({ flags: [{ text: 'x', reason: 'r', source: 'not_in_resume' }], passed: false });
+
+    const blocked = await POST(
+      makeRequest({ parsed: parsedResumeWithAchievement('Architected a company-wide platform used by 10,000 engineers'), rawText: 'Jane Doe resume text', resumeId: RESUME_ID })
+    );
+    const blockedData = await blocked.json();
+    expect(blocked.status).toBe(422);
+    expect(blockedData.error.code).toBe('needs_confirmation');
+    expect(rpcMock).not.toHaveBeenCalled();
+
+    const confirmed = await POST(
+      makeRequest({
+        parsed: parsedResumeWithAchievement('Architected a company-wide platform used by 10,000 engineers'),
+        rawText: 'Jane Doe resume text',
+        resumeId: RESUME_ID,
+        confirmUnsupported: true,
+      })
+    );
+    expect(confirmed.status).toBe(200);
+    expect(rpcMock).toHaveBeenCalled();
+  });
+
+  it('3. a first-time upload (no resumeId) never triggers Truth Guard, regardless of content', async () => {
+    runTruthGuardMock.mockResolvedValue({ flags: [{ text: 'x', reason: 'r', source: 'not_in_resume' }], passed: false });
+
+    const res = await POST(makeRequest({ parsed: parsedResumeWithAchievement('Any brand-new claim at all'), rawText: 'Jane Doe resume text' }));
+
+    expect(res.status).toBe(200);
+    expect(runTruthGuardMock).not.toHaveBeenCalled();
+    expect(rpcMock).toHaveBeenCalled();
+  });
+
+  it('C. editing company/job_title with unchanged achievement text keeps the existing source (was previously reclassified user_stated)', async () => {
+    existingAchievements = [{ company: 'Acme', job_title: 'Engineer', achievement_text: 'Built APIs with Python', source: 'ai_parsed' }];
+    const parsed = parsedResumeWithAchievement('Built APIs with Python');
+    parsed.experience[0].company = 'Acme Corp'; // renamed, achievement text unchanged
+
+    await POST(makeRequest({ parsed, rawText: 'Jane Doe resume text', resumeId: RESUME_ID }));
+
+    const rpcArgs = rpcMock.mock.calls[0][1];
+    expect(rpcArgs.p_achievements[0].source).toBe('ai_parsed');
+    expect(runTruthGuardMock).not.toHaveBeenCalled();
+  });
+
+  it('C. externally_verified is preserved even when company/job_title change', async () => {
+    existingAchievements = [{ company: 'Acme', job_title: 'Engineer', achievement_text: 'Built APIs with Python', source: 'externally_verified' }];
+    const parsed = parsedResumeWithAchievement('Built APIs with Python');
+    parsed.experience[0].job_title = 'Senior Engineer';
+
+    await POST(makeRequest({ parsed, rawText: 'Jane Doe resume text', resumeId: RESUME_ID }));
+
+    const rpcArgs = rpcMock.mock.calls[0][1];
+    expect(rpcArgs.p_achievements[0].source).toBe('externally_verified');
   });
 });

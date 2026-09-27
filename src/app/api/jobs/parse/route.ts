@@ -4,6 +4,7 @@ import { getFile, parseFormFields, readFormData } from '@/lib/api/parse-body';
 import { ParseUploadFields } from '@/lib/api/schemas/resume';
 import { createClient } from '@/lib/supabase/server';
 import { extractDocumentText, ParseTimeoutError, UnsupportedFileError } from '@/lib/parsers/extract-text';
+import { fetchJobPostingText, UrlFetchError } from '@/lib/parsers/fetch-job-url';
 import { parseJobDescription, extractRequirements } from '@/lib/openai/jd-parser';
 import { assertFileWithinLimit, assertTextWithinLimit, UploadLimitError } from '@/lib/validation/upload-limits';
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
   if (!fields.ok) return fields.response;
   const file = getFile(form.data, 'file');
   const pastedText = fields.data.text;
+  const sourceUrl = fields.data.url;
 
   let rawText = '';
 
@@ -37,8 +39,13 @@ export async function POST(request: NextRequest) {
     } else if (pastedText) {
       assertTextWithinLimit(pastedText);
       rawText = pastedText;
+    } else if (sourceUrl) {
+      // Untrusted, exactly like a paste or upload (CLAUDE.md rule 8) — fed
+      // through the same parseJobDescription() call below, which already
+      // delimits it as untrusted data before it reaches the model.
+      rawText = await fetchJobPostingText(sourceUrl);
     } else {
-      return apiError('validation_failed', 'Please upload a file or paste the text.');
+      return apiError('validation_failed', 'Please upload a file, paste the text, or provide a URL.');
     }
 
     if (!rawText.trim() || rawText.trim().length < 50) {
@@ -59,6 +66,9 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof ParseTimeoutError) {
       return apiError('validation_failed', 'We could not read this file. Try a text-based PDF or paste the text.');
+    }
+    if (error instanceof UrlFetchError) {
+      return apiError('validation_failed', error.message);
     }
     console.error('Job parse error:', error);
     return apiError('analysis_failed', 'Failed to parse job description. Please try again.');
