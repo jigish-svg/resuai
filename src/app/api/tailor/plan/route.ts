@@ -3,7 +3,9 @@ import { apiError, unauthorized } from '@/lib/api/errors';
 import { parseJsonBody } from '@/lib/api/parse-body';
 import { TailorSectionsBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
-import { generateTailoringPlan } from '@/lib/openai/tailoring-engine';
+import { generateTailoringPlan, runTruthGuard } from '@/lib/openai/tailoring-engine';
+import { classifyTruthGuardResult, TruthGuardStatus } from '@/lib/openai/truth-guard-gate';
+import { TruthGuardFlag } from '@/types/match';
 import { TailoredSection } from '@/types/match';
 import { ResumeDocumentExperience } from '@/types/export';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
@@ -76,7 +78,24 @@ export async function POST(request: NextRequest) {
       achievements ?? []
     );
 
-    return NextResponse.json({ plan });
+    // Non-blocking, early feedback on the proposal as a whole — /api/tailor/save
+    // independently re-checks whatever the client eventually accepts and submits,
+    // regardless of this result. One combined check rather than one per proposed
+    // change, to keep this proportionate for a first pass.
+    const proposedTexts = [plan.summary_change?.proposed, ...plan.bullet_changes.map((c) => c.proposed)].filter(
+      (t): t is string => !!t
+    );
+    let truthGuard: { status: TruthGuardStatus; flags: TruthGuardFlag[] } = { status: 'supported', flags: [] };
+    if (proposedTexts.length > 0) {
+      if (resume.raw_text) {
+        const truthGuardResult = await runTruthGuard(proposedTexts.join('\n'), resume.raw_text);
+        truthGuard = { status: classifyTruthGuardResult(truthGuardResult), flags: truthGuardResult.flags };
+      } else {
+        truthGuard = { status: 'needs_review', flags: [] };
+      }
+    }
+
+    return NextResponse.json({ plan, truthGuard });
   } catch (error) {
     console.error('Tailoring plan error:', error);
     return apiError('analysis_failed', 'Failed to generate tailoring plan. Please try again.');

@@ -35,6 +35,8 @@ export interface AchievementPayload {
   /** Canonical concept ids resolved from `skills` via the concept dictionary; filled in by the save route, not this builder. */
   concept_ids?: string[];
   embedding_model?: string | null;
+  /** ai_parsed | user_stated | externally_verified; filled in by the save route by comparing against the resume's existing achievements, not this builder. */
+  source?: string;
 }
 
 /** Everything save_resume writes, built before the RPC so the DB write is one step. */

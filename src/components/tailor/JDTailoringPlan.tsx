@@ -13,7 +13,7 @@ import {
   Minus,
   ArrowRight,
 } from 'lucide-react';
-import { TailoredSection } from '@/types/match';
+import { TailoredSection, TruthGuardFlag } from '@/types/match';
 import { ResumeDocumentExperience } from '@/types/export';
 import { TailoringPlan } from '@/types/tailoring-plan';
 import { apiErrorMessage } from '@/lib/api/client';
@@ -46,6 +46,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
   const [acceptedBullets, setAcceptedBullets] = useState<Set<string>>(new Set());
   const [acceptedSkills, setAcceptedSkills] = useState<Set<number>>(new Set());
   const [acceptedRemovals, setAcceptedRemovals] = useState<Set<number>>(new Set());
+  const [needsConfirmation, setNeedsConfirmation] = useState<{ status: string; flags: TruthGuardFlag[] } | null>(null);
 
   const summary = getContent<{ text: string }>(initialSections, 'summary', { text: '' });
   const experienceContent = getContent<{ experiences: ResumeDocumentExperience[] }>(initialSections, 'experience', { experiences: [] });
@@ -103,7 +104,7 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
   const totalSelected =
     (acceptSummary && plan?.summary_change ? 1 : 0) + acceptedBullets.size + acceptedSkills.size + acceptedRemovals.size;
 
-  const handleApply = async () => {
+  const handleApply = async (confirmUnsupported = false) => {
     if (!plan) return;
     setApplying(true);
     try {
@@ -137,11 +138,19 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
       const res = await fetch('/api/tailor/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, sections, name: `${jobTitle} — Tailored` }),
+        body: JSON.stringify({ jobId, sections, name: `${jobTitle} — Tailored`, confirmUnsupported }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to apply changes'));
+      if (!res.ok) {
+        if (data?.error?.code === 'needs_confirmation') {
+          setNeedsConfirmation({ status: data.error.details?.truthGuardStatus, flags: data.error.details?.flags ?? [] });
+          toast.error('Some accepted changes could not be verified against your resume.');
+          return;
+        }
+        throw new Error(apiErrorMessage(data, 'Failed to apply changes'));
+      }
 
+      setNeedsConfirmation(null);
       toast.success('Applied — opening the full editor');
       router.push(`/tailor/${jobId}`);
     } catch (err) {
@@ -307,9 +316,27 @@ export default function JDTailoringPlan({ jobId, jobTitle, jobCompany, initialSe
             </div>
           )}
 
+          {needsConfirmation && (
+            <div className="animate-fade-up glass rounded-2xl p-4 border border-black/[0.06] bg-brand-brandy/10 text-sm space-y-2">
+              <p className="font-medium text-brand-brandy">
+                Could not verify {needsConfirmation.flags.length} item(s) in the selected changes against your resume:
+              </p>
+              {needsConfirmation.flags.map((flag, i) => (
+                <p key={i} className="text-gray-600">&ldquo;{flag.text}&rdquo;</p>
+              ))}
+              <button
+                onClick={() => handleApply(true)}
+                disabled={applying}
+                className="text-sm font-semibold text-brand-brandy hover:underline disabled:opacity-60"
+              >
+                Apply anyway
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 sticky bottom-4 glass rounded-2xl p-3 border border-black/[0.08] shadow-2xl shadow-black/10 w-fit">
             <button
-              onClick={handleApply}
+              onClick={() => handleApply()}
               disabled={applying || totalSelected === 0}
               className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-dark text-white disabled:opacity-60 transition-all px-6 py-3 rounded-full font-semibold shadow-lg"
             >

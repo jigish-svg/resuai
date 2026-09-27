@@ -11,6 +11,11 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit
 import { buildResumeSavePayload } from '@/lib/resume/save-payload';
 import { loadConceptDictionary } from '@/lib/concepts/dictionary';
 import { normalizeConcepts } from '@/lib/concepts/normalize';
+import { determineAchievementSource, CandidateDataSource } from '@/lib/resume/determine-source';
+
+function achievementKey(a: { company: string; job_title: string; achievement_text: string }): string {
+  return `${a.company}\u0000${a.job_title}\u0000${a.achievement_text}`;
+}
 
 export const runtime = 'nodejs';
 
@@ -57,6 +62,21 @@ export async function POST(request: NextRequest) {
         .map((c) => c.conceptId)
     );
 
+    // Provenance is per-achievement, not per save call: an update fetches the
+    // resume's current achievements once, so an unchanged bullet keeps its
+    // existing source (e.g. ai_parsed) instead of being relabeled just because
+    // the user edited something else on the same save.
+    const existingSourceByKey = new Map<string, CandidateDataSource>();
+    if (resumeId) {
+      const { data: existing } = await supabase
+        .from('achievements')
+        .select('company, job_title, achievement_text, source')
+        .eq('resume_id', resumeId);
+      for (const a of existing ?? []) {
+        existingSourceByKey.set(achievementKey(a), a.source as CandidateDataSource);
+      }
+    }
+
     const { data: savedId, error } = await supabase.rpc('save_resume', {
       p_resume_id: resumeId ?? null,
       p_resume: payload.resume,
@@ -66,6 +86,7 @@ export async function POST(request: NextRequest) {
         embedding: embeddings[i],
         embedding_model: embeddings[i] ? EMBEDDING_MODEL : null,
         concept_ids: conceptIdsByAchievement[i],
+        source: determineAchievementSource(resumeId, existingSourceByKey.get(achievementKey(a))),
       })),
     });
     if (error) return rpcError(error, { notFound: 'Resume not found.', fallback: SAVE_FAILED });

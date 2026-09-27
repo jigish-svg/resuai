@@ -3,7 +3,9 @@ import { apiError, unauthorized } from '@/lib/api/errors';
 import { parseJsonBody } from '@/lib/api/parse-body';
 import { TailorSectionsBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
-import { optimizeResumeForATS } from '@/lib/openai/tailoring-engine';
+import { optimizeResumeForATS, runTruthGuard } from '@/lib/openai/tailoring-engine';
+import { classifyTruthGuardResult, TruthGuardStatus } from '@/lib/openai/truth-guard-gate';
+import { TruthGuardFlag } from '@/types/match';
 import { TailoredSection } from '@/types/match';
 import { ResumeDocumentExperience } from '@/types/export';
 import { getResumeForJob } from '@/lib/resume/get-resume-for-job';
@@ -83,10 +85,22 @@ export async function POST(request: NextRequest) {
       experiences: experienceContent.experiences.map((e, i) => ({ ...e, bullets: result.experience[i].bullets })),
     });
 
+    // Non-blocking, early feedback — /api/tailor/save independently re-checks
+    // whatever the client eventually submits, regardless of this result.
+    const combinedText = [result.summary, ...result.experience.flatMap((e) => e.bullets), result.skills.join(', ')].join('\n');
+    let truthGuard: { status: TruthGuardStatus; flags: TruthGuardFlag[] };
+    if (resume.raw_text) {
+      const truthGuardResult = await runTruthGuard(combinedText, resume.raw_text);
+      truthGuard = { status: classifyTruthGuardResult(truthGuardResult), flags: truthGuardResult.flags };
+    } else {
+      truthGuard = { status: 'needs_review', flags: [] };
+    }
+
     return NextResponse.json({
       sections: updatedSections,
       keywords_added: result.keywords_added,
       keywords_still_missing: result.keywords_still_missing,
+      truthGuard,
     });
   } catch (error) {
     console.error('ATS optimization error:', error);

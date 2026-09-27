@@ -75,6 +75,7 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
   const [exporting, setExporting] = useState<'pdf' | 'docx' | null>(null);
   const [checkingTruth, setCheckingTruth] = useState(false);
   const [truthResult, setTruthResult] = useState<{ flags: TruthGuardFlag[]; passed: boolean } | null>(null);
+  const [saveNeedsConfirmation, setSaveNeedsConfirmation] = useState<{ status: string; flags: TruthGuardFlag[] } | null>(null);
   const [rewritingKey, setRewritingKey] = useState<string | null>(null);
   const [optimizing, setOptimizing] = useState(false);
   const [optimizeResult, setOptimizeResult] = useState<{ keywords_added: string[]; keywords_still_missing: string[] } | null>(null);
@@ -140,16 +141,24 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (confirmUnsupported = false) => {
     setSaving(true);
     try {
       const res = await fetch('/api/tailor/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobId, sections, name: `${jobTitle} — Tailored` }),
+        body: JSON.stringify({ jobId, sections, name: `${jobTitle} — Tailored`, confirmUnsupported }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(apiErrorMessage(data, 'Failed to save'));
+      if (!res.ok) {
+        if (data?.error?.code === 'needs_confirmation') {
+          setSaveNeedsConfirmation({ status: data.error.details?.truthGuardStatus, flags: data.error.details?.flags ?? [] });
+          toast.error('Some content could not be verified against your resume.');
+          return;
+        }
+        throw new Error(apiErrorMessage(data, 'Failed to save'));
+      }
+      setSaveNeedsConfirmation(null);
       toast.success('Tailored resume saved');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
@@ -443,13 +452,31 @@ export default function TailorEditor({ jobId, jobTitle, jobCompany, requirements
           <hr className="border-ink/10" />
 
           <button
-            onClick={handleSave}
+            onClick={() => handleSave()}
             disabled={saving}
             className="w-full flex items-center justify-center gap-2 border border-ink/10 hover:bg-ink/5 disabled:opacity-60 transition-colors text-ink px-4 py-2 rounded text-sm font-medium"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save draft
           </button>
+
+          {saveNeedsConfirmation && (
+            <div className="text-xs rounded p-2.5 bg-brand-brandy/10 text-brand-brandy space-y-2">
+              <p className="flex items-center gap-1 font-medium">
+                <ShieldAlert className="w-3.5 h-3.5" /> Could not verify {saveNeedsConfirmation.flags.length} item(s) against your resume
+              </p>
+              {saveNeedsConfirmation.flags.map((flag, i) => (
+                <p key={i} className="opacity-90">&ldquo;{flag.text}&rdquo;</p>
+              ))}
+              <button
+                onClick={() => handleSave(true)}
+                disabled={saving}
+                className="w-full mt-1 flex items-center justify-center gap-2 bg-brand-brandy/20 hover:bg-brand-brandy/30 disabled:opacity-60 transition-colors text-brand-brandy px-3 py-1.5 rounded text-xs font-medium"
+              >
+                Save anyway
+              </button>
+            </div>
+          )}
 
           <div className="space-y-2 pt-2">
             <button

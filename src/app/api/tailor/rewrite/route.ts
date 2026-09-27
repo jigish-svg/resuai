@@ -3,7 +3,8 @@ import { apiError, unauthorized } from '@/lib/api/errors';
 import { parseJsonBody } from '@/lib/api/parse-body';
 import { RewriteBulletBody } from '@/lib/api/schemas/tailor';
 import { createClient } from '@/lib/supabase/server';
-import { rewriteAchievementBullet } from '@/lib/openai/tailoring-engine';
+import { rewriteAchievementBullet, runTruthGuard } from '@/lib/openai/tailoring-engine';
+import { classifyTruthGuardResult } from '@/lib/openai/truth-guard-gate';
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -49,7 +50,14 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await rewriteAchievementBullet(originalText, requirementText, verifiedFacts, verifiedMetrics);
-    return NextResponse.json(result);
+
+    // Non-blocking, early feedback — /api/tailor/save independently re-checks
+    // whatever the client eventually submits, regardless of this result.
+    const baselineText = [originalText, ...verifiedFacts, ...verifiedMetrics].filter(Boolean).join('\n');
+    const truthGuardResult = await runTruthGuard(result.rewritten, baselineText);
+    const truthGuardStatus = classifyTruthGuardResult(truthGuardResult);
+
+    return NextResponse.json({ ...result, truthGuard: { status: truthGuardStatus, flags: truthGuardResult.flags } });
   } catch (error) {
     console.error('Bullet rewrite error:', error);
     return apiError('analysis_failed', 'Failed to rewrite bullet. Please try again.');
