@@ -1,10 +1,12 @@
-const CACHE = 'gjf-v1';
-const OFFLINE_URL = '/offline';
+const CACHE = 'gjf-v2';
+const OFFLINE_PAGE = '/offline.html';
 
-// Install: cache the offline page
+// Install: cache the standalone offline game (pure HTML, no server needed)
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll([OFFLINE_URL, '/']))
+    caches.open(CACHE).then((cache) =>
+      cache.addAll([OFFLINE_PAGE])
+    )
   );
   self.skipWaiting();
 });
@@ -19,12 +21,12 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: if navigation fails, show offline snake game
+// Fetch: if ANY navigation fails (server down, no internet, timeout), show offline game
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() =>
-        caches.open(CACHE).then((cache) => cache.match(OFFLINE_URL))
+        caches.open(CACHE).then((cache) => cache.match(OFFLINE_PAGE))
       )
     );
   }

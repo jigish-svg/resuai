@@ -95,7 +95,14 @@ export default function OfflineGame() {
     if (dirRef.current === 'LEFT') nx--;
     if (dirRef.current === 'RIGHT') nx++;
 
-    if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID || snake.some((s) => s.x === nx && s.y === ny)) {
+    // Wrap around walls (pac-man style — no wall death)
+    if (nx < 0) nx = GRID - 1;
+    if (nx >= GRID) nx = 0;
+    if (ny < 0) ny = GRID - 1;
+    if (ny >= GRID) ny = 0;
+
+    // Only self-collision ends the game
+    if (snake.some((s) => s.x === nx && s.y === ny)) {
       gameOverRef.current = true;
       setGameOver(true);
       if (intervalRef.current) clearInterval(intervalRef.current);

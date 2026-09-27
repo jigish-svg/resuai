@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GetJobFit.in — Offline</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #EEF8F6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 20px;
+    color: #1a2724;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .logo-text {
+    font-family: Georgia, serif;
+    font-size: 22px;
+    font-weight: bold;
+    color: #1C4A35;
+  }
+  .logo-text span { color: #8B3A2A; }
+  .status {
+    font-size: 13px;
+    color: #80240F;
+    font-weight: 600;
+    margin-top: -10px;
+  }
+  canvas {
+    border-radius: 12px;
+    border: 1px solid rgba(26,39,36,0.10);
+    box-shadow: 0 2px 12px rgba(26,39,36,0.06);
+    cursor: pointer;
+    display: block;
+  }
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 13px;
+    color: #5e7a73;
+  }
+  .score-num { font-weight: 700; color: #1a2724; font-size: 15px; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+  .footer {
+    font-size: 11px;
+    color: #8a9fa0;
+    text-align: center;
+  }
+  .footer a { color: #48845A; text-decoration: underline; cursor: pointer; }
+  .hint { font-size: 12px; color: #8a9fa0; }
+  #overlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-radius: 12px;
+    background: rgba(238,248,246,0.88);
+    backdrop-filter: blur(4px);
+  }
+  .overlay-title { font-size: 22px; font-weight: 700; color: #1a2724; }
+  .overlay-sub { font-size: 13px; color: #5e7a73; }
+  .btn {
+    background: #48845A;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .wrap-badge {
+    display: inline-block;
+    background: rgba(72,132,90,0.12);
+    color: #48845A;
+    border-radius: 99px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <svg viewBox="0 0 100 100" width="38" height="38" xmlns="http://www.w3.org/2000/svg">
+    <rect x="10" y="36" width="80" height="54" rx="8" fill="#2D6A4F"/>
+    <path d="M36 36V28a6 6 0 0 1 6-6h16a6 6 0 0 1 6 6v8" fill="none" stroke="#1e4d39" stroke-width="4" stroke-linecap="round"/>
+    <rect x="42" y="56" width="16" height="10" rx="3" fill="rgba(255,255,255,0.25)"/>
+    <path d="M18 66 Q28 52 40 60 L48 66" fill="none" stroke="#6B3A2A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M82 66 Q72 52 60 60 L52 66" fill="none" stroke="#C68642" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="50" cy="66" rx="6" ry="5" fill="#8B4513"/>
+    <circle cx="78" cy="24" r="14" fill="#EEF8F6"/>
+    <path d="M70 34 L66 44 L78 36" fill="#EEF8F6"/>
+    <circle cx="72" cy="24" r="2" fill="#2D6A4F"/>
+    <circle cx="78" cy="24" r="2" fill="#2D6A4F"/>
+    <circle cx="84" cy="24" r="2" fill="#2D6A4F"/>
+  </svg>
+  <div class="logo-text">GetJobFit<span>.in</span></div>
+</div>
+
+<p class="status">⚠ You're offline or the server is unreachable</p>
+
+<div style="position:relative; display:inline-block;">
+  <canvas id="c" width="440" height="440"></canvas>
+  <div id="overlay" style="inset:0;"></div>
+</div>
+
+<div class="score-bar">
+  <span><span class="dot" style="background:#48845A;"></span>Snake</span>
+  <span>Score: <span class="score-num" id="scoreEl">0</span></span>
+  <span><span class="dot" style="background:#80240F;"></span>Food</span>
+  <span class="wrap-badge">Walls wrap ↺</span>
+</div>
+
+<p class="hint">WASD / Arrow keys &nbsp;·&nbsp; Swipe on mobile</p>
+
+<p class="footer">
+  <a onclick="window.location.reload()">Try reconnecting</a>
+  &nbsp;·&nbsp; getjobfit.in
+</p>
+
+<script>
+const G = 20, C = 22, TICK = 130;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('scoreEl');
+const overlay = document.getElementById('overlay');
+
+let snake, dir, nextDir, food, score, dead, interval;
+
+function rnd(n) { return Math.floor(Math.random() * n); }
+function randFood(s) {
+  let p;
+  do { p = {x: rnd(G), y: rnd(G)}; } while (s.some(q => q.x===p.x && q.y===p.y));
+  return p;
+}
+
+function draw() {
+  // Background
+  ctx.fillStyle = '#EEF8F6';
+  ctx.fillRect(0,0,G*C,G*C);
+  // Grid dots
+  ctx.fillStyle = 'rgba(72,132,90,0.07)';
+  for(let x=0;x<G;x++) for(let y=0;y<G;y++){
+    ctx.beginPath(); ctx.arc(x*C+C/2,y*C+C/2,1,0,Math.PI*2); ctx.fill();
+  }
+  // Food
+  ctx.fillStyle = '#80240F';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(food.x*C+3,food.y*C+3,C-6,C-6,4);
+  else ctx.rect(food.x*C+3,food.y*C+3,C-6,C-6);
+  ctx.fill();
+  // Snake
+  snake.forEach((seg,i)=>{
+    const isH = i===0;
+    ctx.fillStyle = isH ? '#48845A' : `rgba(72,132,90,${Math.max(0.3, 0.9-i*0.03)})`;
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(seg.x*C+2,seg.y*C+2,C-4,C-4,isH?6:3);
+    else ctx.rect(seg.x*C+2,seg.y*C+2,C-4,C-4);
+    ctx.fill();
+  });
+}
+
+function tick() {
+  if(dead) return;
+  dir = nextDir;
+  const h = snake[0];
+  let nx = h.x + (dir==='RIGHT'?1:dir==='LEFT'?-1:0);
+  let ny = h.y + (dir==='DOWN'?1:dir==='UP'?-1:0);
+  // Wrap walls
+  if(nx<0) nx=G-1; if(nx>=G) nx=0;
+  if(ny<0) ny=G-1; if(ny>=G) ny=0;
+  // Self collision only
+  if(snake.some(s=>s.x===nx&&s.y===ny)){
+    dead=true; clearInterval(interval);
+    showOverlay('Game Over','Score: '+score,'Play again',start); return;
+  }
+  const ns = [{x:nx,y:ny},...snake];
+  if(nx===food.x&&ny===food.y){ score+=10; scoreEl.textContent=score; food=randFood(ns); }
+  else ns.pop();
+  snake=ns; draw();
+}
+
+function showOverlay(title,sub,btn,cb){
+  overlay.innerHTML = `<div class="overlay-title">${title}</div>
+    <div class="overlay-sub">${sub}</div>
+    <button class="btn" onclick="(${cb.toString()})();">${btn}</button>`;
+  overlay.style.display='flex';
+}
+
+function start(){
+  snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+  dir=nextDir='RIGHT'; food=randFood(snake); score=0; dead=false;
+  scoreEl.textContent=0; overlay.style.display='none';
+  clearInterval(interval); interval=setInterval(tick,TICK); draw();
+}
+
+// Initial overlay
+showOverlay('Snake','Walls wrap — only self-collision ends it','Start game',start);
+
+// Key controls
+document.addEventListener('keydown',e=>{
+  const m={ArrowUp:'UP',w:'UP',W:'UP',ArrowDown:'DOWN',s:'DOWN',S:'DOWN',
+    ArrowLeft:'LEFT',a:'LEFT',A:'LEFT',ArrowRight:'RIGHT',d:'RIGHT',D:'RIGHT'};
+  const d=m[e.key]; if(!d) return; e.preventDefault();
+  if(dead){start();return;}
+  const opp={UP:'DOWN',DOWN:'UP',LEFT:'RIGHT',RIGHT:'LEFT'};
+  if(d!==opp[dir]) nextDir=d;
+});
+
+// Touch controls
+let tx,ty;
+canvas.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;},{passive:true});
+canvas.addEventListener('touchend',e=>{
+  if(dead){start();return;}
+  const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  const opp={UP:'DOWN',DOWN:'UP',LEFT:'RIGHT',RIGHT:'LEFT'};
+  let d; if(Math.abs(dx)>Math.abs(dy)) d=dx>0?'RIGHT':'LEFT'; else d=dy>0?'DOWN':'UP';
+  if(d!==opp[dir]) nextDir=d;
+},{passive:true});
+canvas.addEventListener('click',()=>{ if(dead) start(); });
+</script>
+</body>
+</html>
