@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { Plus, ArrowRight, Clock } from 'lucide-react';
+import { Plus, ArrowRight, Clock, Briefcase, FileText, Activity } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 export default async function DashboardPage() {
@@ -33,26 +33,57 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto py-8">
       {/* Header */}
-      <div className="flex items-start justify-between mb-12">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-ink mb-1">Good morning, {displayName}</h1>
+          <h1 className="text-2xl font-bold text-ink mb-1">Good morning, {displayName}</h1>
           <p className="text-sm text-ink-soft">
-            {jobCount} application{jobCount !== 1 ? 's' : ''} tracked.
+            Here's what's happening with your job search today.
           </p>
         </div>
         <Link
           href="/jobs/new"
-          className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-4 py-2 rounded text-sm font-medium"
+          className="flex items-center gap-2 bg-brand-sea-green hover:bg-opacity-90 text-white transition-colors px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm"
         >
           <Plus className="w-4 h-4" />
           New Application
         </Link>
       </div>
 
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        <div className="bg-white border border-ink/10 rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-brand-cream flex items-center justify-center shrink-0">
+            <Briefcase className="w-5 h-5 text-brand-sea-green" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1">Applications</p>
+            <p className="text-xl font-bold text-ink">{jobCount}</p>
+          </div>
+        </div>
+        <div className="bg-white border border-ink/10 rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-brand-aqua/10 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-brand-aqua" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1">Master Resume</p>
+            <p className="text-sm font-bold text-ink">{hasMasterResume ? 'Ready' : 'Not setup'}</p>
+          </div>
+        </div>
+        <div className="bg-white border border-ink/10 rounded-xl p-5 shadow-sm flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-brand-brandy/10 flex items-center justify-center shrink-0">
+            <Activity className="w-5 h-5 text-brand-brandy" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-1">Avg Match Score</p>
+            <p className="text-xl font-bold text-ink">—</p>
+          </div>
+        </div>
+      </div>
+
       {/* Continue - Most recent unfinished application */}
       {recentJobs && recentJobs.length > 0 && (
-        <div className="mb-12">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-4">Continue</h2>
+        <div className="mb-10">
+          <h2 className="text-sm font-bold text-ink mb-4">Pick up where you left off</h2>
           {(() => {
             const latestJob = recentJobs[0];
             const hasMatch = Array.isArray(latestJob.matches) && latestJob.matches.length > 0;
@@ -60,23 +91,24 @@ export default async function DashboardPage() {
               ? (latestJob.matches[0] as { overall_score: number | null }).overall_score
               : null;
             return (
-              <div className="border border-ink/10 rounded bg-white p-4 flex items-center justify-between">
+              <div className="border-2 border-brand-sea-green/20 rounded-xl bg-brand-bg/30 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-brand-bg/60">
                 <div>
-                  <p className="font-semibold text-ink text-sm">{latestJob.title}</p>
-                  <p className="text-xs text-ink-soft">{latestJob.company || 'Unknown Company'}</p>
+                  <p className="font-bold text-ink text-base mb-1">{latestJob.title}</p>
+                  <p className="text-sm text-ink-soft flex items-center gap-2">
+                    <span className="font-medium text-ink">{latestJob.company || 'Unknown Company'}</span>
+                    <span>•</span>
+                    <span className="capitalize">{latestJob.status.replace('_', ' ')}</span>
+                  </p>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                   {matchScore !== null && (
-                    <div className="text-sm text-ink">
-                      Fit <span className="font-semibold">{matchScore}</span>
+                    <div className="text-sm text-ink-soft border border-ink/10 bg-white px-3 py-1.5 rounded-lg font-medium">
+                      Fit: <span className="text-brand-sea-green font-bold ml-1">{matchScore}%</span>
                     </div>
                   )}
-                  <div className="text-sm text-ink-soft capitalize">
-                    {latestJob.status.replace('_', ' ')}
-                  </div>
                   <Link
                     href={hasMatch ? `/match/${latestJob.id}` : `/jobs/${latestJob.id}`}
-                    className="flex items-center gap-1 text-sm text-brand-aqua hover:underline font-medium"
+                    className="flex items-center gap-2 bg-white border border-ink/20 hover:border-brand-sea-green text-sm text-ink font-semibold px-4 py-2 rounded-lg transition-all"
                   >
                     Continue <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -89,10 +121,10 @@ export default async function DashboardPage() {
 
       {/* Recent Applications */}
       <div>
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-4">Recent Applications</h2>
+        <h2 className="text-sm font-bold text-ink mb-4">Recent Applications</h2>
         {recentJobs && recentJobs.length > 0 ? (
-          <div className="border-t border-ink/10">
-            {recentJobs.map((job) => {
+          <div className="border border-ink/10 rounded-xl bg-white overflow-hidden shadow-sm">
+            {recentJobs.map((job, idx) => {
               const hasMatch = Array.isArray(job.matches) && job.matches.length > 0;
               const matchScore = hasMatch
                 ? (job.matches[0] as { overall_score: number | null }).overall_score
@@ -102,30 +134,34 @@ export default async function DashboardPage() {
                 <Link
                   key={job.id}
                   href={hasMatch ? `/match/${job.id}` : `/jobs/${job.id}`}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-ink/5 hover:bg-brand-bg/50 transition-colors group"
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-brand-bg/40 transition-colors group ${
+                    idx !== recentJobs.length - 1 ? 'border-b border-ink/5' : ''
+                  }`}
                 >
-                  <div className="flex-[2] min-w-0">
-                    <p className="font-medium text-sm text-ink truncate">{job.title}</p>
-                    <p className="text-xs text-ink-soft truncate">{job.company || 'Unknown Company'}</p>
+                  <div className="flex-[2] min-w-0 mb-2 sm:mb-0">
+                    <p className="font-semibold text-sm text-ink truncate mb-0.5 group-hover:text-brand-sea-green transition-colors">{job.title}</p>
+                    <p className="text-xs text-ink-soft truncate font-medium">{job.company || 'Unknown Company'}</p>
                   </div>
-                  <div className="flex-[1] flex items-center gap-2 mt-2 sm:mt-0">
-                    {matchScore !== null ? (
-                      <span className="text-xs text-ink bg-brand-cream px-2 py-0.5 rounded">
-                        Fit {matchScore}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-ink-muted">No fit score</span>
-                    )}
-                  </div>
-                  <div className="flex-[1] flex items-center mt-2 sm:mt-0">
-                    <span className="text-xs text-brand-sea-green bg-brand-sea-green/10 px-2 py-0.5 rounded capitalize">
+                  
+                  <div className="flex-[1] flex items-center justify-start sm:justify-center">
+                    <span className="text-[11px] font-semibold tracking-wide text-ink-soft bg-ink/5 border border-ink/10 px-2.5 py-1 rounded-full capitalize">
                       {job.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <div className="flex-[1] flex justify-end mt-2 sm:mt-0">
-                    <span className="text-xs text-ink-muted flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(job.updated_at || job.created_at)}
+
+                  <div className="flex-[1] flex items-center justify-start sm:justify-center mt-2 sm:mt-0">
+                    {matchScore !== null ? (
+                      <span className="text-[11px] font-bold text-brand-sea-green bg-brand-sea-green/10 border border-brand-sea-green/20 px-2.5 py-1 rounded-full">
+                        Fit: {matchScore}%
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-medium text-ink-muted">No fit score</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex-[1] flex justify-end mt-2 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-semibold text-brand-aqua flex items-center gap-1">
+                      View details <ArrowRight className="w-3 h-3" />
                     </span>
                   </div>
                 </Link>
@@ -133,17 +169,17 @@ export default async function DashboardPage() {
             })}
           </div>
         ) : (
-          <div className="text-sm text-ink-soft py-4 border-t border-ink/10">
-            No applications found. <Link href="/jobs/new" className="text-brand-aqua hover:underline">Start a new application.</Link>
+          <div className="border border-ink/10 rounded-xl bg-white p-8 text-center shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center mx-auto mb-3">
+              <Briefcase className="w-5 h-5 text-brand-sea-green" />
+            </div>
+            <p className="text-sm font-semibold text-ink mb-1">No applications yet</p>
+            <p className="text-xs text-ink-soft mb-4">Start tracking your jobs to see them here.</p>
+            <Link href="/jobs/new" className="inline-flex text-xs font-semibold text-brand-aqua hover:underline">
+              Add your first job →
+            </Link>
           </div>
         )}
-      </div>
-
-      {/* Optional tiny summary */}
-      <div className="flex gap-4 mt-12 text-xs text-ink-muted">
-        <span>{jobCount} Applications</span>
-        <span>·</span>
-        <span>{hasMasterResume ? 'Document ready' : 'No master document'}</span>
       </div>
     </div>
   );

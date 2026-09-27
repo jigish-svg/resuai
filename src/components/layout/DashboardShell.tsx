@@ -15,6 +15,7 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ user, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const pathname = usePathname();
 
   // Start collapsed on phones/small tablets so the drawer doesn't cover the
@@ -41,10 +42,15 @@ export default function DashboardShell({ user, children }: DashboardShellProps) 
         <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <DashboardSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <DashboardSidebar 
+        open={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
+      />
 
       <div
-        className={`flex-1 flex flex-col min-h-screen relative transition-[margin] duration-300 ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}
+        className={`flex-1 flex flex-col min-h-screen relative transition-all duration-300 ${sidebarOpen ? (sidebarCollapsed ? 'md:ml-20' : 'md:ml-60') : 'ml-0'}`}
       >
         <DashboardHeader user={user} onToggleSidebar={() => setSidebarOpen((v) => !v)} />
         <main className="flex-1 p-4 sm:p-8 overflow-auto relative">{children}</main>
