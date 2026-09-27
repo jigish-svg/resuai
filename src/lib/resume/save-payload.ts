@@ -39,12 +39,27 @@ export interface AchievementPayload {
   source?: string;
 }
 
+export interface ProjectPayload {
+  name: string;
+  description: string;
+  role: string | null;
+  technologies: string[];
+  metrics: string[];
+  start_date: string | null;
+  end_date: string | null;
+  link: string | null;
+  /** Canonical concept ids resolved from `technologies` via the concept dictionary; filled in by the save route, not this builder. */
+  concept_ids?: string[];
+  /** ai_parsed | user_stated | externally_verified; filled in by the save route by comparing against the resume's existing projects, not this builder. */
+  source?: string;
+}
+
 /** Everything save_resume writes, built before the RPC so the DB write is one step. */
 export function buildResumeSavePayload(
   parsed: ParsedResumeInput,
   rawText: string,
   { name, template }: { name?: string | null; template?: ResumeTemplate | null }
-): { resume: ResumeRowPayload; sections: SectionPayload[]; achievements: AchievementPayload[] } {
+): { resume: ResumeRowPayload; sections: SectionPayload[]; achievements: AchievementPayload[]; projects: ProjectPayload[] } {
   const firstTitle = parsed.experience[0]?.job_title;
 
   const resume: ResumeRowPayload = {
@@ -93,5 +108,16 @@ export function buildResumeSavePayload(
     }))
   );
 
-  return { resume, sections, achievements };
+  const projects: ProjectPayload[] = (parsed.projects ?? []).map((p) => ({
+    name: p.name,
+    description: p.description,
+    role: p.role ?? null,
+    technologies: p.technologies,
+    metrics: p.metrics,
+    start_date: p.start_date ?? null,
+    end_date: p.end_date ?? null,
+    link: p.link ?? null,
+  }));
+
+  return { resume, sections, achievements, projects };
 }

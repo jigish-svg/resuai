@@ -37,6 +37,19 @@ export const ParsedCertificationSchema = z
   })
   .strict();
 
+export const ParsedProjectSchema = z
+  .object({
+    name: shortText,
+    description: longText,
+    role: optional(shortText),
+    technologies: list(shortText),
+    metrics: list(shortText),
+    start_date: optional(shortText),
+    end_date: optional(shortText),
+    link: optional(shortText),
+  })
+  .strict();
+
 export const CandidateSchema = z
   .object({
     name: shortText,
@@ -56,6 +69,7 @@ export const ParsedResumeSchema = z
     skills: list(shortText),
     education: list(ParsedEducationSchema, 50),
     certifications: list(ParsedCertificationSchema, 100),
+    projects: list(ParsedProjectSchema, 50),
   })
   .strict();
 
