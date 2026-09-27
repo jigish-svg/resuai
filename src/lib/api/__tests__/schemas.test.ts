@@ -31,6 +31,7 @@ const parsedResume = {
   skills: ['Go', 'Postgres'],
   education: [{ institution: 'Uni', degree: 'BSc', field: 'CS', graduation_date: null, gpa: null }],
   certifications: [{ name: 'CKA', issuer: 'CNCF', date: null, expiry: null }],
+  projects: [{ name: 'URL Shortener', description: 'A distributed URL shortener.', role: null, technologies: ['Go', 'Redis'], metrics: [], start_date: null, end_date: null, link: null }],
 };
 
 const sections = [
@@ -101,6 +102,12 @@ describe('SaveResumeBody', () => {
   it('rejects over-cap values', () => {
     bad(SaveResumeBody, { ...body, rawText: 'x'.repeat(50_001) });
     bad(SaveResumeBody, { ...body, parsed: { ...parsedResume, skills: new Array(201).fill('Go') } });
+  });
+  it('a client cannot claim its own provenance for a project — the schema has no source field to set', () => {
+    bad(SaveResumeBody, {
+      ...body,
+      parsed: { ...parsedResume, projects: [{ ...parsedResume.projects[0], source: 'externally_verified' }] },
+    });
   });
 });
 

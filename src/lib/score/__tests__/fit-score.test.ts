@@ -35,6 +35,15 @@ describe('configuration', () => {
       expect(kinds).not.toContain(unscored);
     }
   });
+
+  it('projects introduce no new fit-score dimension or weight (Step 3: project evidence rides existing kinds, e.g. hard_skill/technology)', () => {
+    const dimensionCount = SCORE_CONFIG_V1.dimensions.length;
+    expect(dimensionCount).toBe(6);
+    const sum = SCORE_CONFIG_V1.dimensions.reduce((s, d) => s + d.weight, 0);
+    expect(sum).toBeCloseTo(1.0, 12);
+    const kinds = SCORE_CONFIG_V1.dimensions.flatMap((d) => d.kinds);
+    expect(kinds).not.toContain('project');
+  });
 });
 
 describe('perfect candidate', () => {

@@ -11,10 +11,14 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/rate-limit
 import { buildResumeSavePayload } from '@/lib/resume/save-payload';
 import { loadConceptDictionary } from '@/lib/concepts/dictionary';
 import { normalizeConcepts } from '@/lib/concepts/normalize';
-import { determineAchievementSource, CandidateDataSource } from '@/lib/resume/determine-source';
+import { determineCandidateSource, CandidateDataSource } from '@/lib/resume/determine-source';
 
 function achievementKey(a: { company: string; job_title: string; achievement_text: string }): string {
   return `${a.company}\u0000${a.job_title}\u0000${a.achievement_text}`;
+}
+
+function projectKey(p: { name: string; description: string }): string {
+  return `${p.name}\u0000${p.description}`;
 }
 
 export const runtime = 'nodejs';
@@ -54,26 +58,36 @@ export async function POST(request: NextRequest) {
     );
 
     // One dictionary load for the whole save, not one query per skill: every
-    // achievement's skills[] is normalized in a single batch pass against it.
+    // achievement's skills[] and every project's technologies[] are normalized
+    // in a single batch pass each against it.
     const dictionary = await loadConceptDictionary(supabase);
     const conceptIdsByAchievement = payload.achievements.map((a) =>
       normalizeConcepts(dictionary, a.skills)
         .filter((c): c is NonNullable<typeof c> => c !== null)
         .map((c) => c.conceptId)
     );
+    const conceptIdsByProject = payload.projects.map((p) =>
+      normalizeConcepts(dictionary, p.technologies)
+        .filter((c): c is NonNullable<typeof c> => c !== null)
+        .map((c) => c.conceptId)
+    );
 
-    // Provenance is per-achievement, not per save call: an update fetches the
-    // resume's current achievements once, so an unchanged bullet keeps its
-    // existing source (e.g. ai_parsed) instead of being relabeled just because
-    // the user edited something else on the same save.
-    const existingSourceByKey = new Map<string, CandidateDataSource>();
+    // Provenance is per-item, not per save call: an update fetches the resume's
+    // current achievements/projects once, so an unchanged bullet or project
+    // keeps its existing source (e.g. ai_parsed) instead of being relabeled
+    // just because the user edited something else on the same save.
+    const existingAchievementSourceByKey = new Map<string, CandidateDataSource>();
+    const existingProjectSourceByKey = new Map<string, CandidateDataSource>();
     if (resumeId) {
-      const { data: existing } = await supabase
-        .from('achievements')
-        .select('company, job_title, achievement_text, source')
-        .eq('resume_id', resumeId);
-      for (const a of existing ?? []) {
-        existingSourceByKey.set(achievementKey(a), a.source as CandidateDataSource);
+      const [{ data: existingAchievements }, { data: existingProjects }] = await Promise.all([
+        supabase.from('achievements').select('company, job_title, achievement_text, source').eq('resume_id', resumeId),
+        supabase.from('projects').select('name, description, source').eq('resume_id', resumeId),
+      ]);
+      for (const a of existingAchievements ?? []) {
+        existingAchievementSourceByKey.set(achievementKey(a), a.source as CandidateDataSource);
+      }
+      for (const p of existingProjects ?? []) {
+        existingProjectSourceByKey.set(projectKey(p), p.source as CandidateDataSource);
       }
     }
 
@@ -86,10 +100,37 @@ export async function POST(request: NextRequest) {
         embedding: embeddings[i],
         embedding_model: embeddings[i] ? EMBEDDING_MODEL : null,
         concept_ids: conceptIdsByAchievement[i],
-        source: determineAchievementSource(resumeId, existingSourceByKey.get(achievementKey(a))),
+        source: determineCandidateSource(resumeId, existingAchievementSourceByKey.get(achievementKey(a))),
+      })),
+      p_projects: payload.projects.map((p, i) => ({
+        ...p,
+        concept_ids: conceptIdsByProject[i],
+        source: determineCandidateSource(resumeId, existingProjectSourceByKey.get(projectKey(p))),
       })),
     });
     if (error) return rpcError(error, { notFound: 'Resume not found.', fallback: SAVE_FAILED });
+
+    // Recommendation -> fact link, informational only: if the user has since
+    // added a previously-suggested skill themselves, mark the suggestion as
+    // matched. This never writes to achievements/resume_sections — it only
+    // updates the suggestion's own status for the user's benefit.
+    if (resumeId) {
+      const { data: pendingSuggestions } = await supabase
+        .from('ai_suggestions')
+        .select('id, content')
+        .eq('resume_id', resumeId)
+        .eq('suggestion_type', 'skill')
+        .eq('status', 'pending');
+
+      const currentSkills = new Set(parsed.skills.map((s) => s.toLowerCase()));
+      const matchedIds = (pendingSuggestions ?? [])
+        .filter((row) => currentSkills.has(((row.content as { skill?: string })?.skill ?? '').toLowerCase()))
+        .map((row) => row.id);
+
+      if (matchedIds.length > 0) {
+        await supabase.from('ai_suggestions').update({ status: 'matched_by_later_fact' }).in('id', matchedIds);
+      }
+    }
 
     return NextResponse.json({ resumeId: savedId });
   } catch (error) {

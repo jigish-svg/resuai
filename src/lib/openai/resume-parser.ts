@@ -43,6 +43,17 @@ const CertificationSchema = z.object({
   expiry: z.string().optional(),
 });
 
+const ProjectSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  role: z.string().optional(),
+  technologies: z.array(z.string()),
+  metrics: z.array(z.string()),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+  link: z.string().optional(),
+});
+
 const ParsedResumeSchema = z.object({
   candidate: CandidateSchema,
   summary: z.string().optional(),
@@ -50,6 +61,7 @@ const ParsedResumeSchema = z.object({
   skills: z.array(z.string()),
   education: z.array(EducationSchema),
   certifications: z.array(CertificationSchema),
+  projects: z.array(ProjectSchema),
 });
 
 export async function parseResume(resumeText: string): Promise<ParsedResume> {
@@ -64,6 +76,8 @@ For achievements, extract:
 - The exact achievement text (keep it verbatim where possible)
 - Skills demonstrated in the achievement
 - Any metrics/numbers mentioned (percentages, dollar amounts, counts, time savings, etc.)
+
+If the resume has a Projects section (or personal/side projects mentioned anywhere), extract each one: its name, description, the candidate's role/contribution if stated, technologies used, any metrics/outcomes mentioned, dates, and a link if given. Return an empty projects array if none are present — never invent a project that isn't in the text.
 
 Be precise and accurate. Do not invent or embellish any information. Only extract what is explicitly stated.
 
@@ -101,5 +115,6 @@ ${UNTRUSTED_DATA_NOTICE}`,
     skills: result.skills,
     education: result.education,
     certifications: result.certifications,
+    projects: result.projects,
   };
 }

@@ -51,9 +51,24 @@ export interface Achievement {
   skills: string[];
   metrics: string[];
   dates?: string;
-  source: 'upload' | 'manual' | 'ai_parsed';
+  source: 'ai_parsed' | 'user_stated' | 'externally_verified';
   confidence: number;
   embedding?: number[];
+}
+
+export interface Project {
+  id: string;
+  resume_id: string;
+  name: string;
+  description: string;
+  role?: string;
+  technologies: string[];
+  metrics: string[];
+  start_date?: string;
+  end_date?: string;
+  link?: string;
+  source: 'ai_parsed' | 'user_stated' | 'externally_verified';
+  concept_ids: string[];
 }
 
 export interface ParsedResume {
@@ -70,6 +85,18 @@ export interface ParsedResume {
   skills: string[];
   education: ParsedEducation[];
   certifications: ParsedCertification[];
+  projects: ParsedProject[];
+}
+
+export interface ParsedProject {
+  name: string;
+  description: string;
+  role?: string;
+  technologies: string[];
+  metrics: string[];
+  start_date?: string;
+  end_date?: string;
+  link?: string;
 }
 
 export interface ParsedExperience {

@@ -66,6 +66,11 @@ export async function POST(request: NextRequest) {
       return apiError('conflict', 'Your master resume has no achievements yet. Add some and try again.');
     }
 
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('id, name, description, technologies, metrics, concept_ids')
+      .eq('resume_id', resume.id);
+
     const { data: resumeSections } = await supabase
       .from('resume_sections')
       .select('section_type, content')
@@ -87,14 +92,17 @@ export async function POST(request: NextRequest) {
     const skillsCertsNeverMergeBlocked = new Set<string>();
 
     // Never-merge must cover every evidence path, not only achievements: the
-    // skills-list and certifications-list are normalized to concepts here too,
-    // in one batch pass each (not one lookup per requirement).
+    // skills-list, certifications-list, and project technologies are all
+    // normalized to concepts here too, in one batch pass each (not one lookup
+    // per requirement). Projects already have their concept_ids precomputed at
+    // save time, so they're concatenated directly rather than re-normalized.
     const skillCertConceptIds = [
       ...normalizeConcepts(dictionary, skills),
       ...normalizeConcepts(dictionary, certifications.map((c) => c.name)),
     ]
       .filter((c): c is NonNullable<typeof c> => c !== null)
-      .map((c) => c.conceptId);
+      .map((c) => c.conceptId)
+      .concat((projects ?? []).flatMap((p) => p.concept_ids ?? []));
 
     for (const requirement of requirements) {
       const reqConceptId: string | null = requirement.normalized_concept_id;
@@ -144,6 +152,7 @@ export async function POST(request: NextRequest) {
       resume.candidate_name || 'Candidate',
       skills,
       certifications,
+      projects ?? [],
       hints
     );
     if (neverMergeViolationsStripped.length > 0) {

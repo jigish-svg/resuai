@@ -29,6 +29,7 @@ const parsed: ParsedResume = {
   skills: ['Go', 'Postgres'],
   education: [{ institution: 'Uni', degree: 'BSc' }],
   certifications: [{ name: 'CKA', issuer: 'CNCF' }],
+  projects: [],
 };
 
 describe('buildResumeSavePayload', () => {

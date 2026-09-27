@@ -44,6 +44,7 @@ function emptyParsedResume(): ParsedResume {
     skills: [],
     education: [],
     certifications: [],
+    projects: [],
   };
 }
 

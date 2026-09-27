@@ -98,6 +98,9 @@ export const SuggestSkillsBody = z
   .object({
     jobTitles: list(shortText, 20),
     currentSkills: optional(list(shortText)),
+    // When provided, suggestions are persisted as pending ai_suggestions rows
+    // scoped to this resume. Omitting it keeps the response purely ephemeral.
+    resumeId: optional(id),
   })
   .strict();
 

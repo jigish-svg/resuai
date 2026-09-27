@@ -51,7 +51,7 @@ describe('matchRequirementsToAchievements', () => {
       { requirement_id: 'req-1', status: 'partial', confidence: 'medium', achievement_id: 'ach-1', explanation: 'Only a certification course, not production experience.' },
     ]);
     const hints: MatchHints = { similarityHints: new Map([['req-1', new Map([['ach-1', 0.88]])]]) };
-    const { matches } = await matchRequirementsToAchievements([requirement()], [achievement()], 'Jane Doe', [], [], hints);
+    const { matches } = await matchRequirementsToAchievements([requirement()], [achievement()], 'Jane Doe', [], [], [], hints);
     expect(matches[0].status).toBe('partial');
 
     const systemPrompt = parseMock.mock.calls[0][0].messages[0].content as string;
@@ -72,6 +72,7 @@ describe('matchRequirementsToAchievements', () => {
       'Jane Doe',
       [],
       [],
+      [],
       hints
     );
     expect(matches[0].status).toBe('no_evidence');
@@ -87,7 +88,7 @@ describe('matchRequirementsToAchievements', () => {
       conceptMatches: new Map([['req-1', new Set(['ach-1'])]]),
       similarityHints: new Map([['req-1', new Map([['ach-1', 0.91]])]]),
     };
-    await matchRequirementsToAchievements([requirement({ requirement_text: 'Python experience' })], [achievement({ skills: ['Python'] })], 'Jane Doe', [], [], hints);
+    await matchRequirementsToAchievements([requirement({ requirement_text: 'Python experience' })], [achievement({ skills: ['Python'] })], 'Jane Doe', [], [], [], hints);
 
     const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
     expect(promptContent).toContain('concept-equivalent achievement');
@@ -109,6 +110,7 @@ describe('matchRequirementsToAchievements', () => {
       'Jane Doe',
       [],
       [],
+      [],
       hints
     );
     const req2Match = matches.find((m) => m.requirement_id === 'req-2');
@@ -127,6 +129,7 @@ describe('matchRequirementsToAchievements', () => {
       'Jane Doe',
       [],
       [{ name: 'MySQL Certified Associate' }],
+      [],
       hints
     );
     expect(matches[0].status).toBe('no_evidence');
@@ -147,6 +150,7 @@ describe('matchRequirementsToAchievements', () => {
       'Jane Doe',
       [],
       [{ name: 'Some incompatible certification' }],
+      [],
       hints
     );
     expect(matches[0].status).not.toBe('matched');
@@ -182,6 +186,7 @@ describe('matchRequirementsToAchievements', () => {
       'Jane Doe',
       [],
       [{ name: 'MySQL Certified Associate' }],
+      [],
       hints
     );
     expect(matches[0].status).toBe('matched');
@@ -202,6 +207,45 @@ describe('matchRequirementsToAchievements', () => {
     expect(matches[0].status).toBe('partial');
     expect(matches[0].achievement_id).toBeUndefined();
     expect(neverMergeViolationsStripped).toEqual([]);
+  });
+
+  it('5. project evidence can support an existing requirement (MATCHED with no achievement_id, like skills/certs)', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'The URL Shortener project demonstrates FastAPI usage.' },
+    ]);
+    const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'FastAPI experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      [],
+      [],
+      [{ id: 'proj-1', name: 'URL Shortener', description: 'Built a distributed URL shortener using FastAPI and Redis.', technologies: ['FastAPI', 'Redis'], metrics: [] }]
+    );
+    expect(matches[0].status).toBe('matched');
+    expect(matches[0].achievement_id).toBeUndefined();
+    expect(neverMergeViolationsStripped).toEqual([]);
+
+    const promptContent = parseMock.mock.calls[0][0].messages[1].content as string;
+    expect(promptContent).toContain('<<<candidate_projects>>>');
+    expect(promptContent).toContain('URL Shortener');
+  });
+
+  it('6. never-merge still blocks a project-only MATCHED verdict (e.g. PostgreSQL requirement vs a MySQL-only project)', async () => {
+    mockLlmResponse([
+      { requirement_id: 'req-1', status: 'matched', confidence: 'high', explanation: 'Treating the MySQL project as equivalent.' },
+    ]);
+    const hints: MatchHints = { skillsCertsNeverMergeBlocked: new Set(['req-1']) };
+    const { matches, neverMergeViolationsStripped } = await matchRequirementsToAchievements(
+      [requirement({ requirement_text: 'PostgreSQL experience', category: 'hard_skill' })],
+      [],
+      'Jane Doe',
+      [],
+      [],
+      [{ id: 'proj-1', name: 'Inventory App', description: 'Built with MySQL.', technologies: ['MySQL'], metrics: [] }],
+      hints
+    );
+    expect(matches[0].status).toBe('no_evidence');
+    expect(neverMergeViolationsStripped).toEqual([{ requirement_id: 'req-1', source: 'skills_or_certifications' }]);
   });
 
   it('delimits untrusted resume/job content in the constructed prompt', async () => {
