@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { Plus, ArrowRight, Clock, Briefcase, FileText, Activity } from 'lucide-react';
-import { formatDate } from '@/lib/utils';
+import { Plus, ArrowRight, Briefcase, FileText, Activity } from 'lucide-react';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -37,7 +36,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-ink mb-1">Good morning, {displayName}</h1>
           <p className="text-sm text-ink-soft">
-            Here's what's happening with your job search today.
+            Here&apos;s what&apos;s happening with your job search today.
           </p>
         </div>
         <Link

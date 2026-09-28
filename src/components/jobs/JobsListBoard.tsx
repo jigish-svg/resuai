@@ -45,7 +45,7 @@ export default function JobsListBoard({ initialJobs }: { initialJobs: ListJob[] 
       if (!res.ok) {
         throw new Error('Failed');
       }
-    } catch (e) {
+    } catch {
       setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, status: prevStatus } : j)));
       toast.error('Failed to update status');
     } finally {
