@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect } from 'react';
 import Link from 'next/link';
@@ -41,24 +41,61 @@ export default function LandingPage() {
     }
     toggle?.addEventListener('click', () => { setMenu(toggle.getAttribute('aria-expanded') !== 'true'); });
     menu?.addEventListener('click', (e) => { if ((e.target as Element).closest('a')) setMenu(false); });
-    const PLANS: Record<string, { amt: string; per: string; note: string }> = {
-      weekly:  { amt: '999',    per: 'per week',  note: 'Good for a short, focused job hunt.' },
-      monthly: { amt: '1,999',  per: 'per month', note: 'Good for a steady job search.' },
-      yearly:  { amt: '11,999', per: 'per year',  note: 'About u20b91,000 a month. Save about 50% compared with paying monthly.' },
+    // Geo-based pricing: INR for India, USD for everyone else.
+    type PlanEntry = { sym: string; amt: string; per: string; note: string };
+    type PlanSet = Record<string, PlanEntry>;
+    const PLANS_INR: PlanSet = {
+      weekly:  { sym: '\u20B9', amt: '299',   per: 'per week',  note: 'Good for a short, focused job hunt.' },
+      monthly: { sym: '\u20B9', amt: '699',   per: 'per month', note: 'Good for a steady job search.' },
+      yearly:  { sym: '\u20B9', amt: '4,999', per: 'per year',  note: 'About \u20B9416 a month. Save over 50\u0025 vs monthly.' },
     };
+    const PLANS_USD: PlanSet = {
+      weekly:  { sym: '$', amt: '4',  per: 'per week',  note: 'Good for a short, focused job hunt.' },
+      monthly: { sym: '$', amt: '9',  per: 'per month', note: 'Good for a steady job search.' },
+      yearly:  { sym: '$', amt: '59', per: 'per year',  note: 'About $4.90 a month. Save over 45\u0025 vs monthly.' },
+    };
+    let PLANS = PLANS_USD;
+    let activePlan = 'monthly';
+
+    function applyPlan(planKey: string, plans: PlanSet) {
+      activePlan = planKey;
+      const p = plans[planKey];
+      const cur = document.getElementById('cur');
+      const amt = document.getElementById('amt');
+      const per = document.getElementById('per');
+      const pnote = document.getElementById('pnote');
+      const freeCur = document.getElementById('free-cur');
+      const finePrint = document.getElementById('fine-print');
+      if (cur) cur.textContent = p.sym;
+      if (freeCur) freeCur.textContent = p.sym;
+      if (amt) amt.textContent = p.amt;
+      if (per) per.textContent = p.per;
+      if (pnote) pnote.textContent = p.note;
+      if (finePrint) {
+        finePrint.textContent = plans === PLANS_INR
+          ? 'All prices are in Indian rupees (\u20B9). Taxes are added where they apply.'
+          : 'All prices are in USD. Taxes may be added where applicable.';
+      }
+    }
+
     const btns = Array.from(document.querySelectorAll('.bill button')) as HTMLButtonElement[];
     btns.forEach((b) => {
       b.addEventListener('click', () => {
-        const p = PLANS[b.getAttribute('data-plan') || 'monthly'];
         btns.forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
-        const amt = document.getElementById('amt');
-        const per = document.getElementById('per');
-        const pnote = document.getElementById('pnote');
-        if (amt) amt.textContent = p.amt;
-        if (per) per.textContent = p.per;
-        if (pnote) pnote.textContent = p.note;
+        applyPlan(b.getAttribute('data-plan') || 'monthly', PLANS);
       });
     });
+
+    // Detect country; default monthly plan on load.
+    applyPlan('monthly', PLANS);
+    fetch('https://ip-api.com/json/?fields=countryCode', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d: { countryCode?: string }) => {
+        PLANS = d.countryCode === 'IN' ? PLANS_INR : PLANS_USD;
+        applyPlan(activePlan, PLANS);
+      })
+      .catch(() => { /* stay on USD default */ });
+
     const yr = document.getElementById('yr');
     if (yr) yr.textContent = String(new Date().getFullYear());
   }, []);
@@ -214,9 +251,9 @@ export default function LandingPage() {
         </div></section>
         <section className="section bg-white" id="pricing"><div className="wrap">
           <div className="center">
-            <h2 className="h2 center">Simple pricing, in rupees.</h2>
+            <h2 className="h2 center">Simple, honest pricing.</h2>
             <p className="lede-sm center">Start free. Pay only when you are ready to apply seriously.</p>
-            <p className="todo">Sample prices. Set your final &#x20B9; prices before you launch.</p>
+            <p className="todo">Sample prices. Set your final prices before you launch.</p>
             <div><div className="bill" role="group" aria-label="Billing period">
               <button type="button" data-plan="weekly" aria-pressed="false">Weekly</button>
               <button type="button" data-plan="monthly" aria-pressed="true">Monthly</button>
@@ -224,10 +261,10 @@ export default function LandingPage() {
             </div></div>
           </div>
           <div className="plans">
-            <article className="plan"><h3>Free</h3><p className="plan-desc">Try GetJobFit on your first job.</p><p className="price"><span className="cur">&#x20B9;</span><span className="amt-num">0</span><span className="per-lbl">to start</span></p><p className="plan-note">No credit card needed.</p><Link className="btn btn-ghost" href="/signup">Start free</Link><ul className="plan-list"><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Build your career documents</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Check your fit for a job</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>See your evidence map</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Preview a tailored resume</li></ul></article>
-            <article className="plan plan-pro"><h3>Pro</h3><p className="plan-desc">For a serious job hunt.</p><p className="price" aria-live="polite"><span className="cur">&#x20B9;</span><span className="amt-num" id="amt">1,999</span><span className="per-lbl" id="per">per month</span></p><p className="plan-note" id="pnote">Good for a steady job search.</p><Link className="btn btn-light" href="/signup">Get Pro</Link><ul className="plan-list"><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Everything in Free</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Unlimited fit checks</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Tailored resumes and cover letters for every role</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Truth Guard on every draft</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Interview preparation for each application</li></ul></article>
+            <article className="plan"><h3>Free</h3><p className="plan-desc">Try GetJobFit on your first job.</p><p className="price"><span id="free-cur" className="cur">$</span><span className="amt-num">0</span><span className="per-lbl">to start</span></p><p className="plan-note">No credit card needed.</p><Link className="btn btn-ghost" href="/signup">Start free</Link><ul className="plan-list"><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Build your career documents</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Check your fit for a job</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>See your evidence map</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Preview a tailored resume</li></ul></article>
+            <article className="plan plan-pro"><h3>Pro</h3><p className="plan-desc">For a serious job hunt.</p><p className="price" aria-live="polite"><span id="cur" className="cur">$</span><span className="amt-num" id="amt">9</span><span className="per-lbl" id="per">per month</span></p><p className="plan-note" id="pnote">Good for a steady job search.</p><Link className="btn btn-light" href="/signup">Get Pro</Link><ul className="plan-list"><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Everything in Free</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Unlimited fit checks</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Tailored resumes and cover letters for every role</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Truth Guard on every draft</li><li><svg className="i" aria-hidden="true"><use href="#i-check"/></svg>Interview preparation for each application</li></ul></article>
           </div>
-          <p className="fine-print">All prices are in Indian rupees (&#x20B9;). Taxes are added where they apply.</p>
+          <p className="fine-print" id="fine-print">All prices are in USD. Taxes may be added where applicable.</p>
         </div></section>
         <section className="section" id="faq"><div className="wrap faq">
           <div><h2 className="h2">Questions, answered plainly.</h2></div>
@@ -237,7 +274,7 @@ export default function LandingPage() {
             <details><summary>What if I don&#x2019;t meet every requirement?</summary><p className="faq-a">Most people don&#x2019;t, and that is fine. We show your gaps early so you can decide if the job is still worth it.</p></details>
             <details><summary>What do I need to get started?</summary><p className="faq-a">Your work history and a job you are interested in. Add proof as you go.</p></details>
             <details><summary>Can I use it for jobs outside India?</summary><p className="faq-a">Yes. You can check your fit against any job post worldwide.</p></details>
-            <details><summary>How much does it cost?</summary><p className="faq-a">You can start for free. Paid plans are shown in the pricing section above, in rupees.</p></details>
+            <details><summary>How much does it cost?</summary><p className="faq-a">You can start for free. Paid plans are shown in the pricing section above. Prices are shown in INR for visitors in India and in USD for everyone else.</p></details>
           </div>
         </div></section>
         <section className="final"><div className="wrap">
